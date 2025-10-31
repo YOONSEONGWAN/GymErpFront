@@ -1,4 +1,3 @@
 # GymErpFront
-GymErpFrontend, React 
+React 기반 프론트엔드 프로젝트
 
-first commit 추가 2510311900
