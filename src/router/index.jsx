@@ -9,6 +9,8 @@ import EmpAttendanceView from "../pages/EmpAttendance/viewAttendance.jsx";
 import EmpAttendanceList from "../pages/EmpAttendance/list.jsx";
 import EmpVacationList from "../pages/EmpVacation/list.jsx";
 import JONGBOKHome from "../pages/JONGBOKHome.jsx";
+import SchedulePage from "../pages/SchedulePage.jsx";
+
 
 const router = createBrowserRouter([
   {
@@ -24,6 +26,7 @@ const router = createBrowserRouter([
       { path: "/EmpAttendanceMy", element: <EmpAttendanceMy /> },
       { path: "/EmpAttendanceView", element: <EmpAttendanceView /> },
       { path: "/JONGBOKHome", element: <JONGBOKHome /> },
+      { path: "schedule", element: <SchedulePage /> },
     ],
   },
 ]);
