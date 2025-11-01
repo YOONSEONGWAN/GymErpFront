@@ -2,35 +2,36 @@
 
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Navigate, useLocation } from 'react-router-dom';
 
 function ProtectedRoute({children}) {
-    const [isAuthenticated, setIsAuthenticated] = useState(null);
+    const user = useSelector((state)=> state.user);
+    const dispatch = useDispatch();
     const [loading, setLoading] = useState(true);
     const location = useLocation();
 
     useEffect(()=>{
-        const checkSession = async ()=>{
-            try {
-                const response = await axios.get("/v1/emp/list", {
-                    withCredentials: true
-                });
-                if (response.status === 200) {
-                    setIsAuthenticated(true);
+        const restoreSession = ()=>{
+            // Redux에 user가 없으면 sessionStorage에서 복원
+            if (!user) {
+                const savedUser = sessionStorage.getItem("user");
+                if (savedUser) {
+                    dispatch({
+                        type: "USER_INFO",
+                        payload: JSON.parse(savedUser),
+                    });
                 }
-            } catch (err) {
-                console.log("Session check failed: ", err.response?.status);
-                setIsAuthenticated(false);
-            } finally{
-                setLoading(false);
             }
+            // 2️⃣ 복원 시도 후 로딩 종료
+            setLoading(false);
         };
 
-        checkSession();
-    }, [location.pathname]); // 경로 변경 시마다 체크
+        restoreSession();
+
+    }, [user, dispatch]);
 
     if (loading) {
-
         return (
             <div className="vh-100 d-flex align-items-center justify-content-center">
                 <div className="spinner-border text-primary" style={{width: '3rem', height: '3rem'}} role="status">
@@ -38,10 +39,9 @@ function ProtectedRoute({children}) {
                 </div>
             </div>
         );
-
     }
 
-    if(!isAuthenticated) {
+    if(!user) {
         return <Navigate to="/login" replace state={{from: location}} />;
     }
 

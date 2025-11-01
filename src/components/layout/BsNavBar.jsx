@@ -1,9 +1,11 @@
 import axios from 'axios';
 import React from 'react';
 import { Container, Navbar } from 'react-bootstrap';
+import { useDispatch } from 'react-redux';
 import { NavLink, useNavigate } from 'react-router-dom';
 
 function BsNavBar() {
+    const dispatch = useDispatch();
     const navigate = useNavigate();
     const user = JSON.parse(sessionStorage.getItem("user") || "null");
 
@@ -14,6 +16,7 @@ function BsNavBar() {
         } catch(err) {
             console.warn("logout failed: " + err);
         } finally {
+            dispatch({type: "USER_LOGOUT"});
             sessionStorage.removeItem("user");
             navigate("/login", {replace: true})
         }
