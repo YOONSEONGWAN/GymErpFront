@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import EmpModal from "../components/EmpModal";
 import SearchBar from "../components/SearchBar";
 import Pagination from "../components/Pagination";
+import ScheduleCalendar from "../components/ScheduleCalendar";
 
 function EmpList() {
   const [list, setList] = useState([]);
