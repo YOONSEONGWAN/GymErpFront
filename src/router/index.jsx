@@ -27,6 +27,7 @@ const router = createBrowserRouter([
         <Login />
       </div>
     ),
+    errorElement: <div>로그인 페이지 에러</div>
   },
 
   // 2) 메인 앱 (보호)
@@ -37,6 +38,7 @@ const router = createBrowserRouter([
         <App />
       </ProtectedRoute>
     ),
+    errorElement: <div>Route 에러</div>,
     children: [
       { path: "home", element: <Home /> },
       { path: "jongbok", element: <JONGBOKHome /> },
