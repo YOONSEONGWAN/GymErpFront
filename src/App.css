@@ -1,0 +1,2 @@
+.app-main { padding-top: 56px; }
+@media (min-width: 768px) { .app-main { margin-left: 240px; } }
