@@ -34,7 +34,7 @@ function ScheduleCalendar({ events, onSelectSlot, onSelectEvent }) {
       style={{ height: 600 }}
       eventPropGetter={(event) => ({
         style: {
-          backgroundColor: event.color || "#007bff",
+          backgroundColor: event.color,
           borderRadius: "5px",
           color: "white",
         },

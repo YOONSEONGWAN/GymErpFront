@@ -4,6 +4,7 @@ import { RouterProvider } from "react-router-dom";
 import router from "./router/index.jsx"; // 라우팅 설정 
 
 import 'bootstrap/dist/css/bootstrap.min.css';
+import "bootstrap-icons/font/bootstrap-icons.css";
 
 
 createRoot(document.getElementById('root')).render(

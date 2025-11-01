@@ -11,7 +11,6 @@ import EmpVacationList from "../pages/EmpVacation/list.jsx";
 import JONGBOKHome from "../pages/JONGBOKHome.jsx";
 import SchedulePage from "../pages/SchedulePage.jsx";
 
-
 const router = createBrowserRouter([
   {
     path: "/",
@@ -21,12 +20,12 @@ const router = createBrowserRouter([
       { path: "emp", element: <EmpList /> },
       { path: "emp/:empNum", element: <EmpDetail /> },
       { path: "emp/edit/:empNum", element: <EmpEdit /> },
-      { path: "/EmpvacationList", element: <EmpVacationList /> },
-      { path: "/EmpattendanceList", element: <EmpAttendanceList /> },
-      { path: "/EmpAttendanceMy", element: <EmpAttendanceMy /> },
-      { path: "/EmpAttendanceView", element: <EmpAttendanceView /> },
-      { path: "/JONGBOKHome", element: <JONGBOKHome /> },
-      { path: "schedule", element: <SchedulePage /> },
+      { path: "EmpVacationList", element: <EmpVacationList /> },
+      { path: "EmpAttendanceList", element: <EmpAttendanceList /> },
+      { path: "EmpAttendanceMy", element: <EmpAttendanceMy /> },
+      { path: "EmpAttendanceView", element: <EmpAttendanceView /> },
+      { path: "JONGBOKHome", element: <JONGBOKHome /> },
+      { path: "SchedulePage", element: <SchedulePage /> },
     ],
   },
 ]);
