@@ -16,9 +16,7 @@ import EmpAttendanceList from "../pages/EmpAttendance/list.jsx";
 import EmpVacationList from "../pages/EmpVacation/list.jsx";
 import JONGBOKHome from "../pages/JONGBOKHome.jsx";
 import SchedulePage from "../pages/SchedulePage.jsx";
-
-// (선택) 404 페이지가 있다면 임포트해서 사용하세요.
-// import NotFound from "../pages/NotFound.jsx";
+import ProdcutList from "../pages/Product/ProductList.jsx";
 
 const router = createBrowserRouter([
   // 1) 로그인 (비보호)
@@ -50,8 +48,7 @@ const router = createBrowserRouter([
       { path: "attendance/view", element: <EmpAttendanceView /> }, 
       { path: "vacations", element: <EmpVacationList /> },
       { path: "schedule", element: <SchedulePage /> },
-      { path: "*", element: <Navigate to="emp" replace /> },
-      { path: "/ProductList", element: <ProdcutList/> },
+      { path: "productList", element: <ProdcutList/> },
     ],
   },
 ]);
