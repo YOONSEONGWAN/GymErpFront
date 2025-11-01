@@ -17,6 +17,10 @@ import EmpVacationList from "../pages/EmpVacation/list.jsx";
 import JONGBOKHome from "../pages/JONGBOKHome.jsx";
 import SchedulePage from "../pages/SchedulePage.jsx";
 import ProdcutList from "../pages/Product/ProductList.jsx";
+import MemberList from "../pages/MemberList.jsx";
+import MemberDetail from "../pages/MemberDetail.jsx";
+import MemberEdit from "../pages/MemberEdit.jsx";
+
 
 const router = createBrowserRouter([
   // 1) 로그인 (비보호)
@@ -49,6 +53,10 @@ const router = createBrowserRouter([
       { path: "vacations", element: <EmpVacationList /> },
       { path: "schedule", element: <SchedulePage /> },
       { path: "productList", element: <ProdcutList/> },
+      { path: "member", element: <MemberList /> },
+      { path: "member/:memNum", element: <MemberDetail /> },
+      { path: "member/edit/:memNum", element: <MemberEdit /> },
+
     ],
   },
 ]);
