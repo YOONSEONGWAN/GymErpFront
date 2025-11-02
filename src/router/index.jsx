@@ -54,6 +54,7 @@ const router = createBrowserRouter([
       { path: "attendance/view", element: <EmpAttendanceView /> }, 
       { path: "vacations", element: <EmpVacationList /> },
       { path: "schedule", element: <SchedulePage /> },
+      { path: "product", element: <ProductList/> },
       { path: "productList", element: <ProdcutList/> },
       { path: "member", element: <MemberList /> },
       { path: "member/:memNum", element: <MemberDetail /> },
