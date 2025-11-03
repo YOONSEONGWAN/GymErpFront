@@ -18,6 +18,7 @@ import JONGBOKHome from "../pages/JONGBOKHome.jsx";
 import SchedulePage from "../pages/SchedulePage.jsx";
 
 
+
 import ProdcutList from "../pages/Product/ProductList.jsx";
 
 
@@ -46,12 +47,14 @@ const router = createBrowserRouter([
       { path: "emp", element: <EmpList /> },
       { path: "emp/:empNum", element: <EmpDetail /> },
       { path: "emp/edit/:empNum", element: <EmpEdit /> },
-      { path: "attendance", element: <EmpAttendanceList /> }, 
+      { path: "attendance", element: <EmpAttendanceList /> },
       { path: "attendance/my", element: <EmpAttendanceMy /> },
-      { path: "attendance/view", element: <EmpAttendanceView /> }, 
+      { path: "attendance/view", element: <EmpAttendanceView /> },
       { path: "vacations", element: <EmpVacationList /> },
-      { path: "SchedulePage", element: <SchedulePage /> },
-      { path: "productList", element: <ProdcutList/> },
+      { path: "schedule", element: <SchedulePage /> },
+      { path: "schedule/:empNum", element: <SchedulePage /> },
+      { path: "productList", element: <ProdcutList /> },
+      
 
     ],
   },

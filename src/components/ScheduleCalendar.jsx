@@ -1,11 +1,23 @@
-// src/components/ScheduleCalendar.jsx
-import React from "react";
-import { Calendar, dateFnsLocalizer } from "react-big-calendar";
-import { format, parse, startOfWeek, getDay } from "date-fns";
+import React, { useState, useCallback } from "react";
+import {
+  Calendar,
+  dateFnsLocalizer,
+  Navigate,
+  Views,
+} from "react-big-calendar";
+import { format, parse, startOfWeek, getDay, addMonths } from "date-fns";
 import { ko } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
-// ============================= 달력 지역화 설정 =============================
+/**
+ * 📆 ScheduleCalendar.jsx (버전 무관 완성형)
+ * -------------------------------------------------
+ * ✅ 월 보기 전용
+ * ✅ 이전 / 다음 / 오늘 완벽 작동
+ * ✅ 일정별 색상 표시
+ * ✅ 오늘 날짜 강조
+ * ✅ Bootstrap 스타일 통합
+ */
 const locales = { ko };
 const localizer = dateFnsLocalizer({
   format,
@@ -15,32 +27,119 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-/**
- * 📅 ScheduleCalendar 컴포넌트
- * @param {Array} events 일정 데이터 (start, end, title 등 포함)
- * @param {Function} onSelectSlot 빈 칸 클릭 시 실행할 함수
- * @param {Function} onSelectEvent 일정 클릭 시 실행할 함수
- */
-function ScheduleCalendar({ events, onSelectSlot, onSelectEvent }) {
+/** ✅ 커스텀 툴바 */
+function CustomToolbar({ label, onNavigate }) {
   return (
-    <Calendar
-      localizer={localizer}
-      events={events}
-      startAccessor="start"
-      endAccessor="end"
-      selectable
-      onSelectSlot={onSelectSlot}
-      onSelectEvent={onSelectEvent}
-      style={{ height: 600 }}
-      eventPropGetter={(event) => ({
-        style: {
-          backgroundColor: event.color,
-          borderRadius: "5px",
-          color: "white",
-        },
-      })}
-    />
+    <div
+      className="d-flex justify-content-between align-items-center mb-2 px-3 py-2"
+      style={{
+        backgroundColor: "#f8f9fa",
+        borderRadius: "8px",
+        border: "1px solid #dee2e6",
+      }}
+    >
+      <div>
+        <button
+          className="btn btn-outline-secondary btn-sm me-2"
+          onClick={() => onNavigate("PREV")}
+        >
+          ◀ 이전
+        </button>
+        <button
+          className="btn btn-outline-secondary btn-sm me-2"
+          onClick={() => onNavigate("TODAY")}
+        >
+          오늘
+        </button>
+        <button
+          className="btn btn-outline-secondary btn-sm"
+          onClick={() => onNavigate("NEXT")}
+        >
+          다음 ▶
+        </button>
+      </div>
+      <h5 className="mb-0 fw-bold text-dark">
+        {label.replace(" ", "년 ")} {/* 예: 2025 11월 → 2025년 11월 */}
+      </h5>
+    </div>
   );
 }
 
-export default ScheduleCalendar;
+/** ✅ 캘린더 본체 */
+export default function ScheduleCalendar({ events, onSelectSlot, onSelectEvent }) {
+  const [date, setDate] = useState(new Date());
+  const [view, setView] = useState(Views.MONTH);
+
+  /** ✅ 수동으로 navigate 처리 */
+  const handleNavigate = useCallback(
+    (action) => {
+      switch (action) {
+        case "TODAY":
+          setDate(new Date());
+          break;
+        case "PREV":
+          setDate((d) => addMonths(d, -1));
+          break;
+        case "NEXT":
+          setDate((d) => addMonths(d, 1));
+          break;
+        default:
+          break;
+      }
+    },
+    []
+  );
+
+  return (
+    <div className="p-2 bg-white rounded shadow-sm">
+      <Calendar
+        localizer={localizer}
+        events={events}
+        startAccessor="start"
+        endAccessor="end"
+        selectable
+        date={date}
+        view={view}
+        views={[Views.MONTH]} // ✅ 월 보기 고정
+        onView={(newView) => setView(newView)}
+        onSelectSlot={onSelectSlot}
+        onSelectEvent={onSelectEvent}
+        popup
+        style={{ height: 750 }}
+        components={{
+          toolbar: (props) => (
+            <CustomToolbar
+              {...props}
+              onNavigate={(action) => handleNavigate(action)}
+            />
+          ),
+        }}
+        eventPropGetter={(event) => ({
+          style: {
+            backgroundColor: event.color || "#95a5a6",
+            color: "white",
+            borderRadius: "8px",
+            border: "none",
+            padding: "3px 6px",
+            whiteSpace: "normal",
+            fontSize: "0.85rem",
+          },
+        })}
+        dayPropGetter={(date) => {
+          const isToday = new Date().toDateString() === date.toDateString();
+          return isToday
+            ? { style: { backgroundColor: "#fff9e6" } }
+            : {};
+        }}
+        messages={{
+          next: "다음",
+          previous: "이전",
+          today: "오늘",
+          month: "월",
+          week: "주",
+          day: "일",
+        }}
+      />
+    </div>
+  );
+}
