@@ -20,6 +20,10 @@ import ProdcutList from "../pages/Product/ProductList.jsx";
 import MemberList from "../pages/MemberList.jsx";
 import MemberDetail from "../pages/MemberDetail.jsx";
 import MemberEdit from "../pages/MemberEdit.jsx";
+import PostList from "../pages/PostList.jsx";
+import PostView from "../pages/PostView.jsx";
+import PostEdit from "../pages/PostEdit.jsx";
+import PostAdd from "../pages/PostAdd.jsx";
 
 
 const router = createBrowserRouter([
@@ -56,7 +60,10 @@ const router = createBrowserRouter([
       { path: "member", element: <MemberList /> },
       { path: "member/:memNum", element: <MemberDetail /> },
       { path: "member/edit/:memNum", element: <MemberEdit /> },
-
+      { path: "post", element: <PostList /> },
+      { path: "post/:postId", element: <PostView /> },
+      { path: "post/new", element: <PostAdd /> },
+      { path: "post/edit/:postId", element: <PostEdit /> },
     ],
   },
 ]);
