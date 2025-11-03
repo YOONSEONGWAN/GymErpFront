@@ -235,14 +235,15 @@ function VacationTab({ onSaved }) {
           <Form.Label>등록자</Form.Label>
           <Form.Control name="registrant" value={form.registrant} onChange={onChange} placeholder="로그인 사용자명" />
         </Col>
-        <Col md={3}>
+        
+        {/* <Col md={3}>
           <Form.Label>사용 일 수</Form.Label>
           <Form.Control value={usedDays} readOnly />
         </Col>
         <Col md={3}>
           <Form.Label>남은 휴가 수</Form.Label>
           <Form.Control name="remainDays" value={form.remainDays} onChange={onChange} />
-        </Col>
+        </Col> */}
         <Col md={6}>
           <Form.Label>시작 일</Form.Label>
           <Form.Control type="date" name="startDate" value={form.startDate} onChange={onChange} />
