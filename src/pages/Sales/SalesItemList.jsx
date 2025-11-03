@@ -198,13 +198,8 @@ function SalesItemList() {
   </div>
 
 
-      {/* 제목 + 등록 */}
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h4>판매 목록 ({salesList.length} 건)</h4>
-      </div>
-
       {/* 테이블 */}
-      <table className="table table-striped table-hover text-center align-middle">
+      <table className="table table-striped table-hover text-center align-middle mb-0">
         <thead className="table-dark">
           <tr>
             <th>판매번호</th>
@@ -235,21 +230,27 @@ function SalesItemList() {
             ))
           ) : (
             <tr>
-              <td colSpan="7" className="text-center p-4 text-muted">
-                조회된 판매 내역이 없습니다.
-              </td>
+              <td colSpan="7" className="text-center p-4 text-muted">조회된 판매 내역이 없습니다.</td>
             </tr>
           )}
         </tbody>
-        <button onClick={handleGoToCreate} className="btn btn-success">
-          <i className="bi bi-journal-plus me-1" />
-          판매 등록
-        </button>    
       </table>
 
-      {/* 페이지네이션 */}
-      <div className="d-flex justify-content-center">
-        <Pagination page={page} totalPage={totalPage} onPageChange={setPage} />
+      {/* ✅ 아래 줄: 가운데는 페이지네이션, 오른쪽 끝엔 등록 버튼 */}
+      <div className="position-relative mt-3">
+        {/* 가운데 정렬된 페이지네이션 */}
+        <div className="d-flex justify-content-center">
+          <Pagination page={page} totalPage={totalPage} onPageChange={setPage} />
+        </div>
+
+        {/* 오른쪽 끝 고정 '등록' 버튼 (빨간 박스 자리) */}
+        <button
+          onClick={handleGoToCreate}
+          className="btn btn-success position-absolute end-0 top-40 translate-middle-y"
+        >
+          <i className="bi bi-journal-plus me-1" />
+          등록
+        </button>
       </div>
     </div>
   );
