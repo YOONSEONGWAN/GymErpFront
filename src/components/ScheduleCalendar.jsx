@@ -1,11 +1,10 @@
-// src/components/ScheduleCalendar.jsx
-import React from "react";
+import React, { useState } from "react";
 import { Calendar, dateFnsLocalizer } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import { ko } from "date-fns/locale";
+import "bootstrap/dist/css/bootstrap.min.css";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
-// ============================= 달력 지역화 설정 =============================
 const locales = { ko };
 const localizer = dateFnsLocalizer({
   format,
@@ -15,13 +14,12 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-/**
- * 📅 ScheduleCalendar 컴포넌트
- * @param {Array} events 일정 데이터 (start, end, title 등 포함)
- * @param {Function} onSelectSlot 빈 칸 클릭 시 실행할 함수
- * @param {Function} onSelectEvent 일정 클릭 시 실행할 함수
- */
+
+
+// ScheduleCalendar (캘린더 렌더링)
 function ScheduleCalendar({ events, onSelectSlot, onSelectEvent }) {
+  const [currentView, setCurrentView] = useState("month");
+  const [currentDate, setCurrentDate] = useState(new Date()); 
   return (
     <Calendar
       localizer={localizer}
@@ -39,8 +37,63 @@ function ScheduleCalendar({ events, onSelectSlot, onSelectEvent }) {
           color: "white",
         },
       })}
+      view={currentView}
+      onView={(view) => setCurrentView(view)}
+      date={currentDate} // 현재 달력 기준 날짜
+      onNavigate={(newDate) => setCurrentDate(newDate)} // 버튼 클릭 시 날짜 업데이트
+      components={{ toolbar: CustomToolbar }}
+      views={["month", "week", "day"]}
+      defaultView="month"
     />
   );
 }
 
+// Custom Toolbar
+function CustomToolbar({ label, onNavigate, onView }) {
+  return (
+    <div className="rbc-toolbar d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <button
+          className="btn btn-outline-secondary btn-sm me-1"
+          onClick={() => onNavigate("PREV")}
+        >
+          Back
+        </button>
+        <button
+          className="btn btn-outline-primary btn-sm me-1"
+          onClick={() => onNavigate("TODAY")}
+        >
+          Today
+        </button>
+        <button
+          className="btn btn-outline-secondary btn-sm"
+          onClick={() => onNavigate("NEXT")}
+        >
+          Next
+        </button>
+      </div>
+      <span className="fw-bold">{label}</span>
+      <div>
+        <button
+          className="btn btn-outline-dark btn-sm me-1"
+          onClick={() => onView("month")}
+        >
+          Month
+        </button>
+        <button
+          className="btn btn-outline-dark btn-sm me-1"
+          onClick={() => onView("week")}
+        >
+          Week
+        </button>
+        <button
+          className="btn btn-outline-dark btn-sm"
+          onClick={() => onView("day")}
+        >
+          Day
+        </button>
+      </div>
+    </div>
+  );
+}
 export default ScheduleCalendar;

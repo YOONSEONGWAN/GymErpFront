@@ -2,6 +2,7 @@
 
 import axios from 'axios';
 import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 function Login() {
@@ -12,6 +13,7 @@ function Login() {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
+    const dispatch = useDispatch();
     const from = location.state?.from?.pathname || "/emp"; // 로그인 후 가야 할 경로(원하면 바꿔)
 
     const handleLogin = async(e) => {
@@ -37,13 +39,12 @@ function Login() {
 
             // 로그인 성공
             if(response.data && response.data.empNum){
+                const user = response.data
+                // 사용자 정보를 redux store 에 저장
+                const action = {type:"USER_INFO", payload: user};
+                dispatch(action);
                 // 사용자 정보를 sessionStorage 에 저장
-                sessionStorage.setItem("user", JSON.stringify({
-                    empNum: response.data.empNum,
-                    empName: response.data.empName,
-                    empEmail: response.data.empEmail,
-                    role: response.data.role,
-                }));
+                sessionStorage.setItem("user", JSON.stringify(user));
                 navigate(from, { replace: true }); // 로그인 후 페이지 이동
             }
         } catch (error) {
