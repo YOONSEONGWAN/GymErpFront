@@ -20,13 +20,26 @@ import ProductList from "../pages/Product/ProductList.jsx";
 import MemberList from "../pages/MemberList.jsx";
 import MemberDetail from "../pages/MemberDetail.jsx";
 import MemberEdit from "../pages/MemberEdit.jsx";
+import PostList from "../pages/PostList.jsx";
+import PostView from "../pages/PostView.jsx";
+import PostEdit from "../pages/PostEdit.jsx";
+import PostAdd from "../pages/PostAdd.jsx";
+import SalesItemList from "../pages/Sales/SalesItemList.jsx";
+import SalesItemCreate from "../pages/Sales/SalesItemCreate.jsx";
 import StockInbound from "../pages/Product/StockInbound.jsx";
 import ProductCreate from "../pages/Product/ProductCreate.jsx";
-import ProductUpdate from "../pages/Product/ProductUpdate.jsx";
+import ProductUpdate from "../pages/Product/ProductUpdate.jsx"
+import StockList from "../pages/Product/StockList.jsx";
 
 
 const router = createBrowserRouter([
-  // 1) 로그인 (비보호)
+  // 1) 루트 경로 - /home으로 리다이렉트
+  {
+    path: "/",
+    element: <Navigate to="/home" replace />
+  },
+
+  // 2) 로그인 (비보호)
   {
     path: "/login",
     element: (
@@ -37,7 +50,7 @@ const router = createBrowserRouter([
     errorElement: <div>로그인 페이지 에러</div>
   },
 
-  // 2) 메인 앱 (보호)
+  // 3) 메인 앱 (보호)
   {
     path: "/",
     element: (
@@ -65,7 +78,13 @@ const router = createBrowserRouter([
       { path: "member", element: <MemberList /> },
       { path: "member/:memNum", element: <MemberDetail /> },
       { path: "member/edit/:memNum", element: <MemberEdit /> },
-
+      { path: "post", element: <PostList /> },
+      { path: "post/:postId", element: <PostView /> },
+      { path: "post/new", element: <PostAdd /> },
+      { path: "post/edit/:postId", element: <PostEdit /> },
+      { path: "sales/salesitemlist", element: <SalesItemList /> },
+      { path: "sales/salesitemcreate", element: <SalesItemCreate /> },
+      { path: "stock", element: <StockList/> },
     ],
   },
 ]);
