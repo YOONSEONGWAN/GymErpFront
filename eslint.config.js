@@ -23,7 +23,9 @@ export default defineConfig([
       },
     },
     rules: {
-      'no-unused-vars': ['warn', { varsIgnorePattern: '^[A-Z_]' }],
+      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      'react/jsx-uses-react': 'off',
+      'react/jsx-uses-vars': 'warn', // JSX 내부 사용을 '사용된 변수'로 처리
     },
   },
 ])
