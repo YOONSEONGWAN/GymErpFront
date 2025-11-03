@@ -372,13 +372,20 @@ function EtcTab({ empNum, empName, onSaved, editData, selectedDate }) {
           <Form.Label>등록자</Form.Label>
           <Form.Control name="registrant" value={form.registrant} readOnly />
         </Col>
-        <Col md={3}>
-          <Form.Label>사용 일 수</Form.Label>
-          <Form.Control value={usedDays} readOnly />
-        </Col>
-        <Col md={3}>
-          <Form.Label>남은 휴가 수</Form.Label>
-          <Form.Control name="remainDays" value={form.remainDays} onChange={onChange} />
+        <Col md={6}>
+          <Form.Label>일정유형</Form.Label>
+          <Form.Select
+            name="category"
+            value={form.category}
+            onChange={onChange}
+          >
+            <option value="">선택</option>
+            {scheduleCodes.map((c) => (
+              <option key={c.codeBId} value={c.codeBId}>
+                {nameMap[c.codeBId] || c.codeBName}
+              </option>
+            ))}
+          </Form.Select>
         </Col>
         <Col md={6}>
           <Form.Label>시작일</Form.Label>
