@@ -20,10 +20,18 @@ import ProductList from "../pages/Product/ProductList.jsx";
 import MemberList from "../pages/MemberList.jsx";
 import MemberDetail from "../pages/MemberDetail.jsx";
 import MemberEdit from "../pages/MemberEdit.jsx";
+import StockInbound from "../pages/Product/StockInbound.jsx";
+import ProductCreate from "../pages/Product/ProductCreate.jsx";
 
 
 const router = createBrowserRouter([
-  // 1) 로그인 (비보호)
+  // 1) 루트 경로 - /home으로 리다이렉트
+  {
+    path: "/",
+    element: <Navigate to="/home" replace />
+  },
+
+  // 2) 로그인 (비보호)
   {
     path: "/login",
     element: (
@@ -34,7 +42,7 @@ const router = createBrowserRouter([
     errorElement: <div>로그인 페이지 에러</div>
   },
 
-  // 2) 메인 앱 (보호)
+  // 3) 메인 앱 (보호)
   {
     path: "/",
     element: (
@@ -56,6 +64,8 @@ const router = createBrowserRouter([
       { path: "schedule", element: <SchedulePage /> },
       { path: "product", element: <ProductList/> },
       { path: "productList", element: <ProductList/> },
+      { path: "product/create", element: <ProductCreate /> },
+      { path: "stock/inbound", element: <StockInbound /> },
       { path: "member", element: <MemberList /> },
       { path: "member/:memNum", element: <MemberDetail /> },
       { path: "member/edit/:memNum", element: <MemberEdit /> },

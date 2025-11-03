@@ -13,15 +13,13 @@ function ProtectedRoute({children}) {
 
     useEffect(()=>{
         const restoreSession = ()=>{
+            const savedUser = sessionStorage.getItem("user");
             // Redux에 user가 없으면 sessionStorage에서 복원
-            if (!user) {
-                const savedUser = sessionStorage.getItem("user");
-                if (savedUser) {
-                    dispatch({
-                        type: "USER_INFO",
-                        payload: JSON.parse(savedUser),
-                    });
-                }
+            if (savedUser && !user) {
+                dispatch({
+                    type: "USER_INFO",
+                    payload: JSON.parse(savedUser),
+                });
             }
             // 2️⃣ 복원 시도 후 로딩 종료
             setLoading(false);
@@ -29,7 +27,7 @@ function ProtectedRoute({children}) {
 
         restoreSession();
 
-    }, [user, dispatch]);
+    }, [dispatch]);
 
     if (loading) {
         return (
