@@ -58,6 +58,9 @@ function BsSideBar() {
           <DropdownMenu icon="people" title="직원관리">
             <SubMenuItem to="/emp" icon="table" text="직원목록"/>
           </DropdownMenu>
+          <DropdownMenu icon="people-fill" title="회원관리">
+            <SubMenuItem to="/member" icon="table" text="회원목록" />
+          </DropdownMenu>
 
         </ul>
       </div>
