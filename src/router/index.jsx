@@ -22,6 +22,7 @@ import MemberDetail from "../pages/MemberDetail.jsx";
 import MemberEdit from "../pages/MemberEdit.jsx";
 import StockInbound from "../pages/Product/StockInbound.jsx";
 import ProductCreate from "../pages/Product/ProductCreate.jsx";
+import ProductUpdate from "../pages/Product/ProductUpdate.jsx";
 
 
 const router = createBrowserRouter([
@@ -51,14 +52,15 @@ const router = createBrowserRouter([
       { path: "emp", element: <EmpList /> },
       { path: "emp/:empNum", element: <EmpDetail /> },
       { path: "emp/edit/:empNum", element: <EmpEdit /> },
-      { path: "attendance", element: <EmpAttendanceList /> }, 
+      { path: "attendance", element: <EmpAttendanceList /> },
       { path: "attendance/my", element: <EmpAttendanceMy /> },
-      { path: "attendance/view", element: <EmpAttendanceView /> }, 
+      { path: "attendance/view", element: <EmpAttendanceView /> },
       { path: "vacations", element: <EmpVacationList /> },
       { path: "schedule", element: <SchedulePage /> },
-      { path: "product", element: <ProductList/> },
-      { path: "productList", element: <ProductList/> },
+      { path: "product", element: <ProductList /> },
+      { path: "productList", element: <ProductList /> },
       { path: "product/create", element: <ProductCreate /> },
+      { path: "product/edit/:productId", element: <ProductUpdate /> },
       { path: "stock/inbound", element: <StockInbound /> },
       { path: "member", element: <MemberList /> },
       { path: "member/:memNum", element: <MemberDetail /> },
