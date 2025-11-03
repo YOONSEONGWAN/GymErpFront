@@ -83,7 +83,7 @@ function Login() {
                         <label htmlFor="" className="form-label fw-semibold">
                             <i className="bi bi-envelope me-2"></i>이메일
                         </label>
-                        <input type="email" className="form-control form-control-lg" placeholder="이메일을 입력하세요" value={empEmail} onChange={(e)=>setEmpEmail(e.target.value)} required disabled={loading} autoFocus />
+                        <input type="text" className="form-control form-control-lg" placeholder="이메일을 입력하세요" value={empEmail} onChange={(e)=>setEmpEmail(e.target.value)} required disabled={loading} autoFocus />
                     </div>
                     <div className="mb-4">
                         <label className="form-label fw-semibold">
