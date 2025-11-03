@@ -28,6 +28,7 @@ import SalesItemList from "../pages/Sales/SalesItemList.jsx";
 import SalesItemCreate from "../pages/Sales/SalesItemCreate.jsx";
 import StockInbound from "../pages/Product/StockInbound.jsx";
 import ProductCreate from "../pages/Product/ProductCreate.jsx";
+import StockList from "../pages/Product/StockList.jsx";
 
 
 const router = createBrowserRouter([
@@ -79,7 +80,7 @@ const router = createBrowserRouter([
       { path: "post/edit/:postId", element: <PostEdit /> },
       { path: "sales/salesitemlist", element: <SalesItemList /> },
       { path: "sales/salesitemcreate", element: <SalesItemCreate /> },
-
+      { path: "stock", element: <StockList/> },
     ],
   },
 ]);
