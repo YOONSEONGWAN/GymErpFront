@@ -17,6 +17,7 @@ import EmpVacationList from "../pages/EmpVacation/list.jsx";
 import JONGBOKHome from "../pages/JONGBOKHome.jsx";
 import SchedulePage from "../pages/SchedulePage.jsx";
 import ProductList from "../pages/Product/ProductList.jsx";
+import StockList from "../pages/Product/StockList.jsx";
 
 
 const router = createBrowserRouter([
@@ -34,9 +35,9 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: (
-      <ProtectedRoute>
+      // <ProtectedRoute>
         <App />
-      </ProtectedRoute>
+      // </ProtectedRoute>
     ),
     children: [
       { path: "home", element: <Home /> },
@@ -50,6 +51,7 @@ const router = createBrowserRouter([
       { path: "vacations", element: <EmpVacationList /> },
       { path: "schedule", element: <SchedulePage /> },
       { path: "product", element: <ProductList/> },
+      { path: "stock", element: <StockList/> },
 
     ],
   },
