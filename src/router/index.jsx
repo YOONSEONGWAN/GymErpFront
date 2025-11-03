@@ -26,6 +26,9 @@ import SalesItemCreate from "../pages/Sales/SalesItemCreate.jsx";
 import SalesServiceCreate from "../pages/Sales/SalesServiceCreate.jsx";
 import StockInbound from "../pages/Product/StockInbound.jsx";
 import ProductCreate from "../pages/Product/ProductCreate.jsx";
+import SalesServiceList from "../pages/Sales/SalesServiceList.jsx";
+import SalesServiceDetail from "../pages/Sales/SalesServiceDetail.jsx";
+import SalesServiceEdit from "../pages/Sales/SalesServiceEdit.jsx";
 
 
 
@@ -75,8 +78,11 @@ const router = createBrowserRouter([
       { path: "member/:memNum", element: <MemberDetail /> },
       { path: "member/edit/:memNum", element: <MemberEdit /> },
       { path: "sales/salesitemlist", element: <SalesItemList /> },
+      { path: "sales/salesservicelist", element: <SalesServiceList /> },
       { path: "sales/salesitemcreate", element: <SalesItemCreate /> },
       { path: "sales/salesservicecreate", element: <SalesServiceCreate /> },
+      { path: "sales/salesserviceedit", element: <SalesServiceEdit /> },
+      { path: "sales/salesservicedetail", element: <SalesServiceDetail /> },
 
       { path: "member", element: <MemberList /> },
       { path: "member/:memNum", element: <MemberDetail /> },
