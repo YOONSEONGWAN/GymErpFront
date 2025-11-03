@@ -17,6 +17,10 @@ import EmpVacationList from "../pages/EmpVacation/list.jsx";
 import JONGBOKHome from "../pages/JONGBOKHome.jsx";
 import SchedulePage from "../pages/SchedulePage.jsx";
 import ProdcutList from "../pages/Product/ProductList.jsx";
+import MemberList from "../pages/MemberList.jsx";
+import MemberDetail from "../pages/MemberDetail.jsx";
+import MemberEdit from "../pages/MemberEdit.jsx";
+
 
 const router = createBrowserRouter([
   // 1) 로그인 (비보호)
@@ -27,6 +31,7 @@ const router = createBrowserRouter([
         <Login />
       </div>
     ),
+    errorElement: <div>로그인 페이지 에러</div>
   },
 
   // 2) 메인 앱 (보호)
@@ -37,6 +42,7 @@ const router = createBrowserRouter([
         <App />
       </ProtectedRoute>
     ),
+    errorElement: <div>Route 에러</div>,
     children: [
       { path: "home", element: <Home /> },
       { path: "jongbok", element: <JONGBOKHome /> },
@@ -48,7 +54,12 @@ const router = createBrowserRouter([
       { path: "attendance/view", element: <EmpAttendanceView /> }, 
       { path: "vacations", element: <EmpVacationList /> },
       { path: "schedule", element: <SchedulePage /> },
+      { path: "product", element: <ProductList/> },
       { path: "productList", element: <ProdcutList/> },
+      { path: "member", element: <MemberList /> },
+      { path: "member/:memNum", element: <MemberDetail /> },
+      { path: "member/edit/:memNum", element: <MemberEdit /> },
+
     ],
   },
 ]);
