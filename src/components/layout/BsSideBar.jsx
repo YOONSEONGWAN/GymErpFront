@@ -44,7 +44,7 @@ function BsSideBar() {
 
         <ul className="nav nav-pills flex-column gap-2">
           {/* 일반 메뉴 */}
-          <li className="nav-item">
+          {/* <li className="nav-item">
             <NavLink to="/" end className={({isActive}) => 
                 `nav-link text-white fs-6 ${isActive ? 'active' : ''}`
               }
@@ -52,12 +52,18 @@ function BsSideBar() {
               <i className="bi bi-speedometer2"></i>
               <span className="ms-2">Dashboard</span>
             </NavLink>
-          </li>
+          </li> */}
 
           {/* 드롭다운 메뉴 */}
           <DropdownMenu icon="people" title="직원관리">
             <SubMenuItem to="/emp" icon="table" text="직원목록"/>
           </DropdownMenu>
+          <DropdownMenu icon="people-fill" title="회원관리">
+            <SubMenuItem to="/member" icon="table" text="회원목록" />
+          </DropdownMenu>
+          <DropdownMenu icon="people-fill" title="매출관리">
+            <SubMenuItem to="/sales/SalesItemCreate" icon="cart-plus" text="상품판매등록" />
+          </DropdownMenu>          
 
         </ul>
       </div>

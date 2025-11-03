@@ -4,6 +4,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import EmpModal from "../components/EmpModal";
 import SearchBar from "../components/SearchBar";
 import Pagination from "../components/Pagination";
+import MemberSearchModal from "../components/MemberSearchModal";
+
 
 function EmpList() {
   const [list, setList] = useState([]);
@@ -15,6 +17,8 @@ function EmpList() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const [showModal, setShowModal] = useState(false);
+  const [selectedMember, setSelectedMember] = useState(null);
 
   // 직원 데이터 조회
   const loadData = async () => {
@@ -66,10 +70,9 @@ function EmpList() {
       <table className="table table-striped text-center">
         <thead className="table-dark">
           <tr>
-            <th>번호</th>
             <th>이름</th>
-            <th>이메일</th>
             <th>연락처</th>
+            <th>이메일</th>
             <th>상세보기</th> 
           </tr>
         </thead>
@@ -77,10 +80,9 @@ function EmpList() {
           {list.length > 0 ? (
             list.map((emp) => (
               <tr key={emp.empNum}>
-                <td>{emp.empNum}</td>
                 <td>{emp.empName}</td>
-                <td>{emp.empEmail}</td>
                 <td>{emp.empPhone}</td>
+                <td>{emp.empEmail}</td>
                 <td>
                   <button
                     className="btn btn-link text-dark"
@@ -105,7 +107,31 @@ function EmpList() {
       {/* 페이지네이션 */}
       <Pagination page={page} totalPage={totalPage} onPageChange={setPage} />
 
-      {/* 등록 모달 */}
+      {/* 회원 검색 모달 */}
+      <MemberSearchModal
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        onSelect={(member) => {
+          setSelectedMember(member);
+          setShowModal(false);
+        }}
+      />
+      <button
+        className="btn btn-outline-dark ms-2"
+        onClick={() => setShowModal(true)}
+      >
+        회원검색
+      </button>
+      
+      {/* 선택된 회원 표시 */}
+      {selectedMember && (
+        <div className="alert alert-info mt-3">
+          <strong>선택된 회원:</strong> {selectedMember.memName} (
+          {selectedMember.memEmail})
+        </div>
+      )}
+
+      {/* 직원 등록 모달 */}
       <EmpModal
         show={isModalOpen}
         onClose={() => setIsModalOpen(false)}
