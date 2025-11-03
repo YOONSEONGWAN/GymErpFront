@@ -11,7 +11,7 @@ function EmpDetail() {
   const navigate = useNavigate();
 
   const headerGradient = "linear-gradient(135deg, #2b314a, #4c5371)";
-  
+
   useEffect(() => {
     axios
       .get(`http://localhost:9000/v1/emp/${empNum}`)
@@ -25,8 +25,8 @@ function EmpDetail() {
   const profileUrl = preview
     ? preview
     : emp.profileImage
-    ? `http://localhost:9000/profile/${emp.profileImage}`
-    : null;
+      ? `http://localhost:9000/profile/${emp.profileImage}`
+      : null;
 
   // 직원 삭제
   const handleDelete = async () => {
@@ -104,131 +104,141 @@ function EmpDetail() {
           <div
             className="p-4 text-white d-flex justify-content-between align-items-center position-relative"
             style={{
-                background: headerGradient,
-                minHeight: "200px", 
-                padding: "2rem", 
+              background: headerGradient,
+              minHeight: "200px",
+              padding: "2rem",
             }}
-            >
+          >
             {/* 왼쪽: 프로필 + 이름 */}
             <div className="d-flex align-items-center gap-3"
-                style={{ marginTop: "-10px" }} 
+              style={{ marginTop: "-10px" }}
             >
-            {/* 프로필 이미지 + 업로드 버튼 */}
-            <div
-            className="position-relative"
-            style={{
-                width: "110px",
-                height: "110px",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-            }}
-            >
-            {profileUrl ? (
-                <img
-                src={profileUrl}
-                alt="프로필"
-                className="rounded-circle border border-white shadow"
-                width="100"
-                height="100"
-                style={{ objectFit: "cover" }}
-                />
-            ) : (
-                <FaUserCircle size={100} color="white" />
-            )}
-
-            {/* 업로드 버튼 */}
-            {isEditMode && (
-                <label
-                htmlFor="fileUpload"
-                className="btn btn-light btn-sm border d-inline-flex align-items-center justify-content-center gap-2 shadow-sm position-absolute"
+              {/* 프로필 이미지 + 업로드 버튼 */}
+              <div
+                className="position-relative"
                 style={{
-                    bottom: "0px",              
-                    left: "50%",
-                    transform: "translate(-50%, 110%)", 
-                    backgroundColor: "white",
-                    borderRadius: "6px",
-                    padding: "3px 10px",
-                    fontSize: "0.85rem",
-                    cursor: "pointer",
-                    boxShadow: "0 2px 4px rgba(0,0,0,0.15)",
-                    whiteSpace: "nowrap",
-                    height: "30px",
+                  width: "110px",
+                  height: "110px",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
                 }}
-                >
-                <FaFolderOpen className="text-secondary" />
-                사진 업로드
-                <input
-                    id="fileUpload"
-                    type="file"
-                    accept="image/*"
-                    hidden
-                    onChange={handleProfileUpload}
-                />
-                </label>
-            )}
-            </div>
-                {/* 이름 / 이메일 */}
-                <div className="ms-3">
-                {isEditMode ? (
+              >
+                {profileUrl ? (
+                  <img
+                    src={profileUrl}
+                    alt="프로필"
+                    className="rounded-circle border border-white shadow"
+                    width="100"
+                    height="100"
+                    style={{ objectFit: "cover" }}
+                  />
+                ) : (
+                  <FaUserCircle size={100} color="white" />
+                )}
+
+                {/* 업로드 버튼 */}
+                {isEditMode && (
+                  <label
+                    htmlFor="fileUpload"
+                    className="btn btn-light btn-sm border d-inline-flex align-items-center justify-content-center gap-2 shadow-sm position-absolute"
+                    style={{
+                      bottom: "0px",
+                      left: "50%",
+                      transform: "translate(-50%, 110%)",
+                      backgroundColor: "white",
+                      borderRadius: "6px",
+                      padding: "3px 10px",
+                      fontSize: "0.85rem",
+                      cursor: "pointer",
+                      boxShadow: "0 2px 4px rgba(0,0,0,0.15)",
+                      whiteSpace: "nowrap",
+                      height: "30px",
+                    }}
+                  >
+                    <FaFolderOpen className="text-secondary" />
+                    사진 업로드
                     <input
+                      id="fileUpload"
+                      type="file"
+                      accept="image/*"
+                      hidden
+                      onChange={handleProfileUpload}
+                    />
+                  </label>
+                )}
+              </div>
+              {/* 이름 / 이메일 */}
+              <div className="ms-3">
+                {isEditMode ? (
+                  <input
                     type="text"
                     name="empName"
                     value={emp.empName || ""}
                     onChange={handleChange}
                     className="form-control fw-bold"
                     style={{ fontSize: "1.5rem" }}
-                    />
+                  />
                 ) : (
-                    <h3 className="fw-bold mb-1">{emp.empName}</h3>
+                  <h3 className="fw-bold mb-1">{emp.empName}</h3>
                 )}
                 <small className="opacity-75">
-                    {emp.gender || "성별 미상"} / {emp.empEmail || "-"}
+                  {emp.gender || "성별 미상"} / {emp.empEmail || "-"}
                 </small>
-                </div>
+              </div>
             </div>
 
             {/* 오른쪽 버튼 그룹 */}
             <div className="d-flex gap-2">
-                {isEditMode ? (
+              {isEditMode ? (
                 <>
-                    <button
+                  <button
                     onClick={handleSave}
                     className="btn btn-success btn-sm d-flex align-items-center gap-1 shadow-sm"
-                    >
+                  >
                     <FaSave /> 저장
-                    </button>
-                    <button
+                  </button>
+                  <button
                     onClick={() => {
-                        setIsEditMode(false);
-                        setPreview(null);
+                      setIsEditMode(false);
+                      setPreview(null);
                     }}
                     className="btn btn-secondary btn-sm d-flex align-items-center gap-1 shadow-sm"
-                    >
+                  >
                     <FaTimes /> 취소
-                    </button>
+                  </button>
                 </>
-                ) : (
+              ) : (
                 <>
-                    <button
+                  <button
                     onClick={() => setIsEditMode(true)}
                     className="btn btn-light btn-sm d-flex align-items-center gap-1 shadow-sm"
-                    >
+                  >
                     <FaEdit /> 상세정보 수정
-                    </button>
-                    <button className="btn btn-light btn-sm d-flex align-items-center gap-1 shadow-sm">
+                  </button>
+
+                  {/* ✅ 일정 관리 버튼 */}
+                  <button
+                    onClick={() =>
+                      navigate(`/schedule`, {
+                        state: { empNum: emp.empNum, empName: emp.empName }, // ✅ 등록자 이름도 함께 전달
+                      })
+                    }
+                    className="btn btn-light btn-sm d-flex align-items-center gap-1 shadow-sm"
+                  >
                     <FaCalendarAlt /> 일정 관리
-                    </button>
-                    <button
+                  </button>
+
+                  <button
                     onClick={handleDelete}
                     className="btn btn-danger btn-sm d-flex align-items-center gap-1 shadow-sm"
-                    >
+                  >
                     <FaTrashAlt /> 직원 삭제
-                    </button>
+                  </button>
                 </>
-                )}
+              )}
             </div>
-            </div>
+          </div>
 
 
           {/* 내용 영역 */}
