@@ -13,7 +13,7 @@ import { Provider } from "react-redux";
 
 // resux store 에서 관리될 state 의 초기값
 const initState = {
-  user: null,       // 로그인 사용자 정보
+  user: { empNum: 0, empName: 'dev' },       // 로그인 사용자 정보
   logoutTimer: null // 자동 로그아웃
 };
 
