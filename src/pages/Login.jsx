@@ -14,7 +14,7 @@ function Login() {
     const navigate = useNavigate();
     const location = useLocation();
     const dispatch = useDispatch();
-    const from = location.state?.from?.pathname || "/emp"; // 로그인 후 가야 할 경로(원하면 바꿔)
+    const from = location.state?.from?.pathname || "/home"; // 로그인 후 가야 할 경로(원하면 바꿔)
 
     const handleLogin = async(e) => {
         e.preventDefault();

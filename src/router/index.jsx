@@ -30,11 +30,6 @@ import ProductCreate from "../pages/Product/ProductCreate.jsx";
 
 
 const router = createBrowserRouter([
-  // 1) 루트 경로 - /home으로 리다이렉트
-  {
-    path: "/",
-    element: <Navigate to="/home" replace />
-  },
 
   // 2) 로그인 (비보호)
   {
@@ -57,6 +52,7 @@ const router = createBrowserRouter([
     ),
     errorElement: <div>Route 에러</div>,
     children: [
+      { index: true, element: <Home /> },
       { path: "home", element: <Home /> },
       { path: "jongbok", element: <JONGBOKHome /> },
       { path: "emp", element: <EmpList /> },

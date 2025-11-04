@@ -5,14 +5,16 @@ import { createRoot } from 'react-dom/client'
 // SPA 를 구현하기 위한 RouterProvider 를 import
 import { RouterProvider } from "react-router-dom"; 
 import router from "./router"; // 라우팅 설정 
+import store from "./store" // store 설정
 import './api/axiosConfig' // axios 설정 import
 import { createStore } from "redux";
 import { Provider } from "react-redux";
 
-// resux store 에서 관리될 state 의 초기값
-const initState = {
-  user: { empNum: 0, empName: 'dev' },       // 로그인 사용자 정보
-  logoutTimer: null // 자동 로그아웃
+// redux store 관련된 로직 store.js 로 묶을까 고민중
+
+// redux store 에서 관리될 state 의 초기값
+const initState = { 
+  user: null, logoutTimer: null 
 };
 
 // reducer 함수에서 사용할 handler object
@@ -43,9 +45,27 @@ const reducer = (state=initState, action) => {
   return handler ? handler(state, action) : state;
 }
 
-const store = createStore(reducer);
 
+// 세션 → Redux 초기 하이드레이션(1회)
+function loadUserFromSession() {
+  try {
+    const raw = sessionStorage.getItem("user");
+    if (!raw) return null;
+    const u = JSON.parse(raw);
+    return u && u.empNum ? u : null;
+  } catch { return null; }
+}
 
+const preloadedState = { ...initState, user: loadUserFromSession() };
+
+const store = createStore(reducer, preloadedState);
+
+// Redux → 세션 미러링
+store.subscribe(() => {
+  const { user } = store.getState();
+  if (user) sessionStorage.setItem("user", JSON.stringify(user));
+  else sessionStorage.removeItem("user");
+});
 
 
 createRoot(document.getElementById('root')).render(
