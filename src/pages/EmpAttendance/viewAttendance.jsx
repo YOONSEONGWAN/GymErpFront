@@ -229,9 +229,7 @@ function EmpAttendanceMy() {
     </>
   );
 }
-<<<<<<< HEAD
-export default EmpAttendanceView;
-=======
+
 
 export default EmpAttendanceMy;
->>>>>>> upstream/frontend
+
