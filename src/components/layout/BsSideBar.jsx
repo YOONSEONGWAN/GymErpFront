@@ -61,6 +61,14 @@ function BsSideBar() {
           <DropdownMenu icon="people-fill" title="회원관리">
             <SubMenuItem to="/member" icon="table" text="회원목록" />
           </DropdownMenu>
+          <DropdownMenu icon="people-fill" title="매출관리">
+            <SubMenuItem to="/sales/SalesItemList" icon="cart-plus" text="상품판매리스트" />
+          </DropdownMenu>          
+
+           {/* 게시판 */}
+          <DropdownMenu icon="card-text" title="게시판" basePath="/post">
+            <SubMenuItem to="/post" icon="list-ul" text="게시글 목록" />
+          </DropdownMenu>
 
         </ul>
       </div>
