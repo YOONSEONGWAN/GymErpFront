@@ -72,7 +72,7 @@ export default function SchedulePage() {
     setSelectedEvent(event);
     setShowDetailModal(true);
   };
-
+//
   /** ✅ 상세 보기 → 삭제 */
   const handleDelete = async () => {
     if (!selectedEvent?.shNum) {
@@ -153,7 +153,7 @@ export default function SchedulePage() {
               <p><strong>내용:</strong> {selectedEvent.memo || "내용 없음"}</p>
               <p><strong>시작:</strong> {format(selectedEvent.start, "yyyy-MM-dd HH:mm")}</p>
               <p><strong>종료:</strong> {format(selectedEvent.end, "yyyy-MM-dd HH:mm")}</p>
-              <p><strong>shNum:</strong> {selectedEvent.shNum}</p>
+              
             </>
           ) : (
             <p>일정 정보를 불러오는 중...</p>
