@@ -1,57 +1,177 @@
-import React, { useEffect, useState } from 'react';
-import CategoryCheckbox from '../../components/CategoryCheckbox';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import cn from 'classnames';
 
+import ProductListComponent from '../../components/ProductListComponent';
+import ProductSearchBar from '../../components/ProductSearchBar';
+import CategoryCheckbox from '../../components/CategoryCheckbox';
 
-function ProdcutList(props) {
-    // 부모가 "현재 탭"과 "체크된 항목"을 state로 관리
-    const [currentTab, setCurrentTab] = useState('PRODUCT'); // 'PRODUCT' or 'SERVICE'
+function ProductList() {
+    const [currentTab, setCurrentTab] = useState('PRODUCT');
     const [selectedCategories, setSelectedCategories] = useState([]);
+    const [search, setSearch] = useState({ keyword: "" });
+    const [pageInfo, setPageInfo] = useState({
+        list: [],
+        pageNum: 1,
+        startPageNum: 1,
+        endPageNum: 1,
+        totalPageCount: 1
+    });
 
-    // 메인 상품 목록 state
-    const [products, setProducts] = useState([]);
+    const productColumns = [
+        { key: 'codeBName', label: '상품 구분' },
+        { key: 'name', label: '상품 이름' },
+        { key: 'price', label: '판매가' },
+        { key: 'isActive', label: '활성화' } // 이 key가 renderCell의 if문과 일치
+    ];
 
-    // 체크된 항목(selectedCategories)이 바뀔 때마다 메인 API를 다시 호출
+    const [params] = useSearchParams();
+    const navigate = useNavigate();
+
     useEffect(() => {
-        // MyBatis에 보낼 파라미터 조립
-        const params = new URLSearchParams();
-        selectedCategories.forEach(cat => params.append('categoryCodes', cat));
-        
-        // (이름 검색어도 있다면 추가)
-        // params.append('keyword', searchKeyword);
+        const pageNum = params.get("pageNum") || 1;
+        const keyword = params.get("keyword") || "";
+        const categoryCodes = params.getAll("categoryCodes") || [];
 
-        const apiEndpoint = (currentTab === 'PRODUCT') ? '/api/v1/product' : '/api/v1/service';
+        // URL 파라미터를 state에 동기화
+        setSearch({ keyword });
+        setSelectedCategories(categoryCodes);
 
-        // 필터가 적용된 API 호출
-        axios.get(`${apiEndpoint}?${params.toString()}`)
-        .then(response => {
-            setProducts(response.data.list); // 메인 목록 업데이트
+        const qs = new URLSearchParams();
+        qs.set("pageNum", pageNum.toString());
+        if (keyword) {
+            qs.set("keyword", keyword);
+        }
+        categoryCodes.forEach(cat => {
+            qs.append('categoryCodes', cat);
         });
-        
-    }, [selectedCategories, currentTab]); // 탭이나 체크박스가 바뀔 때마다 재실행
 
-    // 탭 변경 시 필터 초기화
+        const apiEndpoint = (currentTab === 'PRODUCT') ? '/v1/product' : '/v1/service';
+    
+        axios.get(`${apiEndpoint}?${qs.toString()}`)
+            .then(res => {
+                setPageInfo(res.data);
+                
+            })
+            .catch(err => {                                                                                 
+             if (err.response) {                                                                         
+                 console.error('Error response from server:', err.response.data);                        
+             }                                                                                           
+             console.error('Axios error:', err);                                                         
+         }); 
+        
+
+    }, [params, currentTab]);
+
     const handleTabChange = (tab) => {
         setCurrentTab(tab);
-        setSelectedCategories([]); // 탭을 바꾸면 체크박스 초기화
+        // URL을 변경하여 useEffect를 트리거
+        navigate("/product"); 
     };
 
-    return <>
-        <button onClick={() => handleTabChange('PRODUCT')}>실물 상품</button>
-        <button onClick={() => handleTabChange('SERVICE')}>서비스 상품</button>
-        <div className="row">
-            <div className="col-3 border p-3 rounded shadow-sm">
-                <CategoryCheckbox
-                    codeAId={currentTab} // '현재 탭'을 codeAId로 전달
-                    checkedList={selectedCategories} // '현재 체크된 목록'을 전달
-                    onChange={setSelectedCategories} // "state를 변경하는 함수"를 전달
-                />
+    const handleCategoryChange = (newCategories) => {
+        const qs = new URLSearchParams();
+        qs.set("pageNum", "1");
+        if (search.keyword) {
+            qs.set("keyword", search.keyword);
+        }
+        newCategories.forEach(cat => {
+            qs.append('categoryCodes', cat);
+        });
+        navigate(`/product?${qs.toString()}`);
+    };
+
+    const handleSearchChange = (e) => {
+        setSearch({ ...search, [e.target.name]: e.target.value });
+    };
+
+    const handleSearchClick = () => {
+        const qs = new URLSearchParams();
+        qs.set("pageNum", "1");
+        if (search.keyword) {
+            qs.set("keyword", search.keyword);
+        }
+        selectedCategories.forEach(cat => {
+            qs.append('categoryCodes', cat);
+        });
+        navigate(`/product?${qs.toString()}`);
+    };
+
+    const pageMove = (num) => {
+        const qs = new URLSearchParams(params);
+        qs.set("pageNum", num.toString());
+        navigate(`/product?${qs.toString()}`);
+    };
+
+    const handleStatusChange = (item, newIsActive)=>{
+        // 1. 'item' 객체에서 ID를 바로 꺼내 씀
+        const id = (currentTab === 'PRODUCT' ? item.productId : item.serviceId);
+        const apiEndpoint = (currentTab === 'PRODUCT') ? `/v1/product/${id}` : `/v1/service/${id}`;
+        axios.patch(apiEndpoint, {isActive : newIsActive})
+            .then(res=>{
+                // 서버 응답 성공 시, 클라이언트(React)의 'pageInfo' state도 갱신
+                setPageInfo(prevPageInfo => {
+                    
+                    // 기존 list 배열을 'map'으로 순회하여 새 배열 생성
+                    const newList = prevPageInfo.list.map(listItem => {
+                        const listItemId = (currentTab === 'PRODUCT' ? listItem.productId : listItem.serviceId);
+
+                        // 방금 ID가 일치하는 항목을 찾으면,
+                        if (listItemId === id) {
+                            // 6. 'listItem'의 다른 값은 그대로 복사하고,
+                            //    'isActive' 값만 'newIsActive'로 덮어쓴 새 객체를 반환
+                            return { ...listItem, isActive: newIsActive };
+                        }
+
+                        // ID가 다르면, 기존 'listItem'을 그대로 반환
+                        return listItem;
+                    });
+
+                    // 'prevPageInfo'를 복사하고 'list'만 'newList'로 교체한
+                    // '새 pageInfo 객체'를 반환
+                    return {
+                        ...prevPageInfo,
+                        list: newList
+                    };
+                });
+            })
+            .catch(err=>console.log(err));
+    };
+
+    return (
+        <>
+            <button className={cn("btn", "btn-lg", {"btn-dark":currentTab=="PRODUCT", "btn-light":currentTab=="SERVICE"})} onClick={() => handleTabChange('PRODUCT')}>실물 상품</button>
+            <button className={cn("btn", "btn-lg", {"btn-dark":currentTab=="SERVICE", "btn-light":currentTab=="PRODUCT"})} onClick={() => handleTabChange('SERVICE')}>서비스 상품</button>
+
+            <div className="row mt-3">
+                <div className="col-md-3 mt-3">
+                    <CategoryCheckbox
+                        codeAId={currentTab}
+                        checkedList={selectedCategories}
+                        onChange={handleCategoryChange}
+                    />
+                    <ProductSearchBar
+                        keyword={search.keyword}
+                        onSearchChange={handleSearchChange}
+                        onSearchClick={handleSearchClick}
+                    />
+                    
+                </div>
+                <div className="col-3">
+                    <button className="btn btn-primary mt-3">상품 등록</button>
+                </div>
+                <div className="col-md-9 mt-3">
+                    <ProductListComponent
+                        pageInfo={pageInfo}
+                        onPageChange={pageMove}
+                        onToggleChange={handleStatusChange}
+                        columns={productColumns}
+                    />
+                </div>
             </div>
-        </div>
-
-
-
-    </>
+        </>
+    );
 }
 
-export default ProdcutList;
+export default ProductList;

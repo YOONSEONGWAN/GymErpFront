@@ -1,100 +1,75 @@
 import { useEffect, useState } from "react";
-import { Modal, Button, Table, Form, InputGroup } from "react-bootstrap";
+import { Modal, Button, Table } from "react-bootstrap";
 import axios from "axios";
-import Pagination from "./Pagination.jsx";
+import SearchBar from "./SearchBar";
 
-/**
- * 👥 MemberSearchModal.jsx
- * PT 탭용 회원 검색 모달
- */
-export default function MemberSearchModal({ show, onHide, onSelect }) {
-  const [members, setMembers] = useState([]);
+function MemberSearchModal({ show, onHide, onSelect }) {
+  const [list, setList] = useState([]);
   const [keyword, setKeyword] = useState("");
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const perPage = 10;
+  const [type, setType] = useState("all");
 
-  const formatPhone = (phone) => {
-    if (!phone) return "";
-    return phone.replace(/(\d{3})(\d{3,4})(\d{4})/, "$1-$2-$3");
-  };
-
-  const loadMembers = async () => {
+  // 회원 검색
+  const handleSearch = async () => {
     try {
-      setLoading(true);
-      const res = await axios.get("http://localhost:9000/v1/member");
-      setMembers(res.data);
+      const res = await axios.get("http://localhost:9000/v1/member/search", {
+        params: { type, keyword },
+      });
+      setList(res.data);
     } catch (err) {
-      console.error("❌ 회원 목록 불러오기 실패:", err);
-    } finally {
-      setLoading(false);
+      console.error("회원 검색 실패:", err);
     }
   };
 
+  // 모달 열릴 때 자동 검색
   useEffect(() => {
-    if (show) {
-      loadMembers();
-      setKeyword("");
-      setPage(1);
-    }
+    if (show) handleSearch();
   }, [show]);
 
-  const filtered = members.filter((m) =>
-    (m.memName || "").toLowerCase().includes(keyword.toLowerCase())
-  );
-
-  const indexOfLast = page * perPage;
-  const indexOfFirst = indexOfLast - perPage;
-  const current = filtered.slice(indexOfFirst, indexOfLast);
-  const totalPage = Math.ceil(filtered.length / perPage);
-
-  const handleSelect = (m) => {
-    onSelect(m);
-    onHide();
-  };
-
   return (
-    <Modal show={show} onHide={onHide} size="lg" centered>
+    <Modal show={show} onHide={onHide} centered size="lg">
       <Modal.Header closeButton>
-        <Modal.Title>👥 회원 검색</Modal.Title>
+        <Modal.Title>회원 검색</Modal.Title>
       </Modal.Header>
-      <Modal.Body>
-        <InputGroup className="mb-3">
-          <Form.Control
-            placeholder="이름 검색..."
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}
-          />
-        </InputGroup>
 
-        <Table bordered hover responsive>
-          <thead className="table-light text-center align-middle">
+      <Modal.Body>
+        <div className="mb-3">
+          <SearchBar
+            type={type}
+            keyword={keyword}
+            onTypeChange={setType}
+            onKeywordChange={setKeyword}
+            onSearch={handleSearch}
+          />
+        </div>
+
+        <Table hover bordered className="text-center align-middle">
+          <thead className="table-light">
             <tr>
-              <th>회원명</th>
+              <th>회원번호</th>
+              <th>이름</th>
               <th>연락처</th>
+              <th>생년월일</th>
               <th>이메일</th>
               <th>선택</th>
             </tr>
           </thead>
           <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={4} className="text-center py-4 text-muted">
-                  ⏳ 회원 목록을 불러오는 중...
-                </td>
-              </tr>
-            ) : current.length ? (
-              current.map((m) => (
-                <tr key={m.memNum} className="align-middle">
+            {list.length > 0 ? (
+              list.map((m) => (
+                <tr key={m.memNum}>
+                  <td>{m.memNum}</td>
                   <td>{m.memName}</td>
-                  <td>{formatPhone(m.memPhone)}</td>
+                  <td>{m.memPhone}</td>
+                  <td>{m.memBirthday}</td>
                   <td>{m.memEmail}</td>
-                  <td className="text-center">
+                  <td>
                     <Button
-                      variant="outline-primary"
                       size="sm"
-                      onClick={() => handleSelect(m)}
+                      variant="primary"
+                      onClick={() => {
+                        onSelect(m);
+                        onHide();
+                      }}
                     >
                       선택
                     </Button>
@@ -103,21 +78,16 @@ export default function MemberSearchModal({ show, onHide, onSelect }) {
               ))
             ) : (
               <tr>
-                <td colSpan={4} className="text-center py-4 text-muted">
+                <td colSpan="6" className="text-muted py-3">
                   검색 결과가 없습니다.
                 </td>
               </tr>
             )}
           </tbody>
         </Table>
-
-        <Pagination page={page} totalPage={totalPage} onPageChange={setPage} />
       </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={onHide}>
-          닫기
-        </Button>
-      </Modal.Footer>
     </Modal>
   );
 }
+
+export default MemberSearchModal;
