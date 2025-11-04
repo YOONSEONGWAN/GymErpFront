@@ -1,7 +1,13 @@
 import React from 'react';
 import Pagination from './Pagination';
 
-function ProductListComponent({ pageInfo, onPageChange, onToggleChange, columns }) {
+function ProductListComponent({ pageInfo, onPageChange, onToggleChange, columns, onRowClick, onSort, sortConfig }) {
+
+    const getSortIcon = (key) => {
+        if (!sortConfig || sortConfig.key !== key) return null; // ' ▲▼' (회색 아이콘)
+        if (sortConfig.direction === 'ASC') return ' ▲'; // 오름차순
+        return ' ▼'; // 내림차순
+    };
 
     const renderCell = (item, col) => {
         
@@ -39,13 +45,22 @@ function ProductListComponent({ pageInfo, onPageChange, onToggleChange, columns 
                     <tr>
                         {/*부모가 준 'columns' 배열로 <th>를 동적 생성 */}
                         {columns.map((col) => (
-                            <th key={col.key}>{col.label}</th> 
+                            <th 
+                                key={col.key} 
+                                // '활성화' 컬럼(isActive)은 정렬하지 않도록 예외 처리
+                                onClick={col.key !== 'isActive' ? () => onSort(col.key) : null}
+                                // 정렬 가능한 컬럼에만 커서 포인터 표시
+                                style={col.key !== 'isActive' ? { cursor: 'pointer' } : {}}
+                            >
+                                {col.label}
+                                {getSortIcon(col.key)} {/* 4. 아이콘 표시 */}
+                            </th> 
                         ))}
                     </tr>
                 </thead>
                 <tbody>
                     {pageInfo.list && pageInfo.list.map((item, index) => (
-                        <tr key={item.productId || item.serviceId || index}>
+                        <tr key={item.productId || item.serviceId || index} onClick={() => onRowClick && onRowClick(item)}>
                             {/* 부모가 준 'columns' 배열 순서대로 <td>를 동적 생성 */}
                             {columns.map((col) => (
                                 <td key={col.key}>
