@@ -1,5 +1,6 @@
 // src/components/ScrollBar.jsx
-import { forwardRef, useEffect, useRef, useState, useCallback} from "react";
+import axios from "axios";
+import { forwardRef, useEffect, useRef, useState, useCallback } from "react";
 import { Spinner, Button } from "react-bootstrap";
 import Pagination from "./Pagination";
 
@@ -13,7 +14,6 @@ const CSS = `
 .jb-scroll[data-autohide="1"]:not([data-active])::-webkit-scrollbar{ width:6px; height:6px; }
 .jb-scroll[data-autohide="1"]:not([data-active]){ scrollbar-width:thin; }
 `;
-
 function injectStyle(){
   if (typeof document==="undefined") return;
   if (!document.getElementById(STYLE_ID)){
@@ -24,46 +24,58 @@ function injectStyle(){
 }
 
 /**
- * ScrollBar
- * props:
- * - loadPage: async (page:number, size:number) => { items:any[], totalPage:number }
- * - renderItem: (item:any, idx:number) => ReactNode
- * - height: 스크롤 영역 높이 (기본 "70vh")
- * - pageSize: 페이지당 개수(기본 10)
- * - startPage: 시작 페이지(기본 1)
- * - autoScroll: 새 데이터 붙을 때 아래로 스크롤(기본 true)
- * - rememberKey: 스크롤 위치 저장/복원 키(선택)
+ * ScrollBar – 진짜 간단 사용:
+ *   <ScrollBar endpoint="http://localhost:9000/v1/emp/list/paging" params={{ type, keyword }} />
+ *
+ * 옵션:
+ *   - method: "GET" | "POST" (기본 GET)
+ *   - body:   POST 바디
+ *   - pageSize: 10 (기본)
+ *   - height: "70vh" (기본)
+ *   - rememberKey: 스크롤 위치 저장/복원 키
+ *   - extract(res): { items, totalPage }로 매핑 커스터마이즈
+ *   - children(item, idx): 줄 모양 커스터마이즈
+ *   - renderItem(item, idx): children 대신 쓰고 싶을 때
+ *   - itemComponent({ item, idx }): 더 단순한 함수형 렌더러
  */
 const ScrollBar = forwardRef(function ScrollBar({
-  loadPage,
-  renderItem,
-  height = "70vh",
+  endpoint,
+  params = {},
+  method = "GET",
+  body = null,
+
   pageSize = 10,
-  startPage = 1,
-  autoScroll = true,
+  height = "70vh",
   rememberKey,
+
+  extract,          // (res) => ({ items, totalPage })
+  children,
+  renderItem,
+  itemComponent,
 }, ref){
   injectStyle();
 
-  const [page, setPage] = useState(startPage);
+  // ---- 상태 ----
+  const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(1);
-  const [rows, setRows] = useState([]);        // 누적 목록
+  const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [resetFlag, setResetFlag] = useState(false); // 페이지 이동 시 누적 초기화용
+  const [resetFlag, setResetFlag] = useState(false);
 
-  const boxRef = useRef(null);      // 스크롤 상자
-  const bottomRef = useRef(null);   // 무한 스크롤 센티널
-  const lastRef = useRef(null);     // 마지막 아이템
-  const pagerRef = useRef(null);    // 페이지네이션 영역
+  const boxRef = useRef(null);
+  const bottomRef = useRef(null);
+  const lastRef = useRef(null);
+  const pagerRef = useRef(null);
 
   const hasMore = page < totalPage;
 
-  // 위치 저장/복원
+  // ---- remember util ----
   const savePos = useCallback((el)=>{
     if (!rememberKey || !el) return;
     try{ sessionStorage.setItem(`scroll:${rememberKey}`, String(el.scrollTop)); }catch{}
   }, [rememberKey]);
+
   const loadPos = useCallback(()=>{
     if (!rememberKey) return 0;
     try{
@@ -72,25 +84,63 @@ const ScrollBar = forwardRef(function ScrollBar({
     }catch{ return 0; }
   }, [rememberKey]);
 
+  // ---- 기본 extractor: 흔한 응답 형태 자동지원 ----
+  const defaultExtract = (res) => {
+    const d = res?.data ?? res;
+    const items = d?.list ?? d?.content ?? d?.items ?? d?.rows ?? (Array.isArray(d) ? d : []);
+    const tp    = d?.totalPage ?? d?.totalPages ?? d?.pages ?? 1;
+    return { items: Array.isArray(items) ? items : [], totalPage: tp || 1 };
+  };
+  const doExtract = extract || defaultExtract;
+
+  // ---- 기본 렌더러(아무 것도 안 넘기면 이걸로) ----
+  const DefaultItem = ({ item }) => {
+    const title = item?.title || item?.name || item?.empName || item?.memName || `#${item?.id ?? ""}`;
+    const sub   = item?.memo || item?.note || item?.email || item?.empPhone || "";
+    return (
+      <div className="p-3 mb-2 border rounded bg-white">
+        <div className="fw-semibold">{title}</div>
+        {sub ? <div className="text-muted small">{sub}</div> : null}
+      </div>
+    );
+  };
+
+  // 최종 렌더 선택 (children > renderItem > itemComponent > DefaultItem)
+  const render = (item, idx) => {
+    if (typeof children === "function") return children(item, idx);
+    if (typeof renderItem === "function") return renderItem(item, idx);
+    if (typeof itemComponent === "function") return itemComponent({ item, idx });
+    return <DefaultItem key={idx} item={item} />;
+  };
+
+  // ---- 데이터 로딩 ----
   const fetchPage = useCallback(async (p)=>{
+    if (!endpoint) { setError("endpoint가 필요합니다."); return; }
     setLoading(true); setError("");
     try{
-      const { items, totalPage: tp } = await loadPage(p, pageSize);
-      if (!Array.isArray(items)) throw new Error("items 형식이 올바르지 않습니다.");
+      const q = { ...params, page: p, size: pageSize };
+      const res = method === "POST"
+        ? await axios.post(endpoint, body ?? {}, { params: q })
+        : await axios.get(endpoint, { params: q });
+
+      const { items, totalPage: tp } = doExtract(res);
+      if (!Array.isArray(items)) throw new Error("items 형식 오류");
       setTotalPage(tp || 1);
       setRows(prev => (p===1 || resetFlag ? items : [...prev, ...items]));
       setResetFlag(false);
     }catch(e){
-      setError(e?.message || "로딩 실패");
+      setError(e?.response?.data || e?.message || "로딩 실패");
     }finally{
       setLoading(false);
     }
-  }, [loadPage, pageSize, resetFlag]);
+  }, [endpoint, params, method, body, pageSize, resetFlag, doExtract]);
 
-  // 초기/외부 변경 대응
-  useEffect(()=>{ setPage(startPage); setRows([]); setResetFlag(true); }, [startPage]);
+  // params나 endpoint가 바뀌면 1페이지부터 리셋
+  useEffect(()=>{
+    setRows([]); setPage(1); setResetFlag(true);
+  }, [endpoint, JSON.stringify(params), pageSize]);
 
-  // 페이지 변경 시 로드
+  // 페이지 변경 시 로딩
   useEffect(()=>{ fetchPage(page); }, [page, fetchPage]);
 
   // 스크롤 리스너 + remember
@@ -112,12 +162,11 @@ const ScrollBar = forwardRef(function ScrollBar({
     return ()=>{ el.removeEventListener("scroll", onScroll); clearTimeout(hideTimer); };
   }, [rememberKey, savePos, loadPos]);
 
-  // 새 데이터가 붙을 때 아래로 스크롤(마지막 아이템 또는 페이지네이션)
+  // 새 데이터가 붙으면 하단으로
   useEffect(()=>{
-    if (!autoScroll) return;
     const target = lastRef.current || pagerRef.current;
     target?.scrollIntoView({ behavior:"smooth", block:"end" });
-  }, [rows, autoScroll]);
+  }, [rows]);
 
   // 무한 스크롤
   useEffect(()=>{
@@ -132,13 +181,10 @@ const ScrollBar = forwardRef(function ScrollBar({
     return ()=> io.disconnect();
   }, [loading, hasMore]);
 
-  // 페이지네이션 클릭 → 누적 초기화 후 그 페이지부터
+  // 페이지네이션 클릭 → 해당 페이지로 점프 (누적 초기화)
   const handlePageChange = (p)=>{
     if (p<1 || p>totalPage) return;
-    setRows([]);
-    setResetFlag(true);
-    setPage(p);
-    // 페이지 선택 시 페이지네이션 위치로 스크롤
+    setRows([]); setResetFlag(true); setPage(p);
     setTimeout(()=> pagerRef.current?.scrollIntoView({ behavior:"smooth", block:"end" }), 0);
   };
 
@@ -155,10 +201,11 @@ const ScrollBar = forwardRef(function ScrollBar({
           const isLast = idx === rows.length - 1;
           return (
             <div key={idx} ref={isLast ? lastRef : null}>
-              {renderItem(it, idx)}
+              {render(it, idx)}
             </div>
           );
         })}
+
         <div ref={bottomRef} style={{ height: 1 }} />
 
         {loading && (
@@ -166,7 +213,8 @@ const ScrollBar = forwardRef(function ScrollBar({
             <Spinner animation="border" size="sm" /> 불러오는 중…
           </div>
         )}
-        {error && <div className="text-danger small py-2">{error}</div>}
+        {error && <div className="text-danger small py-2">{String(error)}</div>}
+
         {!loading && hasMore && (
           <div className="text-center py-2">
             <Button variant="outline-secondary" size="sm" onClick={()=>setPage(p=>p+1)}>
@@ -176,7 +224,7 @@ const ScrollBar = forwardRef(function ScrollBar({
         )}
       </div>
 
-      {/* 네가 만든 Pagination을 “항상 아래”에 표시 */}
+      {/* 하단 페이지네이션(고정) */}
       <div ref={pagerRef} className="d-flex justify-content-center">
         <Pagination page={page} totalPage={totalPage} onPageChange={handlePageChange} />
       </div>

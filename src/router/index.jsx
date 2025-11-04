@@ -11,10 +11,6 @@ import EmpDetail from "../pages/EmpDetail.jsx";
 import EmpEdit from "../pages/EmpEdit.jsx";
 
 import EmpAttendanceMy from "../pages/EmpAttendance/myAttendance.jsx";
-import EmpAttendanceView from "../pages/EmpAttendance/viewAttendance.jsx";
-import EmpAttendanceList from "../pages/EmpAttendance/list.jsx";
-import EmpVacationList from "../pages/EmpVacation/list.jsx";
-import JONGBOKHome from "../pages/JONGBOKHome.jsx";
 import SchedulePage from "../pages/SchedulePage.jsx";
 import ProductList from "../pages/Product/ProductList.jsx";
 import MemberList from "../pages/MemberList.jsx";
@@ -55,14 +51,10 @@ const router = createBrowserRouter([
     errorElement: <div>Route 에러</div>,
     children: [
       { path: "home", element: <Home /> },
-      { path: "jongbok", element: <JONGBOKHome /> },
       { path: "emp", element: <EmpList /> },
       { path: "emp/:empNum", element: <EmpDetail /> },
       { path: "emp/edit/:empNum", element: <EmpEdit /> },
-      { path: "attendance", element: <EmpAttendanceList /> }, 
       { path: "attendance/my", element: <EmpAttendanceMy /> },
-      { path: "attendance/view", element: <EmpAttendanceView /> }, 
-      { path: "vacations", element: <EmpVacationList /> },
       { path: "schedule", element: <SchedulePage /> },
       { path: "product", element: <ProductList/> },
       { path: "productList", element: <ProductList/> },

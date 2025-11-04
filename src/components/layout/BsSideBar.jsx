@@ -57,14 +57,14 @@ function BsSideBar() {
           {/* 드롭다운 메뉴 */}
           <DropdownMenu icon="people" title="직원관리">
             <SubMenuItem to="/emp" icon="table" text="직원목록"/>
+            <SubMenuItem to="/attendance/my" icon="table" text="근태관리"/>
           </DropdownMenu>
           <DropdownMenu icon="people-fill" title="회원관리">
             <SubMenuItem to="/member" icon="table" text="회원목록" />
           </DropdownMenu>
           <DropdownMenu icon="people-fill" title="매출관리">
             <SubMenuItem to="/sales/SalesItemCreate" icon="cart-plus" text="상품판매등록" />
-          </DropdownMenu>          
-
+          </DropdownMenu>         
         </ul>
       </div>
     </div>
