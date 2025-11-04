@@ -5,6 +5,8 @@ import { Modal, Button } from "react-bootstrap";
 import { useLocation } from "react-router-dom";
 import ScheduleCalendar from "../components/ScheduleCalendar";
 import ScheduleModal from "../components/ScheduleModal";
+import GymIcon from "../components/icons/GymIcon";
+
 
 export default function SchedulePage() {
   const [events, setEvents] = useState([]);
@@ -22,31 +24,54 @@ export default function SchedulePage() {
 
   // 일정 로딩
   const loadSchedules = async () => {
-    try {
-      const url = empNum
-        ? `http://localhost:9000/v1/schedule/emp/${empNum}`
-        : "http://localhost:9000/v1/schedule/all"; // empNum 없으면 전체일정
-      const res = await axios.get(url);
+  try {
+    const url = empNum
+      ? `http://localhost:9000/v1/schedule/emp/${empNum}`
+      : "http://localhost:9000/v1/schedule/all"; // empNum 없으면 전체일정
+    const res = await axios.get(url);
 
-      const loaded = res.data.map((e) => ({
-        title: `[${e.codeBName || e.codeBId || "일정"}] ${e.empName || ""} - ${e.memo || ""}`,
+    const loaded = res.data.map((e) => {
+      // 코드별 한글 라벨 매핑
+      const typeMap = {
+        "PT": "PT",
+        "SCHEDULE-PT": "PT",
+        "VACATION": "휴가",
+        "ETC-COUNSEL": "상담",
+        "ETC-MEETING": "회의",
+        "ETC-COMPETITION": "대회",
+      };
+
+      // 매칭되는 이름 없으면 codeBName 또는 "일정"
+      const typeLabel = typeMap[e.codeBid] || e.codeBName || "일정";
+
+      return {
+        title:
+          typeLabel === "PT"
+            ? `[${typeLabel}] ${e.memName || "회원"} - ${e.memo || ""}` // PT는 회원명 중심
+            : `[${typeLabel}] ${e.empName || ""} - ${e.memo || ""}`,     // 그 외는 직원명 중심
         start: new Date(e.startTime),
         end: new Date(e.endTime),
         color:
         e.codeBid === "PT" || e.codeBid === "SCHEDULE-PT"
-          ? "#2ecc71" // PT 는 초록
+          ? "#2ecc71" // PT: 초록
           : e.codeBid === "VACATION"
-          ? "#e74c3c" // 휴가는 빨강
-          : e.codeBid?.startsWith("ETC")
-          ? "#3498db" // 기타는 파랑
-          : "#95a5a6", // null일 경우 회색
+          ? "#e74c3c" // 휴가: 빨강
+          : e.codeBid === "ETC-COMPETITION"
+          ? "#9b59b6" // 대회: 보라
+          : e.codeBid === "ETC-COUNSEL"
+          ? "#f39c12" // 상담: 주황
+          : e.codeBid === "ETC-MEETING"
+          ? "#34495e" // 회의: 남색
+          : "#95a5a6", // 기본: 회색
         ...e,
-      }));
+      };
+    });
       setEvents(loaded);
     } catch (err) {
       console.error("일정 불러오기 에러:", err);
     }
   };
+
 
   useEffect(() => {
     loadSchedules();
@@ -67,8 +92,8 @@ export default function SchedulePage() {
 
   return (
     <div>
-      <h4>📅 직원 일정 관리</h4>
-
+      <h4 style={{fontWeight:"600", coloer:"#444", fontSize:"1.8rem", marginBottom:"1.2rem",}}> <GymIcon size={32} color="#f1c40f" secondary="#2c3e50" /></h4>
+      <hr />
       <ScheduleCalendar
         events={events}
         onSelectSlot={handleSelectSlot}

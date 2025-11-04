@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Modal, Tabs, Tab, Button, Row, Col, Form, InputGroup } from "react-bootstrap";
 import axios from "axios";
+import "./css/ScheduleModal.css";
 
 export default function ScheduleModal({ show, defaultTab = "pt", empNum, empName, onClose, onSaved, editData, selectedDate, }) {
   const [tab, setTab] = useState(defaultTab);
@@ -65,9 +66,9 @@ export default function ScheduleModal({ show, defaultTab = "pt", empNum, empName
 
 /* ============================================================= */
 /* PT 탭 */
-function PTTab({ empNum, empName, onSaved, editData, selectedDate }) {
+function PTTab({ empNum, empName, onSaved, editData, selectedDate, memNum }) {
   const [form, setForm] = useState({
-    memberNum: "",
+    memNum: "",
     empNum: empNum || "",
     empName: empName || "",
     date: selectedDate || "", // 기본값 설정
@@ -82,7 +83,7 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate }) {
     if (empNum) setForm((prev) => ({ ...prev, empNum, empName }));
     if (editData) {
      setForm({
-        memberNum: editData.memberNum || "",
+        memNum: editData.memNum || "",
         empNum: editData.empNum || empNum,
         empName: editData.empName || empName,
         date: editData.startTime?.slice(0, 10) || selectedDate || "",
@@ -98,7 +99,7 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate }) {
       .get("http://localhost:9000/v1/member")
       .then((res) => setMembers(res.data))
       .catch((err) => console.error("회원 목록 불러오기 실패:", err));
-  }, [empNum, empName, editData, selectedDate]);
+  }, [empNum, empName, editData, selectedDate, memNum]);
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -107,6 +108,7 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate }) {
 
     try {
       const payload = {
+        memNum: form.memNum, 
         empNum: form.empNum,
         codeBid: "SCHEDULE-PT",
         startTime: `${form.date}T${form.startTime}`,
@@ -118,6 +120,7 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate }) {
         alert("PT 일정이 수정되었습니다.");
       } else {
         await axios.post("http://localhost:9000/v1/schedule/add", payload);
+        console.log("📦 PT 예약 요청 payload:", payload);
         alert("PT 일정을 등록했습니다.");
       }
       
@@ -133,7 +136,7 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate }) {
       <Row className="g-3">
         <Col md={6}>
           <Form.Label>회원명</Form.Label>
-          <Form.Select name="memberNum" value={form.memberNum} onChange={onChange}>
+          <Form.Select name="memNum" value={form.memNum} onChange={onChange}>
             <option value="">선택</option>
             {members.map((m) => (
               <option key={m.memNum} value={m.memNum}>

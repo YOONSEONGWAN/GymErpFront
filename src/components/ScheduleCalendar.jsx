@@ -2,8 +2,11 @@ import React, { useState } from "react";
 import { Calendar, dateFnsLocalizer } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import { ko } from "date-fns/locale";
+
+// css
 import "bootstrap/dist/css/bootstrap.min.css";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import "../components/css/ScheduleCalendar.css"; // 커스텀 css
 
 const locales = { ko };
 const localizer = dateFnsLocalizer({
@@ -23,6 +26,7 @@ function ScheduleCalendar({ events, onSelectSlot, onSelectEvent }) {
   return (
     <Calendar
       localizer={localizer}
+      culture="ko" // 한글
       events={events}
       startAccessor="start"
       endAccessor="end"
