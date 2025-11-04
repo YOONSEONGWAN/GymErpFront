@@ -26,6 +26,8 @@ import SalesItemCreate from "../pages/Sales/SalesItemCreate.jsx";
 import SalesServiceCreate from "../pages/Sales/SalesServiceCreate.jsx";
 import StockInbound from "../pages/Product/StockInbound.jsx";
 import ProductCreate from "../pages/Product/ProductCreate.jsx";
+import ProductUpdate from "../pages/Product/ProductUpdate.jsx";
+import ProductDetail from "../pages/Product/ProductDetail.jsx";
 
 
 
@@ -58,13 +60,15 @@ const router = createBrowserRouter([
       { path: "emp", element: <EmpList /> },
       { path: "emp/:empNum", element: <EmpDetail /> },
       { path: "emp/edit/:empNum", element: <EmpEdit /> },
-      { path: "attendance", element: <EmpAttendanceList /> }, 
+      { path: "attendance", element: <EmpAttendanceList /> },
       { path: "attendance/my", element: <EmpAttendanceMy /> },
-      { path: "attendance/view", element: <EmpAttendanceView /> }, 
+      { path: "attendance/view", element: <EmpAttendanceView /> },
       { path: "vacations", element: <EmpVacationList /> },
       { path: "schedule", element: <SchedulePage /> },
-      { path: "product", element: <ProductList/> },
-      { path: "productList", element: <ProductList/> },
+      { path: "product", element: <ProductList /> },
+      { path: "productList", element: <ProductList /> },
+      { path: "product/detail/product/:productId", element: <ProductDetail /> },
+      { path: "product/detail/service/:serviceId", element: <ProductDetail /> },
       { path: "product/create", element: <ProductCreate /> },
       { path: "product/edit/:productId", element: <ProductUpdate /> },
       { path: "service/edit/:serviceId", element: <ProductUpdate /> },
