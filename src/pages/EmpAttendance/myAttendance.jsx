@@ -261,7 +261,7 @@ export default function EmpAttendanceMy() {
         )}
       </div>
 
-      {/* 리스트 */}
+      {/* 리스트 a*/}
       <div className="att-table mt-3">
         <Table hover responsive className="mb-0">
           <thead>

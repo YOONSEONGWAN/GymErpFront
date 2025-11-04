@@ -24,19 +24,19 @@ function injectStyle(){
 }
 
 /**
- * ScrollBar – 진짜 간단 사용:
- *   <ScrollBar endpoint="http://localhost:9000/v1/emp/list/paging" params={{ type, keyword }} />
+ * ScrollBar – 간단 사용:
+ * <ScrollBar endpoint="/api/v1/attendance" params={{ date: '2025-11-04' }}
+ *   provide={({ items }) => (<div>{items.length}건</div>)} />
  *
  * 옵션:
- *   - method: "GET" | "POST" (기본 GET)
- *   - body:   POST 바디
- *   - pageSize: 10 (기본)
- *   - height: "70vh" (기본)
- *   - rememberKey: 스크롤 위치 저장/복원 키
- *   - extract(res): { items, totalPage }로 매핑 커스터마이즈
- *   - children(item, idx): 줄 모양 커스터마이즈
- *   - renderItem(item, idx): children 대신 쓰고 싶을 때
- *   - itemComponent({ item, idx }): 더 단순한 함수형 렌더러
+ * - method: "GET" | "POST" (기본 GET)
+ * - body:   POST 바디
+ * - pageSize: 기본 10 (백이 page/size 받으면 자동 전달)
+ * - height:  "70vh"
+ * - rememberKey: 스크롤 위치 저장/복원 키
+ * - extract(res): { items, totalPage }로 매핑 (기본 extractor 내장)
+ * - provide: ({ items, loading, error, reload, page, totalPage }) => ReactNode
+ * - children/renderItem/itemComponent: 아이템 단위 렌더(간단 목록용)
  */
 const ScrollBar = forwardRef(function ScrollBar({
   endpoint,
@@ -49,6 +49,7 @@ const ScrollBar = forwardRef(function ScrollBar({
   rememberKey,
 
   extract,          // (res) => ({ items, totalPage })
+  provide,          // ({ items, loading, error, reload, page, totalPage }) => ReactNode
   children,
   renderItem,
   itemComponent,
@@ -119,7 +120,7 @@ const ScrollBar = forwardRef(function ScrollBar({
     setLoading(true); setError("");
     try{
       const q = { ...params, page: p, size: pageSize };
-      const res = method === "POST"
+      const res = method.toUpperCase() === "POST"
         ? await axios.post(endpoint, body ?? {}, { params: q })
         : await axios.get(endpoint, { params: q });
 
@@ -129,13 +130,13 @@ const ScrollBar = forwardRef(function ScrollBar({
       setRows(prev => (p===1 || resetFlag ? items : [...prev, ...items]));
       setResetFlag(false);
     }catch(e){
-      setError(e?.response?.data || e?.message || "로딩 실패");
+      setError(e?.response?.data?.message || e?.response?.data || e?.message || "로딩 실패");
     }finally{
       setLoading(false);
     }
   }, [endpoint, params, method, body, pageSize, resetFlag, doExtract]);
 
-  // params나 endpoint가 바뀌면 1페이지부터 리셋
+  // params/endpoint 변경 → 1페이지부터 리셋
   useEffect(()=>{
     setRows([]); setPage(1); setResetFlag(true);
   }, [endpoint, JSON.stringify(params), pageSize]);
@@ -143,7 +144,7 @@ const ScrollBar = forwardRef(function ScrollBar({
   // 페이지 변경 시 로딩
   useEffect(()=>{ fetchPage(page); }, [page, fetchPage]);
 
-  // 스크롤 리스너 + remember
+  // 스크롤 리스너 + remember + autohide
   useEffect(()=>{
     const el = boxRef.current; if (!el) return;
     if (rememberKey) el.scrollTop = loadPos();
@@ -188,9 +189,40 @@ const ScrollBar = forwardRef(function ScrollBar({
     setTimeout(()=> pagerRef.current?.scrollIntoView({ behavior:"smooth", block:"end" }), 0);
   };
 
+  const reload = useCallback(()=>{
+    setRows([]); setResetFlag(true); setPage(1);
+  }, []);
+
+  // ✅ provide가 있으면 “데이터 단위로” 그대로 렌더(테이블/그리드 등)
+  if (typeof provide === "function") {
+    return (
+      <div className="d-flex flex-column" style={{ gap: 12 }}>
+        <div
+          ref={boxRef}
+          className="jb-scroll"
+          data-autohide="1"
+          style={{ height, overflow:"auto", border:"1px solid #e7e7ef", borderRadius:8, padding:12 }}
+        >
+          {provide({ items: rows, loading, error, reload, page, totalPage })}
+          <div ref={bottomRef} style={{ height: 1 }} />
+          {loading && (
+            <div className="text-center py-3">
+              <Spinner animation="border" size="sm" /> 불러오는 중…
+            </div>
+          )}
+          {error && <div className="text-danger small py-2">{String(error)}</div>}
+        </div>
+
+        <div ref={pagerRef} className="d-flex justify-content-center">
+          <Pagination page={page} totalPage={totalPage} onPageChange={handlePageChange} />
+        </div>
+      </div>
+    );
+  }
+
+  // 아이템 단위(간단 목록) 렌더 모드
   return (
     <div className="d-flex flex-column" style={{ gap: 12 }}>
-      {/* 스크롤 영역 */}
       <div
         ref={boxRef}
         className="jb-scroll"
@@ -201,7 +233,7 @@ const ScrollBar = forwardRef(function ScrollBar({
           const isLast = idx === rows.length - 1;
           return (
             <div key={idx} ref={isLast ? lastRef : null}>
-              {render(it, idx)}
+              {typeof children === "function" ? children(it, idx) : render(it, idx)}
             </div>
           );
         })}
@@ -224,7 +256,6 @@ const ScrollBar = forwardRef(function ScrollBar({
         )}
       </div>
 
-      {/* 하단 페이지네이션(고정) */}
       <div ref={pagerRef} className="d-flex justify-content-center">
         <Pagination page={page} totalPage={totalPage} onPageChange={handlePageChange} />
       </div>
