@@ -32,7 +32,7 @@ const fmtDur = (sec) => {
   return `${h}h ${m}m`;
 };
 
-export default function EmpAttendanceMy() {
+function EmpAttendanceMy() {
   // 로그인 사번(없어도 목록은 보이되, 버튼은 비활성)
 const myEmpNum = (() => {
     // 1) 로그인 때 저장한 sessionStorage "user" 먼저 사용
