@@ -78,6 +78,7 @@ export default function BsSideBar() {
         <ul className="nav nav-pills flex-column gap-2 m-0">
           <DropdownMenu icon="people" title="직원관리">
             <SubMenuItem to="/emp" icon="table" text="직원목록" />
+            <SubMenuItem to="/attendance/my" icon="clock-history" text="출퇴근 기록" />
           </DropdownMenu>
 
           <DropdownMenu icon="people-fill" title="회원관리">
