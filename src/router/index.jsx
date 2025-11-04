@@ -3,13 +3,11 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 
 import App from "../App.jsx";
 import ProtectedRoute from "../components/ProtectedRoute.jsx";
-
 import Login from "../pages/Login.jsx";
 import Home from "../pages/Home.jsx";
 import EmpList from "../pages/EmpList.jsx";
 import EmpDetail from "../pages/EmpDetail.jsx";
 import EmpEdit from "../pages/EmpEdit.jsx";
-
 import EmpAttendanceMy from "../pages/EmpAttendance/myAttendance.jsx";
 import EmpAttendanceView from "../pages/EmpAttendance/viewAttendance.jsx";
 import EmpAttendanceList from "../pages/EmpAttendance/list.jsx";
@@ -20,7 +18,6 @@ import ProductList from "../pages/Product/ProductList.jsx";
 import MemberList from "../pages/MemberList.jsx";
 import MemberDetail from "../pages/MemberDetail.jsx";
 import MemberEdit from "../pages/MemberEdit.jsx";
-
 import SalesItemList from "../pages/Sales/SalesItemList.jsx";
 import SalesItemCreate from "../pages/Sales/SalesItemCreate.jsx";
 import SalesServiceCreate from "../pages/Sales/SalesServiceCreate.jsx";
@@ -82,10 +79,14 @@ const router = createBrowserRouter([
       { path: "sales/salesitemlist", element: <SalesItemList /> },
       { path: "sales/salesitemcreate", element: <SalesItemCreate /> },
       { path: "sales/salesservicecreate", element: <SalesServiceCreate /> },
+      { path: "member", element: <MemberList /> },
+      { path: "member/:memNum", element: <MemberDetail /> },
+      { path: "member/edit/:memNum", element: <MemberEdit /> },
       { path: "post", element: <PostList /> },
       { path: "post/new", element: <PostAdd /> },
       { path: "post/edit/:postId", element: <PostEdit /> },
       { path: "post/:postId", element: <PostView /> },
+
 
     ],
   },
