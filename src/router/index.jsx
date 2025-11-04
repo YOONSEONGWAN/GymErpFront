@@ -3,13 +3,11 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 
 import App from "../App.jsx";
 import ProtectedRoute from "../components/ProtectedRoute.jsx";
-
 import Login from "../pages/Login.jsx";
 import Home from "../pages/Home.jsx";
 import EmpList from "../pages/EmpList.jsx";
 import EmpDetail from "../pages/EmpDetail.jsx";
 import EmpEdit from "../pages/EmpEdit.jsx";
-
 import EmpAttendanceMy from "../pages/EmpAttendance/myAttendance.jsx";
 import EmpAttendanceView from "../pages/EmpAttendance/viewAttendance.jsx";
 import EmpAttendanceList from "../pages/EmpAttendance/list.jsx";
@@ -20,10 +18,17 @@ import ProductList from "../pages/Product/ProductList.jsx";
 import MemberList from "../pages/MemberList.jsx";
 import MemberDetail from "../pages/MemberDetail.jsx";
 import MemberEdit from "../pages/MemberEdit.jsx";
+import SalesItemList from "../pages/Sales/SalesItemList.jsx";
+import SalesItemCreate from "../pages/Sales/SalesItemCreate.jsx";
+import SalesServiceCreate from "../pages/Sales/SalesServiceCreate.jsx";
+import StockInbound from "../pages/Product/StockInbound.jsx";
+import ProductCreate from "../pages/Product/ProductCreate.jsx";
+
 
 
 const router = createBrowserRouter([
-  // 1) 로그인 (비보호)
+
+  // 2) 로그인 (비보호)
   {
     path: "/login",
     element: (
@@ -34,7 +39,7 @@ const router = createBrowserRouter([
     errorElement: <div>로그인 페이지 에러</div>
   },
 
-  // 2) 메인 앱 (보호)
+  // 3) 메인 앱 (보호)
   {
     path: "/",
     element: (
@@ -44,6 +49,7 @@ const router = createBrowserRouter([
     ),
     errorElement: <div>Route 에러</div>,
     children: [
+      { index: true, element: <Home /> },
       { path: "home", element: <Home /> },
       { path: "jongbok", element: <JONGBOKHome /> },
       { path: "emp", element: <EmpList /> },
@@ -56,9 +62,18 @@ const router = createBrowserRouter([
       { path: "schedule", element: <SchedulePage /> },
       { path: "product", element: <ProductList/> },
       { path: "productList", element: <ProductList/> },
+      { path: "product/create", element: <ProductCreate /> },
+      { path: "stock/inbound", element: <StockInbound /> },
       { path: "member", element: <MemberList /> },
       { path: "member/:memNum", element: <MemberDetail /> },
       { path: "member/edit/:memNum", element: <MemberEdit /> },
+      { path: "sales/salesitemlist", element: <SalesItemList /> },
+      { path: "sales/salesitemcreate", element: <SalesItemCreate /> },
+      { path: "sales/salesservicecreate", element: <SalesServiceCreate /> },
+      { path: "member", element: <MemberList /> },
+      { path: "member/:memNum", element: <MemberDetail /> },
+      { path: "member/edit/:memNum", element: <MemberEdit /> },
+
 
     ],
   },

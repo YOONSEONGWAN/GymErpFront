@@ -1,25 +1,32 @@
-// src/components/ScheduleModal.jsx
 import { useState, useEffect, useMemo } from "react";
-import { Modal, Tabs, Tab, Button, Row, Col, Form, InputGroup } from "react-bootstrap";
+import { Modal, Tabs, Tab, Button, Row, Col, Form } from "react-bootstrap";
 import axios from "axios";
 import "./css/ScheduleModal.css";
 
-export default function ScheduleModal({ show, defaultTab = "pt", empNum, empName, onClose, onSaved, editData, selectedDate, }) {
+/* ============================================================= */
+/* 메인 ScheduleModal */
+export default function ScheduleModal({
+  show,
+  defaultTab = "pt",
+  empNum,
+  empName,
+  onClose,
+  onSaved,
+  editData,
+  selectedDate,
+}) {
   const [tab, setTab] = useState(defaultTab);
 
-  // editData에 따라 탭 자동 전환 
+  // 수정 모드 → 탭 자동 변경
   useEffect(() => {
     if (!editData) return;
-
-    if (editData.codeBid === "VACATION") {
-      setTab("vacation");
-    } else if (editData.codeBid?.startsWith("ETC")) {
-      setTab("etc");
-    } else if (editData.codeBid === "SCHEDULE-PT") {
-      setTab("pt");
-    }
+    if (editData.codeBid === "VACATION") setTab("vacation");
+    else if (editData.codeBid?.startsWith("ETC")) setTab("etc");
+    else if (editData.codeBid === "SCHEDULE-PT") setTab("pt");
   }, [editData]);
+
   const handleSaved = (payload) => {
+    console.log("[일정 저장 완료] payload:", payload);
     onSaved?.(payload);
     onClose?.();
   };
@@ -27,7 +34,7 @@ export default function ScheduleModal({ show, defaultTab = "pt", empNum, empName
   return (
     <Modal show={show} onHide={onClose} centered backdrop="static" size="lg">
       <Modal.Header closeButton>
-        <Modal.Title>일정 등록</Modal.Title>
+        <Modal.Title>일정 관리</Modal.Title>
       </Modal.Header>
 
       <Modal.Body>
@@ -40,17 +47,35 @@ export default function ScheduleModal({ show, defaultTab = "pt", empNum, empName
         >
           {/* PT 탭 */}
           <Tab eventKey="pt" title="PT">
-            <PTTab empNum={empNum} empName={empName} onSaved={handleSaved} editData={editData} selectedDate={selectedDate} />
+            <PTTab
+              empNum={empNum}
+              empName={empName}
+              onSaved={handleSaved}
+              editData={editData}
+              selectedDate={selectedDate}
+            />
           </Tab>
 
           {/* 휴가 탭 */}
           <Tab eventKey="vacation" title="휴가">
-            <VacationTab empNum={empNum} empName={empName} onSaved={handleSaved} editData={editData} selectedDate={selectedDate} />
+            <VacationTab
+              empNum={empNum}
+              empName={empName}
+              onSaved={handleSaved}
+              editData={editData}
+              selectedDate={selectedDate}
+            />
           </Tab>
 
           {/* 기타 탭 */}
           <Tab eventKey="etc" title="기타">
-            <EtcTab empNum={empNum} empName={empName} onSaved={handleSaved} editData={editData} selectedDate={selectedDate} />
+            <EtcTab
+              empNum={empNum}
+              empName={empName}
+              onSaved={handleSaved}
+              editData={editData}
+              selectedDate={selectedDate}
+            />
           </Tab>
         </Tabs>
       </Modal.Body>
@@ -67,11 +92,12 @@ export default function ScheduleModal({ show, defaultTab = "pt", empNum, empName
 /* ============================================================= */
 /* PT 탭 */
 function PTTab({ empNum, empName, onSaved, editData, selectedDate, memNum }) {
+
   const [form, setForm] = useState({
     memNum: "",
     empNum: empNum || "",
     empName: empName || "",
-    date: selectedDate || "", // 기본값 설정
+    date: selectedDate || "",
     startTime: "",
     endTime: "",
     memo: "",
@@ -81,8 +107,10 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate, memNum }) {
 
   useEffect(() => {
     if (empNum) setForm((prev) => ({ ...prev, empNum, empName }));
+
     if (editData) {
      setForm({
+
         memNum: editData.memNum || "",
         empNum: editData.empNum || empNum,
         empName: editData.empName || empName,
@@ -91,20 +119,33 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate, memNum }) {
         endTime: editData.endTime?.slice(11, 16) || "",
         memo: editData.memo || "",
       });
-    }else if (!editData) {
-    // 등록 모드: 클릭한 날짜 반영
-    setForm((prev) => ({ ...prev, startDate: selectedDate || "", endDate: selectedDate || "" }));
+    } else if (!editData) {
+      setForm((prev) => ({
+        ...prev,
+        date: selectedDate || "",
+      }));
     }
+
     axios
       .get("http://localhost:9000/v1/member")
       .then((res) => setMembers(res.data))
       .catch((err) => console.error("회원 목록 불러오기 실패:", err));
   }, [empNum, empName, editData, selectedDate, memNum]);
 
+
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const submit = async (e) => {
     e.preventDefault();
+    const payload = {
+      empNum: form.empNum,
+      memNum: form.memNum,
+      codeBid: "SCHEDULE-PT",
+      startTime: `${form.date}T${form.startTime}`,
+      endTime: `${form.date}T${form.endTime}`,
+      memo: form.memo,
+    };
+    console.log("[PT payload 확인]", payload);
 
     try {
       const payload = {
@@ -120,13 +161,13 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate, memNum }) {
         alert("PT 일정이 수정되었습니다.");
       } else {
         await axios.post("http://localhost:9000/v1/schedule/add", payload);
-        console.log("📦 PT 예약 요청 payload:", payload);
+        console.log("PT 예약 요청 payload:", payload);
         alert("PT 일정을 등록했습니다.");
+
       }
-      
-      onSaved?.(); // 캘린더 새로고침
+      onSaved?.(payload);
     } catch (err) {
-      console.error("PT 일정등록 실패:", err);
+      console.error("PT 일정 등록/수정 실패:", err);
       alert("등록 중 오류가 발생했습니다.");
     }
   };
@@ -176,22 +217,19 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate, memNum }) {
   );
 }
 
-
 /* ============================================================= */
 /* 휴가 탭 */
 function VacationTab({ empNum, empName, onSaved, editData, selectedDate }) {
   const [form, setForm] = useState({
     empNum: empNum || "",
-    registrant: empName || "",  // 자동 등록
-    startDate: selectedDate || "", // 선택한 날짜 디폴트로
+    registrant: empName || "",
+    startDate: selectedDate || "",
     endDate: "",
     reason: "",
   });
 
   useEffect(() => {
-    if (empNum && empName)
-      setForm((prev) => ({ ...prev, empNum, registrant: empName }));
-
+    if (empNum && empName) setForm((prev) => ({ ...prev, empNum, registrant: empName }));
     if (editData && editData.codeBid === "VACATION") {
       setForm({
         empNum: editData.empNum || empNum,
@@ -200,45 +238,33 @@ function VacationTab({ empNum, empName, onSaved, editData, selectedDate }) {
         endDate: editData.endTime?.slice(0, 10) || "",
         reason: editData.memo || "",
       });
-    }else if (!editData) {
-    // 등록 모드: 클릭한 날짜 반영
-    setForm((prev) => ({ ...prev, startDate: selectedDate || "", endDate: selectedDate || "" }));
     }
   }, [empNum, empName, editData, selectedDate]);
-
-  const usedDays = useMemo(() => {
-    if (!form.startDate || !form.endDate) return 0;
-    const d1 = new Date(form.startDate);
-    const d2 = new Date(form.endDate);
-    return Math.max(0, (d2 - d1) / (1000 * 60 * 60 * 24) + 1);
-  }, [form.startDate, form.endDate]);
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const submit = async (e) => {
     e.preventDefault();
-    try {
-      const payload = {
-        shNum: editData?.shNum,
-        empNum: form.empNum,
-        codeBid: "VACATION",
-        startTime: `${form.startDate}T00:00`,
-        endTime: `${form.endDate}T23:59`,
-        memo: form.reason,
-      };
+    const payload = {
+      empNum: form.empNum,
+      codeBid: "VACATION",
+      startTime: `${form.startDate}T00:00`,
+      endTime: `${form.endDate}T23:59`,
+      memo: form.reason,
+    };
+    console.log("[VACATION payload 확인]", payload);
 
+    try {
       if (editData && editData.codeBid === "VACATION") {
         await axios.put("http://localhost:9000/v1/schedule/update", payload);
         alert("휴가 일정이 수정되었습니다.");
       } else {
         await axios.post("http://localhost:9000/v1/schedule/add", payload);
-        alert("휴가 일정을 등록했습니다.");
+        alert("휴가 일정이 등록되었습니다.");
       }
-
-      onSaved?.();
+      onSaved?.(payload);
     } catch (err) {
-      console.error("휴가 일정 등록/수정 실패:", err);
-      alert("저장 중 오류가 발생했습니다.");
+      console.error("휴가 일정 등록 실패:", err);
     }
   };
 
@@ -249,43 +275,23 @@ function VacationTab({ empNum, empName, onSaved, editData, selectedDate }) {
           <Form.Label>등록자</Form.Label>
           <Form.Control name="registrant" value={form.registrant} readOnly />
         </Col>
-        <Col md={3}>
-          <Form.Label>사용 일수</Form.Label>
-          <Form.Control readOnly value={usedDays} />
+        <Col md={6}>
+          <Form.Label>사유</Form.Label>
+          <Form.Control as="textarea" rows={2} name="reason" value={form.reason} onChange={onChange} />
         </Col>
         <Col md={6}>
           <Form.Label>시작일</Form.Label>
-          <Form.Control
-            type="date"
-            name="startDate"
-            value={form.startDate}
-            onChange={onChange}
-          />
+          <Form.Control type="date" name="startDate" value={form.startDate} onChange={onChange} />
         </Col>
         <Col md={6}>
           <Form.Label>종료일</Form.Label>
-          <Form.Control
-            type="date"
-            name="endDate"
-            value={form.endDate}
-            onChange={onChange}
-          />
-        </Col>
-        <Col md={12}>
-          <Form.Label>사유</Form.Label>
-          <Form.Control
-            as="textarea"
-            rows={3}
-            name="reason"
-            value={form.reason}
-            onChange={onChange}
-          />
+          <Form.Control type="date" name="endDate" value={form.endDate} onChange={onChange} />
         </Col>
       </Row>
 
       <div className="d-flex justify-content-end mt-3">
         <Button type="submit" variant="primary">
-          {editData && editData.codeBid === "VACATION" ? "수정" : "저장"}
+          저장
         </Button>
       </div>
     </Form>
@@ -300,14 +306,13 @@ function EtcTab({ empNum, empName, onSaved, editData, selectedDate }) {
     empNum: empNum || "",
     registrant: empName || "",
     category: "",
-    startDate: selectedDate || "", 
+    startDate: selectedDate || "",
     endDate: "",
     memo: "",
   });
 
   useEffect(() => {
-    if (empNum && empName)
-      setForm((prev) => ({ ...prev, empNum, registrant: empName }));
+    if (empNum && empName) setForm((prev) => ({ ...prev, empNum, registrant: empName }));
 
     if (editData && editData.codeBid?.startsWith("ETC")) {
       setForm({
@@ -318,9 +323,6 @@ function EtcTab({ empNum, empName, onSaved, editData, selectedDate }) {
         endDate: editData.endTime?.slice(0, 10) || "",
         memo: editData.memo || "",
       });
-    } else if (!editData) {
-    // 등록 모드: 클릭한 날짜 반영
-    setForm((prev) => ({ ...prev, startDate: selectedDate || "", endDate: selectedDate || "" }));
     }
 
     axios
@@ -332,39 +334,30 @@ function EtcTab({ empNum, empName, onSaved, editData, selectedDate }) {
       .catch((err) => console.error("일정유형 코드 불러오기 실패:", err));
   }, [empNum, empName, editData, selectedDate]);
 
-  const nameMap = {
-    "ETC-MEETING": "회의",
-    "ETC-COUNSEL": "상담",
-    "ETC-COMPETITION": "대회",
-  };
-
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const submit = async (e) => {
     e.preventDefault();
+    const payload = {
+      empNum: form.empNum,
+      codeBid: form.category,
+      startTime: `${form.startDate}T00:00`,
+      endTime: `${form.endDate}T23:59`,
+      memo: form.memo,
+    };
+    console.log("[ETC payload 확인]", payload);
 
     try {
-      const payload = {
-        shNum: editData?.shNum,
-        empNum: form.empNum,
-        codeBid: form.category,
-        startTime: `${form.startDate}T00:00`,
-        endTime: `${form.endDate}T23:59`,
-        memo: form.memo,
-      };
-
       if (editData && editData.codeBid?.startsWith("ETC")) {
         await axios.put("http://localhost:9000/v1/schedule/update", payload);
         alert("기타 일정이 수정되었습니다.");
       } else {
         await axios.post("http://localhost:9000/v1/schedule/add", payload);
-        alert("기타 일정을 등록했습니다.");
+        alert("기타 일정이 등록되었습니다.");
       }
-
-      onSaved?.();
+      onSaved?.(payload);
     } catch (err) {
-      console.error("기타 일정 등록/수정 실패:", err);
-      alert("저장 중 오류가 발생했습니다.");
+      console.error("기타 일정 등록 실패:", err);
     }
   };
 
@@ -377,52 +370,32 @@ function EtcTab({ empNum, empName, onSaved, editData, selectedDate }) {
         </Col>
         <Col md={6}>
           <Form.Label>일정유형</Form.Label>
-          <Form.Select
-            name="category"
-            value={form.category}
-            onChange={onChange}
-          >
+          <Form.Select name="category" value={form.category} onChange={onChange}>
             <option value="">선택</option>
             {scheduleCodes.map((c) => (
               <option key={c.codeBId} value={c.codeBId}>
-                {nameMap[c.codeBId] || c.codeBName}
+                {c.codeBName}
               </option>
             ))}
           </Form.Select>
         </Col>
         <Col md={6}>
           <Form.Label>시작일</Form.Label>
-          <Form.Control
-            type="date"
-            name="startDate"
-            value={form.startDate}
-            onChange={onChange}
-          />
+          <Form.Control type="date" name="startDate" value={form.startDate} onChange={onChange} />
         </Col>
         <Col md={6}>
           <Form.Label>종료일</Form.Label>
-          <Form.Control
-            type="date"
-            name="endDate"
-            value={form.endDate}
-            onChange={onChange}
-          />
+          <Form.Control type="date" name="endDate" value={form.endDate} onChange={onChange} />
         </Col>
         <Col md={12}>
           <Form.Label>메모</Form.Label>
-          <Form.Control
-            as="textarea"
-            rows={3}
-            name="memo"
-            value={form.memo}
-            onChange={onChange}
-          />
+          <Form.Control as="textarea" rows={3} name="memo" value={form.memo} onChange={onChange} />
         </Col>
       </Row>
 
       <div className="d-flex justify-content-end mt-3">
         <Button type="submit" variant="primary">
-          {editData && editData.codeBid?.startsWith("ETC") ? "수정" : "저장"}
+          저장
         </Button>
       </div>
     </Form>
