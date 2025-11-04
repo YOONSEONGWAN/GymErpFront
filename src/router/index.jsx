@@ -81,8 +81,8 @@ const router = createBrowserRouter([
       { path: "sales/salesservicelist", element: <SalesServiceList /> },
       { path: "sales/salesitemcreate", element: <SalesItemCreate /> },
       { path: "sales/salesservicecreate", element: <SalesServiceCreate /> },
-      { path: "sales/salesserviceedit", element: <SalesServiceEdit /> },
-      { path: "sales/salesservicedetail", element: <SalesServiceDetail /> },
+      { path: "sales/salesserviceedit/:id", element: <SalesServiceEdit /> },
+      { path: "sales/salesservicedetail/:id", element: <SalesServiceDetail /> },
 
       { path: "member", element: <MemberList /> },
       { path: "member/:memNum", element: <MemberDetail /> },

@@ -1,3 +1,4 @@
+// src/pages/Sales/SalesServiceEdit.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
@@ -17,13 +18,16 @@ function SalesServiceEdit() {
     actualAmount: 0,
     discount: 0,
     memNum: "",
-    empNum: 1, // 테스트용 로그인 직원
+    empNum: "",
     createdAt: "",
     updatedAt: "",
   });
 
-  const [original, setOriginal] = useState({}); // 초기 원본 저장용
+  const [original, setOriginal] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
+  // ✅ 숫자 포맷/파싱
   const formatNumber = (value) =>
     value === null || value === ""
       ? ""
@@ -31,54 +35,62 @@ function SalesServiceEdit() {
 
   const parseNumber = (value) => Number(value.replace(/[^0-9]/g, "")) || 0;
 
-  // ✅ 페이지 진입 시 row 로드
+  // ✅ 초기 데이터 로딩 (SalesServiceDetail과 동일)
   useEffect(() => {
+    if (!id) return;
+
     const fetchData = async () => {
+      setLoading(true);
+      setError("");
+
       try {
-        const res = await axios.get(`/api/v1/sales/services/${id}`);
-        const data = {
-          ...res.data,
-          empNum: 1, // 로그인 직원 테스트용
-          updatedAt: new Date().toISOString().slice(0, 10), // 오늘 날짜
-        };
-        setForm(data);
-        setOriginal(data); // ✅ 원본 저장
+        const res = await axios.get(`/v1/sales/services/${id}`);
+
+        const data =
+          res?.data?.serviceName !== undefined
+            ? res.data
+            : res?.data?.data
+            ? res.data.data
+            : null;
+
+        if (!data) {
+          setError("데이터를 불러오지 못했습니다.");
+          return;
+        }
+
+        const today = new Date().toISOString().slice(0, 10);
+        const filled = { ...data, updatedAt: today };
+        setForm(filled);
+        setOriginal(filled);
       } catch (err) {
-        console.error(err);
-        alert("데이터 조회 중 오류가 발생했습니다.");
+        console.error("❌ 데이터 조회 실패:", err);
+        setError("데이터 조회 중 오류가 발생했습니다.");
+      } finally {
+        setLoading(false);
       }
     };
+
     fetchData();
   }, [id]);
 
-  // ✅ 상품 선택 (테스트용)
-  const handleSelectService = () => {
-    const selected = {
-      serviceId: 10,
-      serviceName: "PT 20회권",
-      serviceType: "PT",
-      serviceValue: 20,
-      price: 800000,
-    };
-    setForm((prev) => ({
-      ...prev,
-      serviceId: selected.serviceId,
-      serviceName: selected.serviceName,
-      serviceType: selected.serviceType,
-      baseCount: selected.serviceValue,
-      actualCount: selected.serviceValue,
-      baseAmount: selected.price,
-      actualAmount: selected.price - prev.discount,
-    }));
-  };
+  if (loading)
+    return (
+      <div className="text-center mt-5">
+        <h5>데이터를 불러오는 중입니다...</h5>
+      </div>
+    );
 
-  // ✅ 회원 선택 (테스트용)
-  const handleSelectMember = () => {
-    const selected = { memNum: 202 };
-    setForm((prev) => ({ ...prev, memNum: selected.memNum }));
-  };
+  if (error)
+    return (
+      <div className="text-center mt-5 text-danger">
+        <h5>{error}</h5>
+        <button className="btn btn-secondary mt-3" onClick={() => navigate(-1)}>
+          돌아가기
+        </button>
+      </div>
+    );
 
-  // ✅ 값 변경
+  // ✅ 입력값 변경
   const handleChange = (e) => {
     const { name, value } = e.target;
     const num = parseNumber(value);
@@ -100,17 +112,22 @@ function SalesServiceEdit() {
     }
   };
 
-  // ✅ 수정 완료
-  const handleSubmit = async (e) => {
+  // ✅ 수정 확인
+  const handleConfirm = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.put(`/api/v1/sales/services/${id}`, form);
+      const res = await axios.put(`/v1/sales/services/${id}`, form);
       alert(res.data.message || "수정이 완료되었습니다!");
-      navigate(`/sales/services/${id}`); // 수정 후 조회 페이지 이동
+      navigate(`/sales/salesservicedetail/${id}`);
     } catch (err) {
-      console.error(err);
+      console.error("❌ 수정 오류:", err);
       alert("수정 중 오류가 발생했습니다.");
     }
+  };
+
+  // ✅ 취소 → 수정 없이 상세페이지로 이동
+  const handleCancel = () => {
+    navigate(`/sales/salesservicedetail/${id}`);
   };
 
   return (
@@ -120,24 +137,18 @@ function SalesServiceEdit() {
       </h4>
 
       <form
-        onSubmit={handleSubmit}
+        onSubmit={handleConfirm}
         className="border rounded-4 shadow-sm overflow-hidden mt-4"
       >
         <table className="table table-striped m-0 align-middle text-center">
           <tbody>
             {/* [1] 상품명 */}
             <tr>
-              <th
-                className="bg-dark text-white text-center align-middle"
-                style={{ width: "30%" }}
-              >
+              <th className="bg-dark text-white text-center align-middle" style={{ width: "30%" }}>
                 상품명
               </th>
               <td className="bg-light align-middle position-relative">
-                <div
-                  className="d-flex justify-content-center"
-                  style={{ width: "340px", margin: "0 auto" }}
-                >
+                <div className="d-flex justify-content-center" style={{ width: "340px", margin: "0 auto" }}>
                   <input
                     type="text"
                     name="serviceName"
@@ -150,11 +161,8 @@ function SalesServiceEdit() {
                   <button
                     type="button"
                     className="btn btn-outline-secondary position-absolute"
-                    style={{
-                      right: "calc(50% - 170px - 45px)",
-                      height: "38px",
-                    }}
-                    onClick={handleSelectService}
+                    style={{ right: "calc(50% - 170px - 45px)", height: "38px" }}
+                    onClick={() => console.log("상품 선택 모달 예정")}
                   >
                     <FaSearch />
                   </button>
@@ -164,9 +172,7 @@ function SalesServiceEdit() {
 
             {/* [2] 구분 */}
             <tr>
-              <th className="bg-dark text-white text-center align-middle">
-                구분
-              </th>
+              <th className="bg-dark text-white text-center align-middle">구분</th>
               <td className="bg-light align-middle">
                 <input
                   type="text"
@@ -181,14 +187,9 @@ function SalesServiceEdit() {
 
             {/* [3] 회원 */}
             <tr>
-              <th className="bg-dark text-white text-center align-middle">
-                회원
-              </th>
+              <th className="bg-dark text-white text-center align-middle">회원</th>
               <td className="bg-light align-middle position-relative">
-                <div
-                  className="d-flex justify-content-center"
-                  style={{ width: "340px", margin: "0 auto" }}
-                >
+                <div className="d-flex justify-content-center" style={{ width: "340px", margin: "0 auto" }}>
                   <input
                     type="text"
                     name="memNum"
@@ -201,11 +202,8 @@ function SalesServiceEdit() {
                   <button
                     type="button"
                     className="btn btn-outline-secondary position-absolute"
-                    style={{
-                      right: "calc(50% - 170px - 45px)",
-                      height: "38px",
-                    }}
-                    onClick={handleSelectMember}
+                    style={{ right: "calc(50% - 170px - 45px)", height: "38px" }}
+                    onClick={() => console.log("회원 선택 모달 예정")}
                   >
                     <FaSearch />
                   </button>
@@ -213,11 +211,9 @@ function SalesServiceEdit() {
               </td>
             </tr>
 
-            {/* [4] 직원 */}
+            {/* [4] 직원 ID */}
             <tr>
-              <th className="bg-dark text-white text-center align-middle">
-                직원 ID
-              </th>
+              <th className="bg-dark text-white text-center align-middle">직원 ID</th>
               <td className="bg-light align-middle">
                 <input
                   type="text"
@@ -232,9 +228,7 @@ function SalesServiceEdit() {
 
             {/* [5] 횟수/일수 */}
             <tr>
-              <th className="bg-dark text-white text-center align-middle">
-                횟수/일수
-              </th>
+              <th className="bg-dark text-white text-center align-middle">횟수/일수</th>
               <td className="bg-light align-middle">
                 <input
                   type="number"
@@ -249,9 +243,7 @@ function SalesServiceEdit() {
 
             {/* [6] 실제 횟수/일수 */}
             <tr>
-              <th className="bg-dark text-white text-center align-middle">
-                실제 횟수/일수
-              </th>
+              <th className="bg-dark text-white text-center align-middle">실제 횟수/일수</th>
               <td className="bg-light align-middle">
                 <input
                   type="number"
@@ -266,9 +258,7 @@ function SalesServiceEdit() {
 
             {/* [7] 총액 */}
             <tr>
-              <th className="bg-dark text-white text-center align-middle">
-                총액
-              </th>
+              <th className="bg-dark text-white text-center align-middle">총액</th>
               <td className="bg-light align-middle">
                 <input
                   type="text"
@@ -283,9 +273,7 @@ function SalesServiceEdit() {
 
             {/* [8] 할인금액 */}
             <tr>
-              <th className="bg-dark text-white text-center align-middle">
-                할인금액
-              </th>
+              <th className="bg-dark text-white text-center align-middle">할인금액</th>
               <td className="bg-light align-middle">
                 <input
                   type="text"
@@ -300,9 +288,7 @@ function SalesServiceEdit() {
 
             {/* [9] 최종금액 */}
             <tr>
-              <th className="bg-dark text-white text-center align-middle">
-                최종금액
-              </th>
+              <th className="bg-dark text-white text-center align-middle">최종금액</th>
               <td className="bg-light align-middle">
                 <input
                   type="text"
@@ -317,13 +303,10 @@ function SalesServiceEdit() {
 
             {/* [10] 등록일 */}
             <tr>
-              <th className="bg-dark text-white text-center align-middle">
-                등록일
-              </th>
+              <th className="bg-dark text-white text-center align-middle">등록일</th>
               <td className="bg-light align-middle">
                 <input
                   type="date"
-                  name="createdAt"
                   className="form-control text-center mx-auto"
                   style={{ width: "340px" }}
                   value={form.createdAt ? form.createdAt.slice(0, 10) : ""}
@@ -334,16 +317,13 @@ function SalesServiceEdit() {
 
             {/* [11] 수정일 */}
             <tr>
-              <th className="bg-dark text-white text-center align-middle">
-                수정일
-              </th>
+              <th className="bg-dark text-white text-center align-middle">수정일</th>
               <td className="bg-light align-middle">
                 <input
                   type="date"
-                  name="updatedAt"
                   className="form-control text-center mx-auto"
                   style={{ width: "340px" }}
-                  value={form.updatedAt}
+                  value={form.updatedAt ? form.updatedAt.slice(0, 10) : ""}
                   readOnly
                 />
               </td>
@@ -357,21 +337,13 @@ function SalesServiceEdit() {
         className="d-flex justify-content-center align-items-center mt-4"
         style={{ gap: "20px" }}
       >
-        {/* 🔹 초기값 복원 */}
-        <button
-          type="button"
-          className="btn btn-secondary px-5"
-          onClick={() => setForm(original)}
-        >
-          수정 취소
+        {/* 🔹 취소 → 상세페이지 이동 */}
+        <button type="button" className="btn btn-secondary px-5" onClick={handleCancel}>
+          취소
         </button>
 
-        {/* 🔹 조회 페이지로 이동 */}
-        <button
-          type="button"
-          className="btn btn-success px-5"
-          onClick={() => navigate(`/sales/services/${id}`)}
-        >
+        {/* 🔹 수정 확인 */}
+        <button type="submit" className="btn btn-primary px-5" onClick={handleConfirm}>
           확인
         </button>
       </div>
