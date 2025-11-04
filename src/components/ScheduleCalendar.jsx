@@ -1,23 +1,13 @@
-import React, { useState, useCallback } from "react";
-import {
-  Calendar,
-  dateFnsLocalizer,
-  Navigate,
-  Views,
-} from "react-big-calendar";
-import { format, parse, startOfWeek, getDay, addMonths } from "date-fns";
+import React, { useState } from "react";
+import { Calendar, dateFnsLocalizer } from "react-big-calendar";
+import { format, parse, startOfWeek, getDay } from "date-fns";
 import { ko } from "date-fns/locale";
+import "bootstrap/dist/css/bootstrap.min.css";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
-/**
- * 📆 ScheduleCalendar.jsx (버전 무관 완성형)
- * -------------------------------------------------
- * ✅ 월 보기 전용
- * ✅ 이전 / 다음 / 오늘 완벽 작동
- * ✅ 일정별 색상 표시
- * ✅ 오늘 날짜 강조
- * ✅ Bootstrap 스타일 통합
- */
+// ▼ 모달 임포트 (경로는 네 위치에 맞게)
+import ScheduleOpenModal from "./ScheduleOpenModal";
+
 const locales = { ko };
 const localizer = dateFnsLocalizer({
   format,
@@ -27,119 +17,104 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-/** ✅ 커스텀 툴바 */
-function CustomToolbar({ label, onNavigate }) {
-  return (
-    <div
-      className="d-flex justify-content-between align-items-center mb-2 px-3 py-2"
-      style={{
-        backgroundColor: "#f8f9fa",
-        borderRadius: "8px",
-        border: "1px solid #dee2e6",
-      }}
-    >
-      <div>
-        <button
-          className="btn btn-outline-secondary btn-sm me-2"
-          onClick={() => onNavigate("PREV")}
-        >
-          ◀ 이전
-        </button>
-        <button
-          className="btn btn-outline-secondary btn-sm me-2"
-          onClick={() => onNavigate("TODAY")}
-        >
-          오늘
-        </button>
-        <button
-          className="btn btn-outline-secondary btn-sm"
-          onClick={() => onNavigate("NEXT")}
-        >
-          다음 ▶
-        </button>
-      </div>
-      <h5 className="mb-0 fw-bold text-dark">
-        {label.replace(" ", "년 ")} {/* 예: 2025 11월 → 2025년 11월 */}
-      </h5>
-    </div>
-  );
-}
+// ScheduleCalendar (캘린더 렌더링)
+function ScheduleCalendar({ events, onSelectSlot, onSelectEvent }) {
+  const [currentView, setCurrentView] = useState("month");
+  const [currentDate, setCurrentDate] = useState(new Date());
 
-/** ✅ 캘린더 본체 */
-export default function ScheduleCalendar({ events, onSelectSlot, onSelectEvent }) {
-  const [date, setDate] = useState(new Date());
-  const [view, setView] = useState(Views.MONTH);
-
-  /** ✅ 수동으로 navigate 처리 */
-  const handleNavigate = useCallback(
-    (action) => {
-      switch (action) {
-        case "TODAY":
-          setDate(new Date());
-          break;
-        case "PREV":
-          setDate((d) => addMonths(d, -1));
-          break;
-        case "NEXT":
-          setDate((d) => addMonths(d, 1));
-          break;
-        default:
-          break;
-      }
-    },
-    []
-  );
+  // ▼ “+n” 클릭 시 띄울 모달 상태
+  const [more, setMore] = useState({ show: false, date: null, events: [] });
 
   return (
-    <div className="p-2 bg-white rounded shadow-sm">
+    <>
       <Calendar
         localizer={localizer}
         events={events}
         startAccessor="start"
         endAccessor="end"
         selectable
-        date={date}
-        view={view}
-        views={[Views.MONTH]} // ✅ 월 보기 고정
-        onView={(newView) => setView(newView)}
         onSelectSlot={onSelectSlot}
         onSelectEvent={onSelectEvent}
-        popup
-        style={{ height: 750 }}
-        components={{
-          toolbar: (props) => (
-            <CustomToolbar
-              {...props}
-              onNavigate={(action) => handleNavigate(action)}
-            />
-          ),
-        }}
+        style={{ height: 600 }}
         eventPropGetter={(event) => ({
           style: {
-            backgroundColor: event.color || "#95a5a6",
+            backgroundColor: event.color || "#007bff",
+            borderRadius: "5px",
             color: "white",
-            borderRadius: "8px",
-            border: "none",
-            padding: "3px 6px",
-            whiteSpace: "normal",
-            fontSize: "0.85rem",
           },
         })}
-        dayPropGetter={(date) => {
-          const isToday = new Date().toDateString() === date.toDateString();
-          return isToday
-            ? { style: { backgroundColor: "#fff9e6" } }
-            : {};
-        }}
-        messages={{
-          next: "다음",
-          previous: "이전",
-          today: "오늘",
-          month: "월",
-          week: "주",
-          day: "일",
-        }}
+        view={currentView}
+        onView={(view) => setCurrentView(view)}
+        date={currentDate} // 현재 달력 기준 날짜
+        onNavigate={(newDate) => setCurrentDate(newDate)} // 버튼 클릭 시 날짜 업데이트
+        components={{ toolbar: CustomToolbar }}
+        views={["month", "week", "day"]}
+        defaultView="month"
+
+        // ▼ 라이브러리 기본 “+n” 기능 비활성 + 우리 모달로 대체
+        popup={false}
+        doShowMoreDrillDown={false}   
+        onDrillDown={() => {}}                 // 날짜/헤더 클릭 전환까지 차단
+        onShowMore={(evts, date) => setMore({ show: true, date, events: evts })}
       />
+
+      {/* ▼ 스케줄 자세히 보기 모달 */}
+      <ScheduleOpenModal
+        show={more.show}
+        date={more.date}
+        events={more.events}
+        onClose={() => setMore((s) => ({ ...s, show: false }))}
+      />
+    </>
+  );
+}
+
+// Custom Toolbar
+function CustomToolbar({ label, onNavigate, onView }) {
+  return (
+    <div className="rbc-toolbar d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <button
+          className="btn btn-outline-secondary btn-sm me-1"
+          onClick={() => onNavigate("PREV")}
+        >
+          Back
+        </button>
+        <button
+          className="btn btn-outline-primary btn-sm me-1"
+          onClick={() => onNavigate("TODAY")}
+        >
+          Today
+        </button>
+        <button
+          className="btn btn-outline-secondary btn-sm"
+          onClick={() => onNavigate("NEXT")}
+        >
+          Next
+        </button>
+      </div>
+      <span className="fw-bold">{label}</span>
+      <div>
+        <button
+          className="btn btn-outline-dark btn-sm me-1"
+          onClick={() => onView("month")}
+        >
+          Month
+        </button>
+        <button
+          className="btn btn-outline-dark btn-sm me-1"
+          onClick={() => onView("week")}
+        >
+          Week
+        </button>
+        <button
+          className="btn btn-outline-dark btn-sm"
+          onClick={() => onView("day")}
+        >
+          Day
+        </button>
+      </div>
     </div>
   );
 }
+export default ScheduleCalendar;

@@ -1,75 +1,50 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import ScheduleModal from "../components/ScheduleModal.jsx";
-import ScheduleCalendar from "../components/ScheduleCalendar.jsx";
-import ScheduleDetailModal from "../components/ScheduleDetailModal.jsx";
+import { format } from "date-fns";
+import { Modal, Button } from "react-bootstrap";
 import { useLocation } from "react-router-dom";
-import { scheduleColors } from "../constants/scheduleColors.js";
+import ScheduleCalendar from "../components/ScheduleCalendar";
+import ScheduleModal from "../components/ScheduleModal";
 
 export default function SchedulePage() {
   const [events, setEvents] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [mode, setMode] = useState("create");
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [selectedSlot, setSelectedSlot] = useState(null);
-  const [ptCount, setPtCount] = useState(null); // 💪 PT 잔여횟수 상태 추가
+  const [editData, setEditData] = useState(null); // 수정 모드용 데이터
+  const [clickedDate, setClickedDate] = useState(null); // 클릭한 날짜 반영
 
-  const { state } = useLocation();
-  const empNum = state?.empNum || null;
-  const empName = state?.empName || "관리자";
+  // 직원 상세 → 일정으로 넘어올 때 URL 파라미터로 empNum 받기
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const empNum = params.get("empNum");
+  const empName = params.get("empName");
 
-  /** ✅ 일정 불러오기 */
+  // 일정 로딩
   const loadSchedules = async () => {
     try {
       const url = empNum
-        ? `http://localhost:9000/schedule/emp/${empNum}`
-        : `http://localhost:9000/schedule/all`;
-
+        ? `http://localhost:9000/v1/schedule/emp/${empNum}`
+        : "http://localhost:9000/v1/schedule/all"; // empNum 없으면 전체일정
       const res = await axios.get(url);
-      const loaded = res.data.map((e) => {
-        // ✅ codeBId 보정
-        const codeBId =
-          e.codeBId ||
-          (e.codeName?.includes("PT")
-            ? "B001"
-            : e.codeName?.includes("휴가")
-            ? "B002"
-            : "B003");
 
-        // ✅ 색상 설정
-        const color =
-          codeBId === "B001"
-            ? scheduleColors.PT
-            : codeBId === "B002"
-            ? scheduleColors.VACATION
-            : e.etcType === "MEETING"
-            ? scheduleColors.ETC_MEETING
-            : e.etcType === "COUNSEL"
-            ? scheduleColors.ETC_COUNSEL
-            : e.etcType === "COMPETITION"
-            ? scheduleColors.ETC_COMPETITION
-            : scheduleColors.DEFAULT;
-
-        return {
-          id: e.shNum,
-          title: `[${e.codeName || e.refType || "기타"}] ${e.memo || ""}`,
-          start: new Date(e.startTime),
-          end: new Date(e.endTime),
-          empNum: e.empNum,
-          codeBId,
-          codeName: e.codeName,
-          memNum: e.memNum,
-          memName: e.memName,
-          memPhone: e.memPhone,
-          memo: e.memo,
-          etcType: e.etcType,
-          color,
-        };
-      });
+      const loaded = res.data.map((e) => ({
+        title: `[${e.codeBName || e.codeBId || "일정"}] ${e.empName || ""} - ${e.memo || ""}`,
+        start: new Date(e.startTime),
+        end: new Date(e.endTime),
+        color:
+        e.codeBid === "PT" || e.codeBid === "SCHEDULE-PT"
+          ? "#2ecc71" // PT 는 초록
+          : e.codeBid === "VACATION"
+          ? "#e74c3c" // 휴가는 빨강
+          : e.codeBid?.startsWith("ETC")
+          ? "#3498db" // 기타는 파랑
+          : "#95a5a6", // null일 경우 회색
+        ...e,
+      }));
       setEvents(loaded);
     } catch (err) {
-      console.error("❌ 일정 불러오기 실패:", err);
+      console.error("일정 불러오기 에러:", err);
     }
   };
 
@@ -77,135 +52,76 @@ export default function SchedulePage() {
     loadSchedules();
   }, [empNum]);
 
-  /** 📆 빈칸 클릭 → 일정 등록 */
+  // 캘린더 클릭 핸들러
   const handleSelectSlot = (slotInfo) => {
-    setMode("create");
-    setSelectedSlot(slotInfo);
-    setSelectedEvent(null);
+    const dateStr = format(slotInfo.start, "yyyy-MM-dd"); // 클릭한 날짜를 문자열로 변환
+    setClickedDate(dateStr);
+    setEditData(null); // 등록 모드니까 수정데이터 초기화
     setShowModal(true);
   };
-
-  /** 📄 일정 클릭 → 상세 보기 (PT 횟수 포함) */
-  const handleSelectEvent = async (event) => {
+  
+  const handleSelectEvent = (event) => {
     setSelectedEvent(event);
     setShowDetailModal(true);
-
-    // 💪 PT 일정이면 PT 잔여횟수 조회
-    if (event.codeBId === "B001" && event.memNum) {
-      try {
-        const res = await axios.get(`http://localhost:9000/schedule/ptCount/${event.memNum}`);
-        setPtCount(res.data);
-      } catch (err) {
-        console.error("⚠️ PT 잔여횟수 불러오기 실패:", err);
-        setPtCount(null);
-      }
-    } else {
-      setPtCount(null);
-    }
-  };
-
-  /** ✅ 등록 / 수정 저장 */
-  const handleSaved = async (payload, mode) => {
-    try {
-      const memo = payload.ptMemo || payload.vacMemo || payload.etcMemo || payload.memo || "";
-      const data = { ...payload, memo };
-
-      if (mode === "edit") {
-        await axios.put(`http://localhost:9000/schedule/${data.id}`, data);
-        alert("✏️ 일정이 수정되었습니다!");
-      } else {
-        await axios.post("http://localhost:9000/schedule", data);
-        alert("✅ 일정이 등록되었습니다!");
-      }
-
-      setShowModal(false);
-      await loadSchedules();
-    } catch (err) {
-      console.error("❌ 저장 실패:", err);
-      alert("저장 중 오류가 발생했습니다.");
-    }
-  };
-
-  /** 🗑️ 삭제 */
-  const handleDelete = async (eventId) => {
-    if (!window.confirm("정말 삭제하시겠습니까?")) return;
-    try {
-      await axios.delete(`http://localhost:9000/schedule/${eventId}`);
-      alert("🗑️ 일정이 삭제되었습니다.");
-      setShowDetailModal(false);
-      await loadSchedules();
-    } catch (err) {
-      console.error("⚠️ 일정 삭제 실패:", err);
-      alert("⚠️ 일정 삭제 중 오류가 발생했습니다.");
-    }
-  };
-
-  /** ✏️ 상세보기 → 수정 모드 전환 */
-  const handleEditFromDetail = (event) => {
-    setShowDetailModal(false);
-    setSelectedEvent(event);
-    setSelectedSlot(null);
-    setMode("edit");
-    setTimeout(() => setShowModal(true), 200);
   };
 
   return (
-    <div className="container mt-4">
+    <div>
       <h4>📅 직원 일정 관리</h4>
 
-      {/* 🎨 색상 범례 */}
-      <div className="mb-3 d-flex flex-wrap gap-3">
-        {Object.entries({
-          PT: scheduleColors.PT,
-          휴가: scheduleColors.VACATION,
-          회의: scheduleColors.ETC_MEETING,
-          상담: scheduleColors.ETC_COUNSEL,
-          대회: scheduleColors.ETC_COMPETITION,
-        }).map(([label, color]) => (
-          <span key={label}>
-            <span
-              style={{
-                backgroundColor: color,
-                width: 15,
-                height: 15,
-                display: "inline-block",
-                marginRight: 5,
-              }}
-            ></span>
-            {label}
-          </span>
-        ))}
-      </div>
-
-      {/* 📆 캘린더 */}
       <ScheduleCalendar
         events={events}
         onSelectSlot={handleSelectSlot}
         onSelectEvent={handleSelectEvent}
       />
 
-      {/* 🪶 등록 / 수정 모달 */}
-      <ScheduleModal
-        show={showModal}
-        onClose={() => setShowModal(false)}
-        onSaved={handleSaved}
-        empNum={empNum}
-        empName={empName}
-        defaultStartTime={selectedSlot?.start}
-        defaultEndTime={selectedSlot?.end}
-        mode={mode}
-        initialData={selectedEvent}
-      />
+      {/* 일정 등록 모달 */}
+      {showModal && (
+        <ScheduleModal
+          show={showModal}
+          empNum={empNum}   // 직원번호
+          empName={empName} // 직원이름
+          onClose={() => setShowModal(false)}
+          onSaved={loadSchedules}
+          editData={editData} // 수정 데이터 전달
+          selectedDate={clickedDate} // 클릭한 날짜 추가
+        />
+      )}
 
-      {/* 📄 상세 보기 모달 (PT 잔여횟수 포함) */}
-      <ScheduleDetailModal
-        show={showDetailModal}
-        onClose={() => setShowDetailModal(false)}
-        event={selectedEvent}
-        ptCount={ptCount} // 💪 PT 횟수 전달
-        onEdit={handleEditFromDetail}
-        onDelete={handleDelete}
-      />
+      {/* 일정 상세 모달 */}
+      <Modal show={showDetailModal} onHide={() => setShowDetailModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>📄 일정 상세 정보</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedEvent ? (
+            <>
+              <p><strong>유형:</strong> {selectedEvent.refType || "미지정"}</p>
+              <p><strong>직원:</strong> {selectedEvent.empName || "미지정"}</p>
+              <p><strong>내용:</strong> {selectedEvent.memo || "내용 없음"}</p>
+              <p><strong>시작:</strong> {format(selectedEvent.start, "yyyy-MM-dd HH:mm")}</p>
+              <p><strong>종료:</strong> {format(selectedEvent.end, "yyyy-MM-dd HH:mm")}</p>
+            </>
+          ) : (
+            <p>일정 정보를 불러오는 중...</p>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+          variant="primary"
+          onClick={() => {
+            setShowDetailModal(false);
+            setEditData(selectedEvent); // 수정할 데이터 넘기기
+            setShowModal(true); // 등록 모달 열기
+          }}
+          >
+          수정
+          </Button>
+          <Button variant="secondary" onClick={() => setShowDetailModal(false)}>
+            닫기
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }
