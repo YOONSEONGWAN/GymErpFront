@@ -12,6 +12,13 @@ function EmpDetail() {
 
   const headerGradient = "linear-gradient(135deg, #2b314a, #4c5371)";
   
+  // 일정관리 버튼 클릭 시 직원num 과 name 을 파라미터로 전달하며 이동
+  // 나중에 로그인 기능 합치면 로그인된 id 로 
+  const handleGoSchedule = () => {
+    navigate(`/schedule?empNum=${emp.empNum}&empName=${emp.empName}`); 
+  };
+
+  // 직원 목록 조회 api
   useEffect(() => {
     axios
       .get(`http://localhost:9000/v1/emp/${empNum}`)
@@ -216,7 +223,7 @@ function EmpDetail() {
                     >
                     <FaEdit /> 상세정보 수정
                     </button>
-                    <button className="btn btn-light btn-sm d-flex align-items-center gap-1 shadow-sm">
+                    <button onClick={handleGoSchedule} className="btn btn-light btn-sm d-flex align-items-center gap-1 shadow-sm">
                     <FaCalendarAlt /> 일정 관리
                     </button>
                     <button
