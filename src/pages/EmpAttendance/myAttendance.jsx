@@ -396,3 +396,5 @@ const myEmpNum = (() => {
     </>
   );
 }
+
+export default EmpAttendanceMy;

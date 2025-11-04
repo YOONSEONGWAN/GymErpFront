@@ -2,11 +2,11 @@
 
 import React, { useEffect } from 'react';
 import axios from 'axios';
-import TextField from '../../components/testfolder/TextField.jsx';
-import BinaryRadioGroup from '../../components/testfolder/BinaryRadioGroup.jsx';
-import AsyncSelect from '../../components/testfolder/AsyncSelect.jsx';
-import TabSwitcher from '../../components/testfolder/TabSwitcher.jsx';
-import { useApiFormHandler } from '../../components/testfolder/useApiFormHandler.jsx';
+import TextField from '../../components/SharedComponents/TextField.jsx';
+import BinaryRadioGroup from '../../components/SharedComponents/BinaryRadioGroup.jsx';
+import AsyncSelect from '../../components/SharedComponents/AsyncSelect.jsx';
+import TabSwitcher from '../../components/SharedComponents/TabSwitcher.jsx';
+import { useApiFormHandler } from '../../components/SharedComponents/useApiFormHandler.jsx';
 
 /**
  * ProductCrudFormExample
