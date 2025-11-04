@@ -1,16 +1,15 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Modal, Tabs, Tab, Button, Row, Col, Form } from "react-bootstrap";
 import axios from "axios";
 import "./css/ScheduleModal.css";
 
 /* ============================================================= */
-/* 메인 ScheduleModal */
+/* 🧩 메인 ScheduleModal */
 export default function ScheduleModal({
   show,
   defaultTab = "pt",
   empNum,
   empName,
-  onClose,
   onSaved,
   editData,
   selectedDate,
@@ -26,14 +25,13 @@ export default function ScheduleModal({
   }, [editData]);
 
   const handleSaved = (payload) => {
-    console.log("[일정 저장 완료] payload:", payload);
+    console.log("✅ [일정 저장 완료] payload:", payload);
     onSaved?.(payload);
-    onClose?.();
   };
 
   return (
-    <Modal show={show} onHide={onClose} centered backdrop="static" size="lg">
-      <Modal.Header closeButton>
+    <Modal show={show} centered backdrop="static" size="lg">
+      <Modal.Header>
         <Modal.Title>일정 관리</Modal.Title>
       </Modal.Header>
 
@@ -81,7 +79,7 @@ export default function ScheduleModal({
       </Modal.Body>
 
       <Modal.Footer>
-        <Button variant="secondary" onClick={onClose}>
+        <Button variant="secondary" onClick={() => onSaved?.()}>
           닫기
         </Button>
       </Modal.Footer>
@@ -90,9 +88,8 @@ export default function ScheduleModal({
 }
 
 /* ============================================================= */
-/* PT 탭 */
-function PTTab({ empNum, empName, onSaved, editData, selectedDate, memNum }) {
-
+/* 🟢 PT 탭 */
+function PTTab({ empNum, empName, onSaved, editData, selectedDate }) {
   const [form, setForm] = useState({
     memNum: "",
     empNum: empNum || "",
@@ -109,8 +106,7 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate, memNum }) {
     if (empNum) setForm((prev) => ({ ...prev, empNum, empName }));
 
     if (editData) {
-     setForm({
-
+      setForm({
         memNum: editData.memNum || "",
         empNum: editData.empNum || empNum,
         empName: editData.empName || empName,
@@ -129,15 +125,15 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate, memNum }) {
     axios
       .get("http://localhost:9000/v1/member")
       .then((res) => setMembers(res.data))
-      .catch((err) => console.error("회원 목록 불러오기 실패:", err));
-  }, [empNum, empName, editData, selectedDate, memNum]);
-
+      .catch((err) => console.error("❌ 회원 목록 불러오기 실패:", err));
+  }, [empNum, empName, editData, selectedDate]);
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const submit = async (e) => {
     e.preventDefault();
     const payload = {
+      shNum: editData?.shNum,
       empNum: form.empNum,
       memNum: form.memNum,
       codeBid: "SCHEDULE-PT",
@@ -145,29 +141,21 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate, memNum }) {
       endTime: `${form.date}T${form.endTime}`,
       memo: form.memo,
     };
-    console.log("[PT payload 확인]", payload);
+    console.log("📦 [PT payload 확인]", payload);
 
     try {
-      const payload = {
-        memNum: form.memNum, 
-        empNum: form.empNum,
-        codeBid: "SCHEDULE-PT",
-        startTime: `${form.date}T${form.startTime}`,
-        endTime: `${form.date}T${form.endTime}`,
-        memo: form.memo,
-      };
       if (editData) {
         await axios.put("http://localhost:9000/v1/schedule/update", payload);
-        alert("PT 일정이 수정되었습니다.");
+        alert("✅ PT 일정이 수정되었습니다.");
       } else {
         await axios.post("http://localhost:9000/v1/schedule/add", payload);
-        console.log("PT 예약 요청 payload:", payload);
-        alert("PT 일정을 등록했습니다.");
-
+        alert("✅ PT 일정이 등록되었습니다.");
       }
+
+      // 모달 닫기 X — 부모에서 제어
       onSaved?.(payload);
     } catch (err) {
-      console.error("PT 일정 등록/수정 실패:", err);
+      console.error("❌ PT 일정 등록/수정 실패:", err);
       alert("등록 중 오류가 발생했습니다.");
     }
   };
@@ -218,7 +206,7 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate, memNum }) {
 }
 
 /* ============================================================= */
-/* 휴가 탭 */
+/* 🔵 휴가 탭 */
 function VacationTab({ empNum, empName, onSaved, editData, selectedDate }) {
   const [form, setForm] = useState({
     empNum: empNum || "",
@@ -246,25 +234,26 @@ function VacationTab({ empNum, empName, onSaved, editData, selectedDate }) {
   const submit = async (e) => {
     e.preventDefault();
     const payload = {
+      shNum: editData?.shNum,
       empNum: form.empNum,
       codeBid: "VACATION",
       startTime: `${form.startDate}T00:00`,
       endTime: `${form.endDate}T23:59`,
       memo: form.reason,
     };
-    console.log("[VACATION payload 확인]", payload);
+    console.log("📦 [VACATION payload 확인]", payload);
 
     try {
       if (editData && editData.codeBid === "VACATION") {
         await axios.put("http://localhost:9000/v1/schedule/update", payload);
-        alert("휴가 일정이 수정되었습니다.");
+        alert("✅ 휴가 일정이 수정되었습니다.");
       } else {
         await axios.post("http://localhost:9000/v1/schedule/add", payload);
-        alert("휴가 일정이 등록되었습니다.");
+        alert("✅ 휴가 일정이 등록되었습니다.");
       }
       onSaved?.(payload);
     } catch (err) {
-      console.error("휴가 일정 등록 실패:", err);
+      console.error("❌ 휴가 일정 등록 실패:", err);
     }
   };
 
@@ -299,7 +288,7 @@ function VacationTab({ empNum, empName, onSaved, editData, selectedDate }) {
 }
 
 /* ============================================================= */
-/* 기타 탭 */
+/* 🟣 기타 탭 */
 function EtcTab({ empNum, empName, onSaved, editData, selectedDate }) {
   const [scheduleCodes, setScheduleCodes] = useState([]);
   const [form, setForm] = useState({
@@ -331,7 +320,7 @@ function EtcTab({ empNum, empName, onSaved, editData, selectedDate }) {
         const etc = res.data.filter((c) => c.codeBId.startsWith("ETC"));
         setScheduleCodes(etc);
       })
-      .catch((err) => console.error("일정유형 코드 불러오기 실패:", err));
+      .catch((err) => console.error("❌ 일정유형 코드 불러오기 실패:", err));
   }, [empNum, empName, editData, selectedDate]);
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
@@ -339,25 +328,26 @@ function EtcTab({ empNum, empName, onSaved, editData, selectedDate }) {
   const submit = async (e) => {
     e.preventDefault();
     const payload = {
+      shNum: editData?.shNum,
       empNum: form.empNum,
       codeBid: form.category,
       startTime: `${form.startDate}T00:00`,
       endTime: `${form.endDate}T23:59`,
       memo: form.memo,
     };
-    console.log("[ETC payload 확인]", payload);
+    console.log("📦 [ETC payload 확인]", payload);
 
     try {
       if (editData && editData.codeBid?.startsWith("ETC")) {
         await axios.put("http://localhost:9000/v1/schedule/update", payload);
-        alert("기타 일정이 수정되었습니다.");
+        alert("✅ 기타 일정이 수정되었습니다.");
       } else {
         await axios.post("http://localhost:9000/v1/schedule/add", payload);
-        alert("기타 일정이 등록되었습니다.");
+        alert("✅ 기타 일정이 등록되었습니다.");
       }
       onSaved?.(payload);
     } catch (err) {
-      console.error("기타 일정 등록 실패:", err);
+      console.error("❌ 기타 일정 등록 실패:", err);
     }
   };
 
