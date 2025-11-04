@@ -117,7 +117,6 @@ const myEmpNum = (() => {
 
     if (needNums.length === 0) return;
 
-    // NOTE: 엔드포인트는 프로젝트마다 다를 수 있음.
     // 아래는 예시: GET /v1/employees/{empNum} 가 {empName: "..."} 또는 전체 Employee 반환한다고 가정.
     // 없으면 조용히 무시(캐치).
     (async () => {
