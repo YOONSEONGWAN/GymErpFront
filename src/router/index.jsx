@@ -74,6 +74,7 @@ const router = createBrowserRouter([
       { path: "productList", element: <ProductList /> },
       { path: "product/create", element: <ProductCreate /> },
       { path: "product/edit/:productId", element: <ProductUpdate /> },
+      { path: "service/edit/:serviceId", element: <ProductUpdate /> },
       { path: "stock/inbound", element: <StockInbound /> },
       { path: "member", element: <MemberList /> },
       { path: "member/:memNum", element: <MemberDetail /> },
