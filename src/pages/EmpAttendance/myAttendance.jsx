@@ -1,9 +1,19 @@
 // src/pages/EmpAttendance/myAttendance.jsx
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { Alert, Button, Table } from "react-bootstrap";
+import { Alert, Button, Table, Badge } from "react-bootstrap";
 import axios from "axios";
+import "bootstrap-icons/font/bootstrap-icons.css";
+import "./attendance.css";
 
-const API = "http://localhost:9000/v1"; // 너가 원하는 방식 그대로
+/*
+ *  - 컨트롤러 base: /v1
+ *  - 프론트 호출: /api/v1/*
+ *  - 쿠키/세션: withCredentials=true
+ */
+const api = axios.create({
+  baseURL: "/api/v1",
+  withCredentials: true,
+});
 
 // ---- 유틸 ----
 const toYmd = (d) => {
@@ -19,40 +29,39 @@ const parse = (s) => {
 };
 const fmtTime = (s) => {
   const d = parse(s);
-  if (!d) return "";
+  if (!d) return "—";
   const hh = String(d.getHours()).padStart(2, "0");
   const mm = String(d.getMinutes()).padStart(2, "0");
   const ss = String(d.getSeconds()).padStart(2, "0");
   return `${hh}:${mm}:${ss}`;
 };
 const fmtDur = (sec) => {
-  if (sec == null) return "";
+  if (sec == null) return "—";
   const h = Math.floor(sec / 3600);
   const m = Math.floor((sec % 3600) / 60);
   return `${h}h ${m}m`;
 };
+const initial = (name) => (name ? name.trim()[0] : "?");
 
-function EmpAttendanceMy() {
-  // 로그인 사번(없어도 목록은 보이되, 버튼은 비활성)
-const myEmpNum = (() => {
-    // 1) 로그인 때 저장한 sessionStorage "user" 먼저 사용
-    const sess = sessionStorage.getItem("user");
-    if (sess) {
-      try {
-       const u = JSON.parse(sess);
-       const n = Number(u?.empNum);
+// ===============================
+export default function EmpAttendanceMy() {
+  // ✅ 로그인 사번: 
+  const myEmpNum = (() => {
+    try {
+      const raw = sessionStorage.getItem("user");
+      if (raw) {
+        const u = JSON.parse(raw);
+        const n = Number(u?.empNum);
         if (Number.isFinite(n) && n > 0) return n;
-      } catch {}
-    }
-   // 2) 없으면 예전 키들도 백업으로 시도
-   const n =
+      }
+    } catch {}
+    const n =
       Number(localStorage.getItem("empNum")) ||
-     Number(sessionStorage.getItem("empNum"));
-   return Number.isFinite(n) && n > 0 ? n : null;
-    })();
+      Number(sessionStorage.getItem("empNum"));
+    return Number.isFinite(n) && n > 0 ? n : null;
+  })();
 
   const [rows, setRows] = useState([]);
-  const [nameMap, setNameMap] = useState({}); // empNum -> empName 캐시
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -67,107 +76,55 @@ const myEmpNum = (() => {
   }, [pageOffset]);
   const ymd = useMemo(() => toYmd(targetDate), [targetDate]);
 
-  // 하루치(전직원) 조회 - 서버가 date 파라미터를 안 받더라도 클라에서 당일만 필터링
+  // 하루치(전직원) 조회
   const fetchDaily = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
-      const { data } = await axios.get(`${API}/attendance`);
-      const arr = Array.isArray(data) ? data : [];
-
-      // 당일만 남기기
-      const onlyDay = arr.filter((r) => {
-        const base = r.attDate || r.checkIn || r.startedAt;
-        if (!base) return false;
-        const d = new Date(String(base).replace(" ", "T"));
-        const m = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
-          d.getDate()
-        ).padStart(2, "0")}`;
-        return m === ymd;
-      });
-
-      setRows(onlyDay);
+      const { data } = await api.get(`/attendance`, { params: { date: ymd } });
+      setRows(Array.isArray(data) ? data : []);
     } catch (e) {
       setRows([]);
+      console.error("fetchDaily error", e?.response || e);
       setError(e.response?.data?.message || e.message || "목록 조회 실패");
     } finally {
       setLoading(false);
     }
   }, [ymd]);
 
-  useEffect(() => {
-    fetchDaily();
-  }, [fetchDaily]);
+  useEffect(() => { fetchDaily(); }, [fetchDaily]);
 
-  // 직원명 보강(응답에 empName이 없으면, 가능한 경우 개별 조회해서 캐시)
-  useEffect(() => {
-    const needNums = Array.from(
-      new Set(
-        rows
-          .filter(
-            (r) =>
-              !r.empName &&
-              !(r.employee && r.employee.empName) &&
-              !nameMap[String(r.empNum ?? "")] &&
-              r.empNum != null
-          )
-          .map((r) => r.empNum)
-      )
-    );
-
-    if (needNums.length === 0) return;
-
-    // 아래는 예시: GET /v1/employees/{empNum} 가 {empName: "..."} 또는 전체 Employee 반환한다고 가정.
-    // 없으면 조용히 무시(캐치).
-    (async () => {
-      const next = { ...nameMap };
-      await Promise.all(
-        needNums.map(async (num) => {
-          try {
-            const res = await axios.get(`${API}/employees/${num}`);
-            const emp = res.data || {};
-            const name =
-              emp.empName ||
-              emp.name ||
-              emp.employee?.empName ||
-              emp.data?.empName ||
-              null;
-            if (name) next[String(num)] = String(name);
-          } catch {
-            // 무시(백엔드에 해당 API 없을 수도 있음)
-          }
-        })
-      );
-      setNameMap(next);
-    })();
-  }, [rows, nameMap]);
-
-  // 오늘 내 미퇴근 레코드 찾기(당일 rows 기준)
+  // 오늘 내 미퇴근 레코드(가장 최근 출근 1건)
   const openToday = useMemo(() => {
-    if (pageOffset !== 0) return null;
-    if (!myEmpNum) return null;
-    return (
-      rows
-        .filter((r) => r.empNum === myEmpNum)
-        .find((r) => {
-          const notOut = !r.checkOut && !r.endedAt;
-          return !!notOut;
-        }) || null
-    );
-  }, [rows, myEmpNum, pageOffset]);
+    if (pageOffset !== 0 || !myEmpNum) return null;
+    const mine = rows.filter((r) => r.empNum === myEmpNum);
+    const candidates = mine.filter((r) => {
+      const base = r.attDate || r.checkIn || r.startedAt;
+      if (!base) return false;
+      const d = new Date(String(base).replace(" ", "T"));
+      const dYmd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      return dYmd === ymd && !r.checkOut && !r.endedAt;
+    });
+    if (candidates.length === 0) return null;
+    candidates.sort((a, b) => {
+      const ta = parse(a.checkIn || a.startedAt)?.getTime() ?? 0;
+      const tb = parse(b.checkIn || b.startedAt)?.getTime() ?? 0;
+      return tb - ta;
+    });
+    return candidates[0];
+  }, [rows, myEmpNum, pageOffset, ymd]);
 
-  // 출근
+  // ✅ 출근: 서버가 인증 사용자로 처리 → 바디 전송 없음
   const handleCheckIn = async () => {
     if (pageOffset !== 0) return;
-    if (!myEmpNum) return setError("내 사번을 확인할 수 없습니다.");
     try {
       setLoading(true);
       setError("");
-      // 서버가 dto.empNum을 받는 형태라면 바디로 전달
-    await axios.post(`${API}/attendance`, myEmpNum ? { empNum: myEmpNum } : {});
-      setMessage("출근 처리했습니다");
+      await api.post(`/attendance`);
+      setMessage("출근 처리했습니다.");
       await fetchDaily();
     } catch (e) {
+      console.error("checkIn error", e?.response || e);
       setError(e.response?.data?.message || e.message || "출근 처리 실패");
     } finally {
       setLoading(false);
@@ -182,44 +139,40 @@ const myEmpNum = (() => {
     try {
       setLoading(true);
       setError("");
-      await axios.put(`${API}/attendance/${attNum}/checkout`);
-      setMessage("퇴근 처리했습니다");
+      await api.put(`/attendance/${attNum}/checkout`);
+      setMessage("퇴근 처리했습니다.");
       await fetchDaily();
     } catch (e) {
+      console.error("checkOut error", e?.response || e);
       setError(e.response?.data?.message || e.message || "퇴근 처리 실패");
     } finally {
       setLoading(false);
     }
   };
 
-  // 화면용 가공(이름 우선순위: 응답 empName → 응답 employee.empName → 캐시 → 숫자)
+  // 화면용 가공 + 통계
   const viewRows = useMemo(
     () =>
       rows
-        .map((r) => {
-          const cached = nameMap[String(r.empNum ?? "")];
-          return {
-            ...r,
-            _name:
-              r.empName ||
-              r.employee?.empName ||
-              cached ||
-              r.name ||
-              String(r.empNum ?? ""),
-            _start: r.checkIn ?? r.startedAt,
-            _end: r.checkOut ?? r.endedAt,
-            _dur: r.workHours ?? r.duration ?? r.durationS ?? r.durationSec,
-          };
-        })
+        .map((r) => ({
+          ...r,
+          _name: r.empName || String(r.empNum ?? ""),
+          _start: r.checkIn ?? r.startedAt,
+          _end: r.checkOut ?? r.endedAt,
+          _dur: r.workHours ?? r.duration ?? r.durationS ?? r.durationSec,
+        }))
         .sort((a, b) => {
-          const n = String(a._name).localeCompare(String(b._name), "ko");
+          const n = a._name.localeCompare(b._name, "ko");
           if (n !== 0) return n;
           const ta = parse(a._start)?.getTime() ?? 0;
           const tb = parse(b._start)?.getTime() ?? 0;
           return ta - tb;
         }),
-    [rows, nameMap]
+    [rows]
   );
+
+  const totalCount = viewRows.length;
+  const workingCount = viewRows.filter((r) => !r._end).length;
 
   const goPrev = () => setPageOffset((v) => v - 1);
   const goNext = () => setPageOffset((v) => v + 1);
@@ -227,174 +180,122 @@ const myEmpNum = (() => {
 
   return (
     <>
-      {message && (
-        <Alert
-          variant="success"
-          onClose={() => setMessage("")}
-          dismissible
-          className="mt-3"
-        >
-          {message}
-        </Alert>
-      )}
-      {error && (
-        <Alert
-          variant="danger"
-          onClose={() => setError("")}
-          dismissible
-          className="mt-3"
-        >
-          {error}
-        </Alert>
-      )}
+      {message && <Alert variant="success" onClose={() => setMessage("")} dismissible className="mt-3">{message}</Alert>}
+      {error && <Alert variant="danger" onClose={() => setError("")} dismissible className="mt-3">{error}</Alert>}
 
-      <h1 className="mt-3">출퇴근(하루 단위 · 전직원)</h1>
-
-      {/* 상단 컨트롤 */}
-      <div className="my-3 d-flex flex-wrap gap-2 align-items-center">
-        <Button
-          variant={openToday ? "secondary" : "success"}
-          disabled={loading || pageOffset !== 0 || !!openToday}
-          onClick={handleCheckIn}
-          title={!myEmpNum ? "내 사번이 없어 출근 불가" : ""}
-        >
-          출근
-        </Button>
-
-        <Button
-          variant="danger"
-          disabled={loading || pageOffset !== 0 || !openToday}
-          onClick={handleCheckOut}
-          title={!myEmpNum ? "내 사번이 없어 퇴근 불가" : ""}
-        >
-          퇴근
-        </Button>
-
-        <Button variant="outline-secondary" disabled={loading} onClick={fetchDaily}>
-          새로고침
-        </Button>
-
-        <div className="ms-auto d-flex align-items-center">
-          <nav>
-            <ul className="pagination mb-0">
-              <li className="page-item">
-                <button
-                  className="page-link"
-                  onClick={() => setPageOffset((v) => v - 7)}
-                >
-                  &laquo;
-                </button>
-              </li>
-              <li className="page-item">
-                <button className="page-link" onClick={goPrev}>
-                  &lt;
-                </button>
-              </li>
-              <li className="page-item disabled">
-                <span
-                  className="page-link fw-semibold"
-                  style={{ minWidth: 140, textAlign: "center" }}
-                >
-                  {ymd}
-                </span>
-              </li>
-              <li className="page-item">
-                <button className="page-link" onClick={goNext}>
-                  &gt;
-                </button>
-              </li>
-              <li className={`page-item ${pageOffset === 0 ? "disabled" : ""}`}>
-                <button className="page-link" onClick={goToday}>
-                  오늘
-                </button>
-              </li>
-              <li className="page-item">
-                <button
-                  className="page-link"
-                  onClick={() => setPageOffset((v) => v + 7)}
-                >
-                  &raquo;
-                </button>
-              </li>
-            </ul>
-          </nav>
+      {/* 히어로 배너 */}
+      <div className="att-hero mt-3">
+        <div className="att-hero__left">
+          <div className="att-hero__title">
+            <i className="bi bi-clock-history me-2"></i>
+            출퇴근(하루 단위 · 전직원)
+          </div>
+          <div className="att-hero__meta">
+            <Badge bg="light" text="dark" className="me-2">
+              <i className="bi bi-calendar3 me-1"></i>{ymd}
+            </Badge>
+            <Badge bg="primary" className="me-2">총 {totalCount}건</Badge>
+            <Badge bg={workingCount > 0 ? "danger" : "success"}>
+              {workingCount > 0 ? `미퇴근 ${workingCount}` : "모두 퇴근"}
+            </Badge>
+          </div>
+          <div className="att-hero__actions">
+            <Button
+              size="sm"
+              variant={openToday ? "secondary" : "success"}
+              disabled={loading || pageOffset !== 0 || !!openToday}
+              onClick={handleCheckIn}
+            >
+              <i className="bi bi-door-open me-1" /> 출근
+            </Button>
+            <Button
+              size="sm"
+              variant="danger"
+              className="ms-2"
+              disabled={loading || pageOffset !== 0 || !openToday}
+              onClick={handleCheckOut}
+            >
+              <i className="bi bi-door-closed me-1" /> 퇴근
+            </Button>
+            <Button size="sm" variant="outline-light" className="ms-2" disabled={loading} onClick={fetchDaily}>
+              <i className="bi bi-arrow-clockwise me-1" /> 새로고침
+            </Button>
+          </div>
+        </div>
+        <div className="att-hero__right">
+          <div className="att-illo">
+            <i className="bi bi-smartwatch" />
+          </div>
         </div>
       </div>
 
-      {/* 내 기록 요약(오늘만 표시) */}
-      <div className="p-3 border rounded-3 mb-3">
-        <div className="fw-semibold mb-2">내 기록 요약 ({ymd})</div>
+      {/* 내 기록 요약(오늘만) */}
+      <div className="att-card mt-3">
+        <div className="d-flex align-items-center justify-content-between">
+          <div className="fw-semibold">
+            <i className="bi bi-person-badge me-2"></i>내 기록 요약 <span className="text-muted">({ymd})</span>
+          </div>
+          <div className="att-pager">
+            <button className="page-link" onClick={() => setPageOffset((v) => v - 7)}>&laquo;</button>
+            <button className="page-link" onClick={goPrev}>&lt;</button>
+            <span className="page-link disabled">{ymd}</span>
+            <button className="page-link" onClick={goNext}>&gt;</button>
+            <button className={`page-link ${pageOffset === 0 ? "disabled" : ""}`} onClick={goToday}>오늘</button>
+            <button className="page-link" onClick={() => setPageOffset((v) => v + 7)}>&raquo;</button>
+          </div>
+        </div>
+
         {openToday ? (
-          <div className="d-flex flex-wrap gap-4">
-            <div>
-              <span className="text-muted me-2">출근</span>
-              {fmtTime(openToday.checkIn || openToday.startedAt)}
-            </div>
-            <div>
-              <span className="text-muted me-2">퇴근</span>
-              {openToday.checkOut || openToday.endedAt
-                ? fmtTime(openToday.checkOut || openToday.endedAt)
-                : "미퇴근"}
-            </div>
+          <div className="att-summary">
+            <div><span className="text-muted me-2">출근</span>{fmtTime(openToday.checkIn || openToday.startedAt)}</div>
+            <div><span className="text-muted me-2">퇴근</span>{openToday.checkOut || openToday.endedAt ? fmtTime(openToday.checkOut || openToday.endedAt) : <span className="badge text-bg-danger">미퇴근</span>}</div>
             <div>
               <span className="text-muted me-2">상태</span>
-              <span
-                className={`badge ${
-                  openToday.checkOut || openToday.endedAt
-                    ? "text-bg-secondary"
-                    : "text-bg-success"
-                }`}
-              >
+              <span className={`badge ${openToday.checkOut || openToday.endedAt ? "text-bg-secondary" : "text-bg-success"}`}>
                 {openToday.checkOut || openToday.endedAt ? "근무 종료" : "근무 중"}
               </span>
             </div>
           </div>
         ) : (
-          <div className="text-muted">
-            {pageOffset === 0 ? "오늘 내 출근 기록 없음" : "이 날짜의 내 출근 기록 없음"}
-          </div>
+          <div className="text-muted">오늘 내 출근 기록 없음</div>
         )}
       </div>
 
-      {/* 전직원 테이블 */}
-      <Table bordered hover size="sm" className="align-middle">
-        <thead>
-          <tr>
-            <th style={{ width: 200 }}>직원명</th>
-            <th>출근</th>
-            <th>퇴근</th>
-            <th style={{ width: 120 }}>근무시간</th>
-          </tr>
-        </thead>
-        <tbody>
-          {viewRows.length === 0 ? (
+      {/* 리스트 */}
+      <div className="att-table mt-3">
+        <Table hover responsive className="mb-0">
+          <thead>
             <tr>
-              <td colSpan={4} className="text-center text-muted py-4">
-                데이터 없음
-              </td>
+              <th style={{ width: 260 }}>직원</th>
+              <th>출근</th>
+              <th>퇴근</th>
+              <th style={{ width: 140 }}>근무시간</th>
             </tr>
-          ) : (
-            viewRows.map((r) => {
-              const key = r.attNum ?? r.id ?? `${r.empNum}-${r._start}-${r._end}`;
-              return (
-                <tr
-                  key={key}
-                  className={myEmpNum && r.empNum === myEmpNum ? "table-primary" : ""}
-                >
-                  <td className="fw-semibold">{r._name}</td>
-                  <td>{fmtTime(r._start)}</td>
-                  <td>
-                    {r._end ? fmtTime(r._end) : <span className="text-danger">미퇴근</span>}
-                  </td>
-                  <td>{r._dur != null ? fmtDur(r._dur) : r._end ? "-" : ""}</td>
-                </tr>
-              );
-            })
-          )}
-        </tbody>
-      </Table>
+          </thead>
+          <tbody>
+            {viewRows.length === 0 ? (
+              <tr><td colSpan={4} className="text-center text-muted py-4">데이터 없음</td></tr>
+            ) : (
+              viewRows.map((r, idx) => {
+                const key = r.attNum ?? r.id ?? `${r.empNum}-${r._start}-${r._end}-${idx}`;
+                const isMine = myEmpNum && r.empNum === myEmpNum;
+                return (
+                  <tr key={key} className={isMine ? "table-primary" : ""}>
+                    <td className="d-flex align-items-center gap-2">
+                      <div className="att-avatar">{initial(r._name)}</div>
+                      <div className="fw-semibold">{r._name}</div>
+                      {!r._end && <span className="badge rounded-pill text-bg-danger ms-2">미퇴근</span>}
+                    </td>
+                    <td>{fmtTime(r._start)}</td>
+                    <td>{r._end ? fmtTime(r._end) : <span className="text-danger">—</span>}</td>
+                    <td>{r._dur != null ? fmtDur(r._dur) : (r._end ? "—" : "")}</td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </Table>
+      </div>
     </>
   );
 }
-
-export default EmpAttendanceMy;
