@@ -139,6 +139,16 @@ function ProductList() {
             .catch(err=>console.log(err));
     };
 
+    const handleRowClick = (item) => {
+        if (currentTab === 'PRODUCT' && item.productId) {
+            navigate(`/product/edit/${item.productId}`);
+            return;
+        }
+        if (currentTab === 'SERVICE' && item.serviceId) {
+            navigate(`/service/edit/${item.serviceId}`);
+        }
+    };
+
     return (
         <>
             <button className={cn("btn", "btn-lg", {"btn-dark":currentTab=="PRODUCT", "btn-light":currentTab=="SERVICE"})} onClick={() => handleTabChange('PRODUCT')}>실물 상품</button>
@@ -167,6 +177,7 @@ function ProductList() {
                         onPageChange={pageMove}
                         onToggleChange={handleStatusChange}
                         columns={productColumns}
+                        onRowClick={handleRowClick}
                     />
                 </div>
             </div>
