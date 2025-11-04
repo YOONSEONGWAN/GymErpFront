@@ -1,15 +1,15 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Modal, Tabs, Tab, Button, Row, Col, Form } from "react-bootstrap";
 import axios from "axios";
+import "./css/ScheduleModal.css";
 
 /* ============================================================= */
-/* 🔹 메인 ScheduleModal */
+/* 🧩 메인 ScheduleModal */
 export default function ScheduleModal({
   show,
   defaultTab = "pt",
   empNum,
   empName,
-  onClose,
   onSaved,
   editData,
   selectedDate,
@@ -27,12 +27,11 @@ export default function ScheduleModal({
   const handleSaved = (payload) => {
     console.log("✅ [일정 저장 완료] payload:", payload);
     onSaved?.(payload);
-    onClose?.();
   };
 
   return (
-    <Modal show={show} onHide={onClose} centered backdrop="static" size="lg">
-      <Modal.Header closeButton>
+    <Modal show={show} centered backdrop="static" size="lg">
+      <Modal.Header>
         <Modal.Title>일정 관리</Modal.Title>
       </Modal.Header>
 
@@ -80,7 +79,7 @@ export default function ScheduleModal({
       </Modal.Body>
 
       <Modal.Footer>
-        <Button variant="secondary" onClick={onClose}>
+        <Button variant="secondary" onClick={() => onSaved?.()}>
           닫기
         </Button>
       </Modal.Footer>
@@ -134,6 +133,7 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate }) {
   const submit = async (e) => {
     e.preventDefault();
     const payload = {
+      shNum: editData?.shNum,
       empNum: form.empNum,
       memNum: form.memNum,
       codeBid: "SCHEDULE-PT",
@@ -149,8 +149,10 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate }) {
         alert("✅ PT 일정이 수정되었습니다.");
       } else {
         await axios.post("http://localhost:9000/v1/schedule/add", payload);
-        alert("✅ PT 일정을 등록했습니다.");
+        alert("✅ PT 일정이 등록되었습니다.");
       }
+
+      // 모달 닫기 X — 부모에서 제어
       onSaved?.(payload);
     } catch (err) {
       console.error("❌ PT 일정 등록/수정 실패:", err);
@@ -232,6 +234,7 @@ function VacationTab({ empNum, empName, onSaved, editData, selectedDate }) {
   const submit = async (e) => {
     e.preventDefault();
     const payload = {
+      shNum: editData?.shNum,
       empNum: form.empNum,
       codeBid: "VACATION",
       startTime: `${form.startDate}T00:00`,
@@ -325,6 +328,7 @@ function EtcTab({ empNum, empName, onSaved, editData, selectedDate }) {
   const submit = async (e) => {
     e.preventDefault();
     const payload = {
+      shNum: editData?.shNum,
       empNum: form.empNum,
       codeBid: form.category,
       startTime: `${form.startDate}T00:00`,
