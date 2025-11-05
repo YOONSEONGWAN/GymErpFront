@@ -56,19 +56,18 @@ function ProductList() {
         qs.set("direction", sortConfig.direction);
 
         const apiEndpoint = (currentTab === 'PRODUCT') ? '/v1/product' : '/v1/service';
-    
+
         axios.get(`${apiEndpoint}?${qs.toString()}`)
-        .then(res => {
-            setPageInfo(res.data);
-            
-        })
-        .catch(err => {                                                                                 
-            if (err.response) {                                                                         
-                console.error('Error response from server:', err.response.data);                        
-            }                                                                                           
-            console.error('Axios error:', err);                                                         
-         }); 
-        
+            .then(res => {
+                setPageInfo(res.data);
+
+            })
+            .catch(err => {
+                if (err.response) {
+                    console.error('Error response from server:', err.response.data);
+                }
+                console.error('Axios error:', err);
+            });
 
     }, [params, currentTab, sortConfig]);
 
@@ -91,10 +90,16 @@ function ProductList() {
         navigate(`/product?${qs.toString()}`); // (경로는 현재 페이지에 맞게)
     };
 
+    // 신규 상품 등록 페이지로 이동 하는 핸들러 (상품/서비스)
+    const handleCreateClick = () => {
+        navigate("/product/create");
+    };
+
+
     const handleTabChange = (tab) => {
         setCurrentTab(tab);
         // URL을 변경하여 useEffect를 트리거
-        navigate("/product"); 
+        navigate("/product");
     };
 
     const handleCategoryChange = (newCategories) => {
@@ -131,15 +136,15 @@ function ProductList() {
         navigate(`/product?${qs.toString()}`);
     };
 
-    const handleStatusChange = (item, newIsActive)=>{
+    const handleStatusChange = (item, newIsActive) => {
         // 1. 'item' 객체에서 ID를 바로 꺼내 씀
         const id = (currentTab === 'PRODUCT' ? item.productId : item.serviceId);
         const apiEndpoint = (currentTab === 'PRODUCT') ? `/v1/product/${id}` : `/v1/service/${id}`;
-        axios.patch(apiEndpoint, {isActive : newIsActive})
-            .then(res=>{
+        axios.patch(apiEndpoint, { isActive: newIsActive })
+            .then(res => {
                 // 서버 응답 성공 시, 클라이언트(React)의 'pageInfo' state도 갱신
                 setPageInfo(prevPageInfo => {
-                    
+
                     // 기존 list 배열을 'map'으로 순회하여 새 배열 생성
                     const newList = prevPageInfo.list.map(listItem => {
                         const listItemId = (currentTab === 'PRODUCT' ? listItem.productId : listItem.serviceId);
@@ -163,21 +168,21 @@ function ProductList() {
                     };
                 });
             })
-            .catch(err=>console.log(err));
+            .catch(err => console.log(err));
     };
 
     const handleRowClick = (item) => {
         const fromPath = `/product${location.search || ""}`;
 
         if (currentTab === 'PRODUCT' && item.productId) {
-            navigate(`/product/detail/product/${item.productId}`, {
+            navigate(`/product/product/${item.productId}`, {
                 state: { from: fromPath, type: "PRODUCT" },
             });
             return;
         }
 
         if (currentTab === 'SERVICE' && item.serviceId) {
-            navigate(`/product/detail/service/${item.serviceId}`, {
+            navigate(`/product/service/${item.serviceId}`, {
                 state: { from: fromPath, type: "SERVICE" },
             });
         }
@@ -215,10 +220,10 @@ function ProductList() {
                 </div>
             </div>
 
-            {/* 3. ⭐️ 메인 영역: 왼쪽 사이드바 + 오른쪽 컨텐츠 */}
+            {/* 3. 메인 영역: 왼쪽 사이드바 + 오른쪽 컨텐츠 */}
             <div className="row g-3 align-items-center">
                 
-                {/* 3-1. ⭐️ 왼쪽 사이드바 (col-md-3) */}
+                {/* 3-1. 왼쪽 사이드바 (col-md-3) */}
                 <div className="col-md-3">
                     
                     {/* 3-1a. 체크박스 영역 (흰색 박스) */}
@@ -241,7 +246,7 @@ function ProductList() {
                 </div>
             </div>
             <div className="row g-3 align-items-end">
-                {/* 3-2. ⭐️ 오른쪽 메인 컨텐츠 (col-md-9) */}
+                {/* 3-2. 오른쪽 메인 컨텐츠 (col-md-9) */}
                 <div>
                     {/* 상품 목록 테이블 */}
                     <ProductListComponent
