@@ -98,8 +98,14 @@ export default function BsSideBar() {
           </DropdownMenu>
           <DropdownMenu icon="people-fill" title="매출">
             <SubMenuItem to="/sales/SalesItemList" icon="cart-plus" text="상품판매리스트" />
-          </DropdownMenu>
 
+          </DropdownMenu>
+          <DropdownMenu icon="people-fill" title="상품관리">
+            <SubMenuItem to="/product" icon="cart-plus" text="상품목록" />
+            <SubMenuItem to="/stock" icon="cart-plus" text="재고현황" />
+          </DropdownMenu>           
+
+           {/* 게시판 */}
           <DropdownMenu icon="card-text" title="게시판">
             <SubMenuItem to="/post" icon="list-ul" text="게시글 목록" />
           </DropdownMenu>

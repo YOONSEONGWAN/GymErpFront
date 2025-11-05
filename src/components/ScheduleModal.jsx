@@ -100,6 +100,21 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate }) {
     memo: "",
   });
 
+  //회원 선택 시 전화번호 관련 기능
+  const fmtPhone = (v) => {
+    if (!v) return "";
+    const s = String(v).replace(/\D/g, "");
+    if (s.length === 11) return s.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3"); // 010-1234-5678
+    if (s.length === 10) return s.replace(/(\d{2,3})(\d{3,4})(\d{4})/, "$1-$2-$3"); // 02-1234-5678 등
+    return v; // 그 외는 원문
+  };
+
+  //회원 가나다 정렬용 유틸
+  const sortByKoName = (arr) =>
+    [...(Array.isArray(arr) ? arr : [])].sort((a, b) =>
+      (a.memName || "").localeCompare(b.memName || "", "ko")
+    );
+
   const [members, setMembers] = useState([]);
 
   useEffect(() => {
@@ -124,8 +139,8 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate }) {
 
     axios
       .get("http://localhost:9000/v1/member")
-      .then((res) => setMembers(res.data))
-      .catch((err) => console.error("회원 목록 불러오기 실패:", err));
+      .then((res) => setMembers(sortByKoName(res.data)))  // ← 정렬해서 세팅
+      .catch((err) => console.error("❌ 회원 목록 불러오기 실패:", err));
   }, [empNum, empName, editData, selectedDate]);
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
@@ -165,12 +180,17 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate }) {
         <Col md={6}>
           <Form.Label>회원명</Form.Label>
           <Form.Select name="memNum" value={form.memNum} onChange={onChange}>
-            <option value="" >선택</option>
-            {members.map((m) => (
-              <option key={m.memNum} value={m.memNum}>
-                {m.memName}
-              </option>
-            ))}
+            <option value="">선택</option>
+            {members.map((m) => {
+              // 프로젝트 컬럼명 대비: memPhone → phone → tel → memTel → mobile 순
+              const rawPhone = m.memPhone ?? m.phone ?? m.tel ?? m.memTel ?? m.mobile ?? "";
+              const label = `${m.memName}${rawPhone ? " : " + fmtPhone(rawPhone) : ""}`;
+              return (
+                <option key={m.memNum} value={m.memNum} title={label}>
+                  {label}
+                </option>
+              );
+            })}
           </Form.Select>
         </Col>
         <Col md={6}>
