@@ -1,15 +1,15 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Modal, Tabs, Tab, Button, Row, Col, Form } from "react-bootstrap";
 import axios from "axios";
+import "./css/ScheduleModal.css";
 
 /* ============================================================= */
-/* 🔹 메인 ScheduleModal */
+/* 🧩 메인 ScheduleModal */
 export default function ScheduleModal({
   show,
   defaultTab = "pt",
   empNum,
   empName,
-  onClose,
   onSaved,
   editData,
   selectedDate,
@@ -27,12 +27,11 @@ export default function ScheduleModal({
   const handleSaved = (payload) => {
     console.log("✅ [일정 저장 완료] payload:", payload);
     onSaved?.(payload);
-    onClose?.();
   };
 
   return (
-    <Modal show={show} onHide={onClose} centered backdrop="static" size="lg">
-      <Modal.Header closeButton>
+    <Modal show={show} centered backdrop="static" size="lg">
+      <Modal.Header>
         <Modal.Title>일정 관리</Modal.Title>
       </Modal.Header>
 
@@ -80,7 +79,7 @@ export default function ScheduleModal({
       </Modal.Body>
 
       <Modal.Footer>
-        <Button variant="secondary" onClick={onClose}>
+        <Button variant="secondary" onClick={() => onSaved?.()}>
           닫기
         </Button>
       </Modal.Footer>
@@ -100,6 +99,21 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate }) {
     endTime: "",
     memo: "",
   });
+
+  //회원 선택 시 전화번호 관련 기능
+  const fmtPhone = (v) => {
+    if (!v) return "";
+    const s = String(v).replace(/\D/g, "");
+    if (s.length === 11) return s.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3"); // 010-1234-5678
+    if (s.length === 10) return s.replace(/(\d{2,3})(\d{3,4})(\d{4})/, "$1-$2-$3"); // 02-1234-5678 등
+    return v; // 그 외는 원문
+  };
+
+  //회원 가나다 정렬용 유틸
+  const sortByKoName = (arr) =>
+    [...(Array.isArray(arr) ? arr : [])].sort((a, b) =>
+      (a.memName || "").localeCompare(b.memName || "", "ko")
+    );
 
   const [members, setMembers] = useState([]);
 
@@ -125,7 +139,7 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate }) {
 
     axios
       .get("http://localhost:9000/v1/member")
-      .then((res) => setMembers(res.data))
+      .then((res) => setMembers(sortByKoName(res.data)))  // ← 정렬해서 세팅
       .catch((err) => console.error("❌ 회원 목록 불러오기 실패:", err));
   }, [empNum, empName, editData, selectedDate]);
 
@@ -134,6 +148,7 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate }) {
   const submit = async (e) => {
     e.preventDefault();
     const payload = {
+      shNum: editData?.shNum,
       empNum: form.empNum,
       memNum: form.memNum,
       codeBid: "SCHEDULE-PT",
@@ -149,8 +164,10 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate }) {
         alert("✅ PT 일정이 수정되었습니다.");
       } else {
         await axios.post("http://localhost:9000/v1/schedule/add", payload);
-        alert("✅ PT 일정을 등록했습니다.");
+        alert("✅ PT 일정이 등록되었습니다.");
       }
+
+      // 모달 닫기 X — 부모에서 제어
       onSaved?.(payload);
     } catch (err) {
       console.error("❌ PT 일정 등록/수정 실패:", err);
@@ -165,11 +182,16 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate }) {
           <Form.Label>회원명</Form.Label>
           <Form.Select name="memNum" value={form.memNum} onChange={onChange}>
             <option value="">선택</option>
-            {members.map((m) => (
-              <option key={m.memNum} value={m.memNum}>
-                {m.memName}
-              </option>
-            ))}
+            {members.map((m) => {
+              // 프로젝트 컬럼명 대비: memPhone → phone → tel → memTel → mobile 순
+              const rawPhone = m.memPhone ?? m.phone ?? m.tel ?? m.memTel ?? m.mobile ?? "";
+              const label = `${m.memName}${rawPhone ? " : " + fmtPhone(rawPhone) : ""}`;
+              return (
+                <option key={m.memNum} value={m.memNum} title={label}>
+                  {label}
+                </option>
+              );
+            })}
           </Form.Select>
         </Col>
         <Col md={6}>
@@ -232,6 +254,7 @@ function VacationTab({ empNum, empName, onSaved, editData, selectedDate }) {
   const submit = async (e) => {
     e.preventDefault();
     const payload = {
+      shNum: editData?.shNum,
       empNum: form.empNum,
       codeBid: "VACATION",
       startTime: `${form.startDate}T00:00`,
@@ -325,6 +348,7 @@ function EtcTab({ empNum, empName, onSaved, editData, selectedDate }) {
   const submit = async (e) => {
     e.preventDefault();
     const payload = {
+      shNum: editData?.shNum,
       empNum: form.empNum,
       codeBid: form.category,
       startTime: `${form.startDate}T00:00`,
