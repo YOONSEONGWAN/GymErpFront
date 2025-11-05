@@ -1,6 +1,7 @@
 import React from 'react';
 import Pagination from './Pagination';
 
+
 function ProductListComponent({ pageInfo, onPageChange, onToggleChange, columns, onRowClick, onSort, sortConfig }) {
 
     const getSortIcon = (key) => {
@@ -61,6 +62,17 @@ function ProductListComponent({ pageInfo, onPageChange, onToggleChange, columns,
                 <tbody>
                     {pageInfo.list && pageInfo.list.map((item, index) => (
                         <tr key={item.productId || item.serviceId || index} onClick={() => onRowClick && onRowClick(item)}>
+
+                    {/* {pageInfo.list && pageInfo.list.map((item, index) => {
+                        const rowId = item.productId || item.serviceId || index;
+                        const clickable = typeof onRowClick === 'function';
+                        return (
+                        <tr
+                            key={rowId}
+                            onClick={clickable ? () => onRowClick(item) : undefined}
+                            style={clickable ? { cursor: 'pointer' } : undefined}
+                        > */}
+
                             {/* 부모가 준 'columns' 배열 순서대로 <td>를 동적 생성 */}
                             {columns.map((col) => (
                                 <td key={col.key}>

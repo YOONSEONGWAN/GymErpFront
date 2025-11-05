@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { NavLink, useNavigate, useSearchParams } from 'react-router-dom';
 import CategoryCheckbox from '../../components/CategoryCheckbox';
 import ProductSearchBar from '../../components/ProductSearchBar';
 import ProductListComponent from '../../components/ProductListComponent';
@@ -9,7 +9,7 @@ import Pagination from '../../components/Pagination';
 function StockList() {
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [search, setSearch] = useState({ keyword: "" });
-    const [selectedItemId, setSelectedItemId] = useState(1);
+    const [selectedItemId, setSelectedItemId] = useState(null);
     const [pageInfo, setPageInfo] = useState({
         list: [],
         pageNum: 1,
@@ -29,8 +29,13 @@ function StockList() {
     });
     //정렬 state
     const [sortConfig, setSortConfig] = useState({ 
-        key: 'productId', // 백엔드 @RequestParam 기본값과 일치
-        direction: 'DESC' // 백엔드 @RequestParam 기본값과 일치
+        key: 'codeBName', // 백엔드 @RequestParam 기본값과 일치
+        direction: 'ASC' // 백엔드 @RequestParam 기본값과 일치
+    });
+    //날짜 state
+    const [filterDetails, setFilterDetails] = useState({
+        startDate: '',
+        endDate: ''
     });
 
 
@@ -67,8 +72,14 @@ function StockList() {
         axios.get(`/v1/product?${qs.toString()}`)
             .then(res=>{
                 setPageInfo(res.data);
+                // 목록을 불러온 직후, 그리고 아직 아무것도 선택되지 않았을 때
+                if (res.data.list.length > 0 && selectedItemId === null) {
+                    // 목록의 "첫 번째 아이템 ID"로 selectedItemId를 설정
+                    setSelectedItemId(res.data.list[0].productId); 
+                }
             })
             .catch(err=>console.log(err));
+
     },[params, sortConfig]);
 
     //입고 내역 가져오기
@@ -76,27 +87,41 @@ function StockList() {
         const page = params.get("inboundPage") || 1;
         const qs = new URLSearchParams();
         qs.set("inboundPage", page.toString());
+        if (filterDetails.startDate) {
+            qs.set("startDate", filterDetails.startDate);
+        }
+        if (filterDetails.endDate) {
+            qs.set("endDate", filterDetails.endDate);
+        }
         if(selectedItemId){
-            axios.get(`/v1/stock/${selectedItemId}/inbound?${qs.toString()}`)
+            const url = `/v1/stock/${selectedItemId}/inbound?${qs.toString()}`;
+            axios.get(url)
             .then(res=>{
                 setInboundPageInfo(res.data);
             })
         }
         
-    },[params, selectedItemId]);
+    },[params, selectedItemId, filterDetails]);
 
     //출고 내역 가져오기
     useEffect(()=>{
         const page = params.get("outboundPage") || 1;
         const qs = new URLSearchParams();
         qs.set("outboundPage", page.toString());
+        if (filterDetails.startDate) {
+            qs.set("startDate", filterDetails.startDate);
+        }
+        if (filterDetails.endDate) {
+            qs.set("endDate", filterDetails.endDate);
+        }
         if(selectedItemId){
-            axios.get(`/v1/stock/${selectedItemId}/outbound?${qs.toString()}`)
+            const url = `/v1/stock/${selectedItemId}/outbound?${qs.toString()}`;
+            axios.get(url)
             .then(res=>{
                 setOutboundPageInfo(res.data);
             })
         }
-    },[params, selectedItemId]);
+    },[params, selectedItemId, filterDetails]);
 
     const handleSort = (key) => {
         setSortConfig(prevConfig => {
@@ -151,6 +176,10 @@ function StockList() {
         qs.set("inboundPage", "1");
         qs.set("outboundPage", "1");
         navigate({ search: qs.toString() });
+        setFilterDetails({
+            startDate: '',
+            endDate: ''
+        });
     };
 
     const pageMove = (num) => {
@@ -192,7 +221,34 @@ function StockList() {
             sortConfig={sortConfig}
         />
 
-        <button>입고</button>
+        <div className="row justify-content-center g-3 align-items-end">
+            <div className="col-md-3">
+                <label htmlFor="startDate" className="form-label">기간 선택</label>
+                <div className="input-group">
+                    <input
+                        type="date"
+                        id="startDate"
+                        className="form-control"
+                        value={filterDetails.startDate}
+                        onChange={(e) =>
+                            setFilterDetails((prev) => ({ ...prev, startDate: e.target.value }))
+                        }
+                    />
+                    <span className="input-group-text">~</span>
+                    <input
+                        type="date"
+                        id="endDate"
+                        className="form-control"
+                        value={filterDetails.endDate}
+                        onChange={(e) =>
+                            setFilterDetails((prev) => ({ ...prev, endDate: e.target.value }))
+                        }
+                    />
+                </div>
+            </div>
+        </div>
+
+        <NavLink to={`/stock/inbound/${selectedItemId}`}>입고</NavLink>
         <table className="table table-striped text-center">
             <thead className="table-dark">
                 <tr>
@@ -215,7 +271,7 @@ function StockList() {
             onPageChange={inboundPageMove}
         />
 
-        <button>출고</button>
+        <NavLink to={`/stock/outbound/${selectedItemId}`}>출고</NavLink>
         <table className="table table-striped text-center">
             <thead className="table-dark">
                 <tr>

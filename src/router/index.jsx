@@ -20,23 +20,19 @@ import ProductList from "../pages/Product/ProductList.jsx";
 import MemberList from "../pages/MemberList.jsx";
 import MemberDetail from "../pages/MemberDetail.jsx";
 import MemberEdit from "../pages/MemberEdit.jsx";
-import PostList from "../pages/PostList.jsx";
-import PostView from "../pages/PostView.jsx";
-import PostEdit from "../pages/PostEdit.jsx";
-import PostAdd from "../pages/PostAdd.jsx";
+
 import SalesItemList from "../pages/Sales/SalesItemList.jsx";
 import SalesItemCreate from "../pages/Sales/SalesItemCreate.jsx";
-import StockInbound from "../pages/Product/StockInbound.jsx";
-import ProductCreate from "../pages/Product/ProductCreate.jsx";
+import SalesServiceCreate from "../pages/Sales/SalesServiceCreate.jsx";
 import StockList from "../pages/Product/StockList.jsx";
+import StockInbound from "../pages/Product/StockInbound.jsx";
+import StockOutbound from "../pages/Product/StockOutbound.jsx";
+import ProductCreate from "../pages/Product/ProductCreate.jsx";
+import ProductUpdate from "../pages/Product/ProductUpdate.jsx";
+
 
 
 const router = createBrowserRouter([
-  // 1) 루트 경로 - /home으로 리다이렉트
-  {
-    path: "/",
-    element: <Navigate to="/home" replace />
-  },
 
   // 2) 로그인 (비보호)
   {
@@ -59,6 +55,7 @@ const router = createBrowserRouter([
     ),
     errorElement: <div>Route 에러</div>,
     children: [
+      { index: true, element: <Home /> },
       { path: "home", element: <Home /> },
       { path: "jongbok", element: <JONGBOKHome /> },
       { path: "emp", element: <EmpList /> },
@@ -71,16 +68,24 @@ const router = createBrowserRouter([
       { path: "schedule", element: <SchedulePage /> },
       { path: "product", element: <ProductList/> },
       { path: "productList", element: <ProductList/> },
+      { path: "product/create", element: <ProductCreate /> },
+      { path: "product/edit/:productId", element: <ProductUpdate /> },
+      { path: "service/edit/:serviceId", element: <ProductUpdate /> },
+      { path: "stock", element: <StockList/> },
+      { path: "stock/inbound/:productId", element: <StockInbound /> },
+      { path: "stock/outbound/:productId", element: <StockOutbound /> },
       { path: "member", element: <MemberList /> },
       { path: "member/:memNum", element: <MemberDetail /> },
       { path: "member/edit/:memNum", element: <MemberEdit /> },
-      { path: "post", element: <PostList /> },
-      { path: "post/:postId", element: <PostView /> },
-      { path: "post/new", element: <PostAdd /> },
-      { path: "post/edit/:postId", element: <PostEdit /> },
       { path: "sales/salesitemlist", element: <SalesItemList /> },
       { path: "sales/salesitemcreate", element: <SalesItemCreate /> },
-      { path: "stock", element: <StockList/> },
+      { path: "sales/salesservicecreate", element: <SalesServiceCreate /> },
+
+      { path: "member", element: <MemberList /> },
+      { path: "member/:memNum", element: <MemberDetail /> },
+      { path: "member/edit/:memNum", element: <MemberEdit /> },
+
+
     ],
   },
 ]);

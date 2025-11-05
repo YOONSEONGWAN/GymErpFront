@@ -20,8 +20,8 @@ function ProductList() {
     });
     //정렬 state
     const [sortConfig, setSortConfig] = useState({ 
-        key: 'productId', // 백엔드 @RequestParam 기본값과 일치
-        direction: 'DESC' // 백엔드 @RequestParam 기본값과 일치
+        key: 'codeBName', // 백엔드 @RequestParam 기본값과 일치
+        direction: 'ASC' // 백엔드 @RequestParam 기본값과 일치
     });
 
     const productColumns = [
@@ -163,6 +163,16 @@ function ProductList() {
                 });
             })
             .catch(err=>console.log(err));
+    };
+
+    const handleRowClick = (item) => {
+        if (currentTab === 'PRODUCT' && item.productId) {
+            navigate(`/product/edit/${item.productId}`);
+            return;
+        }
+        if (currentTab === 'SERVICE' && item.serviceId) {
+            navigate(`/service/edit/${item.serviceId}`);
+        }
     };
 
     return (
