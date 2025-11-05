@@ -6,8 +6,7 @@ import { Modal, Button, Form, Row, Col } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
 import ScheduleCalendar from "../components/ScheduleCalendar";
 import ScheduleModal from "../components/ScheduleModal";
-import "./SchedulePage.css"; // ✅ 스타일 적용
-
+import "../components/css/SchedulePage.css"; // ✅ 스타일 적용
 /* ========= 공통 유틸 ========= */
 const safeJson = (s) => {
   try { return JSON.parse(s); } catch { return null; }
