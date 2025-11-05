@@ -31,10 +31,10 @@ function mapToEvents(arr) {
       end: new Date(e.endTime),
       color:
         e.codeBid === "PT" || e.codeBid === "SCHEDULE-PT" ? "#2ecc71" :
-        e.codeBid === "VACATION" ? "#e74c3c" :
-        e.codeBid === "ETC-COMPETITION" ? "#9b59b6" :
-        e.codeBid === "ETC-COUNSEL" ? "#f39c12" :
-        e.codeBid === "ETC-MEETING" ? "#34495e" : "#95a5a6",
+          e.codeBid === "VACATION" ? "#e74c3c" :
+            e.codeBid === "ETC-COMPETITION" ? "#9b59b6" :
+              e.codeBid === "ETC-COUNSEL" ? "#f39c12" :
+                e.codeBid === "ETC-MEETING" ? "#34495e" : "#95a5a6",
       ...e,
     };
   });
@@ -61,7 +61,7 @@ function readRoleFromStorage() {
       if (found) return found;
     }
     if (Array.isArray(obj.authorities) && obj.authorities.length) {
-      const toStr = (x)=> typeof x === "string" ? x : (x?.authority ?? "");
+      const toStr = (x) => typeof x === "string" ? x : (x?.authority ?? "");
       const found = obj.authorities.map(toStr).map(s => s.toUpperCase()).find(x => x.includes("ADMIN"));
       if (found) return found;
     }
@@ -99,53 +99,53 @@ export default function SchedulePage() {
   /* ============================================ */
   /** 일정 로딩 */
   const loadSchedules = async () => {
-  try {
-    const url = empNum
-      ? `http://localhost:9000/v1/schedule/emp/${empNum}`
-      : "http://localhost:9000/v1/schedule/all";
+    try {
+      const url = empNum
+        ? `http://localhost:9000/v1/schedule/emp/${empNum}`
+        : "http://localhost:9000/v1/schedule/all";
 
-    console.log("[일정 로딩 요청] URL =", url);
-    const res = await axios.get(url);
+      console.log("[일정 로딩 요청] URL =", url);
+      const res = await axios.get(url);
 
-    const loaded = res.data.map((e) => {
-      const typeMap = {
-        "PT": "PT",
-        "SCHEDULE-PT": "PT",
-        "VACATION": "휴가",
-        "ETC-COUNSEL": "상담",
-        "ETC-MEETING": "회의",
-        "ETC-COMPETITION": "대회",
-      };
+      const loaded = res.data.map((e) => {
+        const typeMap = {
+          "PT": "PT",
+          "SCHEDULE-PT": "PT",
+          "VACATION": "휴가",
+          "ETC-COUNSEL": "상담",
+          "ETC-MEETING": "회의",
+          "ETC-COMPETITION": "대회",
+        };
 
-      const typeLabel = typeMap[e.codeBid] || e.codeBName || "일정";
+        const typeLabel = typeMap[e.codeBid] || e.codeBName || "일정";
 
-      return {
-        title:
-          typeLabel === "PT"
-            ? `[${typeLabel}] ${e.memName || "회원"} - ${e.memo || ""}`
-            : `[${typeLabel}] ${e.empName || ""} - ${e.memo || ""}`,
-        start: new Date(e.startTime),
-        end: new Date(e.endTime),
-        color:
-          e.codeBid === "PT" || e.codeBid === "SCHEDULE-PT"
-            ? "#2ecc71"
-            : e.codeBid === "VACATION"
-            ? "#e74c3c"
-            : e.codeBid === "ETC-COMPETITION"
-            ? "#9b59b6"
-            : e.codeBid === "ETC-COUNSEL"
-            ? "#f39c12"
-            : e.codeBid === "ETC-MEETING"
-            ? "#34495e"
-            : "#95a5a6",
-        ...e,
-      };
-    });
-    setEvents(loaded);
-  } catch (err) {
-    console.error("[일정 불러오기 실패]:", err);
-  }
-};
+        return {
+          title:
+            typeLabel === "PT"
+              ? `[${typeLabel}] ${e.memName || "회원"} - ${e.memo || ""}`
+              : `[${typeLabel}] ${e.empName || ""} - ${e.memo || ""}`,
+          start: new Date(e.startTime),
+          end: new Date(e.endTime),
+          color:
+            e.codeBid === "PT" || e.codeBid === "SCHEDULE-PT"
+              ? "#2ecc71"
+              : e.codeBid === "VACATION"
+                ? "#e74c3c"
+                : e.codeBid === "ETC-COMPETITION"
+                  ? "#9b59b6"
+                  : e.codeBid === "ETC-COUNSEL"
+                    ? "#f39c12"
+                    : e.codeBid === "ETC-MEETING"
+                      ? "#34495e"
+                      : "#95a5a6",
+          ...e,
+        };
+      });
+      setEvents(loaded);
+    } catch (err) {
+      console.error("[일정 불러오기 실패]:", err);
+    }
+  };
 
 
   const roleStr = readRoleFromStorage();
@@ -174,19 +174,17 @@ export default function SchedulePage() {
       setFocusDate(firstDate);
 
 
-  /* ============================================ */
-  /** 캘린더 빈 칸 클릭 → 등록 */
-  const handleSelectSlot = (slotInfo) => {
-    const dateStr = format(slotInfo.start, "yyyy-MM-dd");
-    console.log("[빈 칸 클릭]", dateStr);
-      const next = new URLSearchParams(location.search);
-      next.set("empNum", String(firstEmpNum));
-      if (firstEmpName) next.set("empName", firstEmpName);
-      navigate({ search: `?${next.toString()}` }, { replace: true });
-    } else {
-      alert("검색 결과가 없습니다.");
-    }
-  };
+      /* ============================================ */
+      /** 캘린더 빈 칸 클릭 → 등록 */
+      const handleSelectSlot = (slotInfo) => {
+        const dateStr = format(slotInfo.start, "yyyy-MM-dd");
+        console.log("[빈 칸 클릭]", dateStr);
+        const next = new URLSearchParams(location.search);
+        next.set("empNum", String(firstEmpNum));
+        if (firstEmpName) next.set("empName", firstEmpName);
+        navigate({ search: `?${next.toString()}` }, { replace: true });
+      };
+    };
 
     setClickedDate(dateStr);
     setEditData(null);
@@ -232,7 +230,7 @@ export default function SchedulePage() {
   return (
     <div>
 
-      <h4 style={{ fontWeight: "600", color: "#444", fontSize: "1.8rem", marginBottom: "1.2rem",}}>일정관리</h4>
+      <h4 style={{ fontWeight: "600", color: "#444", fontSize: "1.8rem", marginBottom: "1.2rem", }}>일정관리</h4>
       <hr />
       {/*  관리자 전용 간단 검색바 */}
       {isAdmin ? <AdminSearchBar onSearch={searchAdmin} isAdmin={isAdmin} /> : null}
@@ -292,54 +290,56 @@ export default function SchedulePage() {
       </Modal>
     </div>
   );
-}
 
-/* ========= 관리자 간단 검색바 ========= */
-function AdminSearchBar({ onSearch, isAdmin = false }) {
-  if (!isAdmin) return null; // 🔒 안전장치
 
-  const [empName, setEmpName] = useState("");
-  const [codeBid, setCodeBid] = useState("");
-  const [keyword, setKeyword] = useState("");
+  /* ========= 관리자 간단 검색바 ========= */
+  function AdminSearchBar({ onSearch, isAdmin = false }) {
+    if (!isAdmin) return null; // 🔒 안전장치
 
-  const submit = (e) => {
-    e.preventDefault();
-    onSearch?.({ empName: empName.trim(), codeBid, keyword: keyword.trim() });
-  };
-  const reset = () => {
-    setEmpName(""); setCodeBid(""); setKeyword("");
-    onSearch?.({ empName: "", codeBid: "", keyword: "" });
-  };
+    const [empName, setEmpName] = useState("");
+    const [codeBid, setCodeBid] = useState("");
+    const [keyword, setKeyword] = useState("");
 
-  return (
-    <Form onSubmit={submit} className="mb-3">
-      <Row className="gy-2 align-items-end">
-        <Col md={3}>
-          <Form.Label>직원이름</Form.Label>
-          <Form.Control value={empName} onChange={(e) => setEmpName(e.target.value)} placeholder="예) 시스템관리자" />
-        </Col>
-        <Col md={2}>
-          <Form.Label>유형</Form.Label>
-          <Form.Select value={codeBid} onChange={(e) => setCodeBid(e.target.value)}>
-            <option value="">전체</option>
-            <option value="SCHEDULE-PT">PT</option>
-            <option value="VACATION">휴가</option>
-            <option value="ETC-MEETING">회의</option>
-            <option value="ETC-COUNSEL">상담</option>
-            <option value="ETC-COMPETITION">대회</option>
-          </Form.Select>
-        </Col>
-        <Col md={4}>
-          <Form.Label>키워드(메모/회원명 등)</Form.Label>
-          <Form.Control value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="예) 초기상담, 김철수" />
-        </Col>
-        <Col md="auto">
-          <div className="d-flex gap-2">
-            <Button type="submit" variant="primary">검색</Button>
-            <Button type="button" variant="secondary" onClick={reset}>초기화</Button>
-          </div>
-        </Col>
-      </Row>
-    </Form>
-  );
+    const submit = (e) => {
+      e.preventDefault();
+      onSearch?.({ empName: empName.trim(), codeBid, keyword: keyword.trim() });
+    };
+    const reset = () => {
+      setEmpName(""); setCodeBid(""); setKeyword("");
+      onSearch?.({ empName: "", codeBid: "", keyword: "" });
+    };
+
+    return (
+      <Form onSubmit={submit} className="mb-3">
+        <Row className="gy-2 align-items-end">
+          <Col md={3}>
+            <Form.Label>직원이름</Form.Label>
+            <Form.Control value={empName} onChange={(e) => setEmpName(e.target.value)} placeholder="예) 시스템관리자" />
+          </Col>
+          <Col md={2}>
+            <Form.Label>유형</Form.Label>
+            <Form.Select value={codeBid} onChange={(e) => setCodeBid(e.target.value)}>
+              <option value="">전체</option>
+              <option value="SCHEDULE-PT">PT</option>
+              <option value="VACATION">휴가</option>
+              <option value="ETC-MEETING">회의</option>
+              <option value="ETC-COUNSEL">상담</option>
+              <option value="ETC-COMPETITION">대회</option>
+            </Form.Select>
+          </Col>
+          <Col md={4}>
+            <Form.Label>키워드(메모/회원명 등)</Form.Label>
+            <Form.Control value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="예) 초기상담, 김철수" />
+          </Col>
+          <Col md="auto">
+            <div className="d-flex gap-2">
+              <Button type="submit" variant="primary">검색</Button>
+              <Button type="button" variant="secondary" onClick={reset}>초기화</Button>
+            </div>
+          </Col>
+        </Row>
+      </Form>
+    );
+  }
+
 }
