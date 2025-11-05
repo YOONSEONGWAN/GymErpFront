@@ -16,6 +16,17 @@ const api = axios.create({
 });
 
 // ---- 유틸 ----
+// 달력용
+const msPerDay = 24 * 60 * 60 * 1000;
+const toLocalDate = (ymdStr) => {
+  if (!ymdStr) return null;
+  // 로컬 기준 00:00으로 파싱
+  const [y, m, d] = ymdStr.split("-").map(Number);
+  return new Date(y, m - 1, d, 0, 0, 0, 0);
+};
+
+
+
 const toYmd = (d) => {
   const yy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -54,7 +65,7 @@ export default function EmpAttendanceMy() {
         const n = Number(u?.empNum);
         if (Number.isFinite(n) && n > 0) return n;
       }
-    } catch {}
+    } catch { }
     const n =
       Number(localStorage.getItem("empNum")) ||
       Number(sessionStorage.getItem("empNum"));
@@ -178,6 +189,26 @@ export default function EmpAttendanceMy() {
   const goNext = () => setPageOffset((v) => v + 1);
   const goToday = () => setPageOffset(0);
 
+
+  // ------- 달력용 추가 
+
+  // 컴포넌트 내부에 추가
+  const [pickedYmd, setPickedYmd] = useState(ymd);
+
+  // ymd가 바뀌면 달력 입력값도 동기화
+  useEffect(() => { setPickedYmd(ymd); }, [ymd]);
+
+  // 특정 날짜로 이동
+  const goDate = (dateYmd) => {
+    if (!dateYmd) return;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const target = toLocalDate(dateYmd);
+    if (!target) return;
+    const diff = Math.round((target.getTime() - today.getTime()) / msPerDay);
+    setPageOffset(diff);
+  };
+
   return (
     <>
       {message && <Alert variant="success" onClose={() => setMessage("")} dismissible className="mt-3">{message}</Alert>}
@@ -242,6 +273,19 @@ export default function EmpAttendanceMy() {
             <button className="page-link" onClick={goNext}>&gt;</button>
             <button className={`page-link ${pageOffset === 0 ? "disabled" : ""}`} onClick={goToday}>오늘</button>
             <button className="page-link" onClick={() => setPageOffset((v) => v + 7)}>&raquo;</button>
+
+            {/* ⬇ 추가: 날짜 직접 선택 */}
+            <input
+              type="date"
+              className="form-control form-control-sm ms-2"
+              value={pickedYmd}
+              onChange={(e) => {
+                const v = e.target.value;
+                setPickedYmd(v);
+                goDate(v);
+              }}
+              aria-label="날짜 선택"
+            />
           </div>
         </div>
 
