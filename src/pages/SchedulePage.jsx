@@ -8,7 +8,7 @@ import ScheduleCalendar from "../components/ScheduleCalendar";
 import ScheduleModal from "../components/ScheduleModal";
 import GymIcon from "../components/icons/GymIcon";
 
-
+/* ========= 공통 유틸 ========= */
 function safeJson(s) { try { return JSON.parse(s); } catch { return null; } }
 
 function mapToEvents(arr) {
@@ -23,9 +23,10 @@ function mapToEvents(arr) {
   return (arr || []).map((e) => {
     const typeLabel = typeMap[e.codeBid] || e.codeBName || "일정";
     return {
-      title: typeLabel === "PT"
-        ? `[${typeLabel}] ${e.memName || "회원"} - ${e.memo || ""}`
-        : `[${typeLabel}] ${e.empName || ""} - ${e.memo || ""}`,
+      title:
+        typeLabel === "PT"
+          ? `[${typeLabel}] ${e.memName || "회원"} - ${e.memo || ""}`
+          : `[${typeLabel}] ${e.empName || ""} - ${e.memo || ""}`,
       start: new Date(e.startTime),
       end: new Date(e.endTime),
       color:
@@ -39,9 +40,45 @@ function mapToEvents(arr) {
   });
 }
 
+// 저장소에서 역할 뽑기(여러 케이스 커버)
+function readRoleFromStorage() {
+  const candidates = [
+    localStorage.getItem("loginUser"),
+    sessionStorage.getItem("loginUser"),
+    localStorage.getItem("user"),
+    sessionStorage.getItem("user"),
+    localStorage.getItem("emp"),
+    sessionStorage.getItem("emp"),
+  ].filter(Boolean);
+
+  for (const c of candidates) {
+    const obj = safeJson(c);
+    if (!obj) continue;
+
+    if (obj.role) return String(obj.role).toUpperCase(); // 단일 role
+    if (Array.isArray(obj.roles) && obj.roles.length) {
+      const found = obj.roles.map(x => String(x).toUpperCase()).find(x => x.includes("ADMIN"));
+      if (found) return found;
+    }
+    if (Array.isArray(obj.authorities) && obj.authorities.length) {
+      const toStr = (x)=> typeof x === "string" ? x : (x?.authority ?? "");
+      const found = obj.authorities.map(toStr).map(s => s.toUpperCase()).find(x => x.includes("ADMIN"));
+      if (found) return found;
+    }
+  }
+
+  const direct = (localStorage.getItem("role") || sessionStorage.getItem("role") || "").toUpperCase();
+  return direct || "";
+}
+function isAdminRole(roleStr) {
+  const r = (roleStr || "").toUpperCase();
+  return r.includes("ADMIN"); // ADMIN, ROLE_ADMIN 모두 허용
+}
+
+/* ========= 페이지 ========= */
 export default function SchedulePage() {
   const [events, setEvents] = useState([]);
-  const [focusDate, setFocusDate] = useState(null); // 🔎 검색 결과 날짜 포커스용
+  const [focusDate, setFocusDate] = useState(null);
 
   const [showModal, setShowModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -49,11 +86,8 @@ export default function SchedulePage() {
   const [editData, setEditData] = useState(null);
   const [clickedDate, setClickedDate] = useState(null);
 
-  const rawUser = localStorage.getItem("loginUser") || sessionStorage.getItem("loginUser");
-  const user = rawUser ? safeJson(rawUser) : null;
-  const directRole = (localStorage.getItem("role") || sessionStorage.getItem("role") || "").toUpperCase();
-  const role = (user?.role || directRole || "").toUpperCase();
-  const isAdmin = role === "ADMIN" || role === "ROLE_ADMIN";
+  const roleStr = readRoleFromStorage();
+  const isAdmin = isAdminRole(roleStr);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -64,11 +98,12 @@ export default function SchedulePage() {
   // 기본/직원별 일정 로딩
   const loadSchedules = async () => {
     try {
-      const url = empNum ? `http://localhost:9000/v1/schedule/emp/${empNum}` : `http://localhost:9000/v1/schedule/all`;
+      const url = empNum
+        ? `http://localhost:9000/v1/schedule/emp/${empNum}`
+        : `http://localhost:9000/v1/schedule/all`;
       const res = await axios.get(url);
       const loaded = mapToEvents(res.data);
       setEvents(loaded);
-      // 기존 진입 시에도 첫 이벤트가 있으면 그 달로 포커스(초기 UX 보강)
       if (loaded.length > 0 && !focusDate) setFocusDate(loaded[0].start);
     } catch (err) {
       console.error("❌ [일정 불러오기 실패]:", err);
@@ -77,32 +112,19 @@ export default function SchedulePage() {
   useEffect(() => { loadSchedules(); /* eslint-disable-next-line */ }, [empNum]);
 
   // 관리자 검색 (직원이름, 유형, 키워드만)
+  const searchAdmin = async ({ empName, codeBid, keyword }) => {
+    if (!isAdmin) return; // 이중 차단
+    const params = { page: 1, size: 20 };
+    const kw = (empName || keyword || "").trim();
+    if (kw) params.keyword = kw;
+    if (codeBid) params.codeBid = codeBid;
 
-  // const searchAdmin = async ({ empName, codeBid, keyword }) => {
-  //   const qs = new URLSearchParams();
-  //   // 백엔드 검색 파라미터는 keyword 하나이므로, 직원이름 우선 → 없으면 일반 키워드
-  //   if (empName) qs.set("keyword", empName);
-  //   else if (keyword) qs.set("keyword", keyword);
-  //   if (codeBid) qs.set("codeBid", codeBid);
-  //   qs.set("page", 1);
-  //   qs.set("size", 20);
-
-  //   const { data } = await axios.get(`http://localhost:9000/v1/schedules/search?${qs.toString()}`);
-
- const searchAdmin = async ({ empName, codeBid, keyword }) => {
-   const params = { page: 1, size: 20 };
-   const kw = (empName || keyword || "").trim();
-   if (kw) params.keyword = kw;
-   if (codeBid) params.codeBid = codeBid;
-
-   const { data } = await axios.get(`http://localhost:9000/v1/schedules/search`, { params });
-
+    const { data } = await axios.get(`http://localhost:9000/v1/schedules/search`, { params });
 
     const list = data?.list || [];
     const mapped = mapToEvents(list);
     setEvents(mapped);
 
-    // 🔁 검색 결과 첫 건 기준으로: empNum 로 이동 + 그 날짜로 포커스
     if (list.length > 0) {
       const first = list[0];
       const firstEmpNum = first.empNum;
@@ -114,25 +136,24 @@ export default function SchedulePage() {
       next.set("empNum", String(firstEmpNum));
       if (firstEmpName) next.set("empName", firstEmpName);
       navigate({ search: `?${next.toString()}` }, { replace: true });
-      // useEffect(empNum)로 직원별 일정 재호출 → 달력은 focusDate로 해당 월로 이동
     } else {
-      // 결과 0건이면 현재 월 유지
       alert("검색 결과가 없습니다.");
     }
   };
 
+  // 캘린더 인터랙션
   const handleSelectSlot = (slotInfo) => {
     const dateStr = format(slotInfo.start, "yyyy-MM-dd");
     setClickedDate(dateStr);
     setEditData(null);
     setShowModal(true);
   };
-
   const handleSelectEvent = (event) => {
     setSelectedEvent(event);
     setShowDetailModal(true);
   };
 
+  // 삭제
   const handleDelete = async () => {
     if (!selectedEvent?.shNum) { alert("삭제할 일정의 shNum이 없습니다."); return; }
     if (!window.confirm("정말 이 일정을 삭제하시겠습니까?")) return;
@@ -163,9 +184,7 @@ export default function SchedulePage() {
       <hr />
 
       {/* 🔐 관리자 전용 간단 검색바 */}
-      {isAdmin && (
-        <AdminSearchBar onSearch={searchAdmin} />
-      )}
+      {isAdmin ? <AdminSearchBar onSearch={searchAdmin} isAdmin={isAdmin} /> : null}
 
       {/* 📅 캘린더 */}
       <ScheduleCalendar
@@ -173,7 +192,7 @@ export default function SchedulePage() {
         onSelectSlot={handleSelectSlot}
         onSelectEvent={handleSelectEvent}
         isAdmin={isAdmin}
-        focusDate={focusDate}   // 🔎 이걸로 해당 월로 이동
+        focusDate={focusDate}   // 해당 월로 이동
       />
 
       {/* 🟢 등록/수정 모달 */}
@@ -221,8 +240,10 @@ export default function SchedulePage() {
   );
 }
 
-/** ==== 관리자 간단 검색바(직원이름/유형/키워드) ==== */
-function AdminSearchBar({ onSearch }) {
+/* ========= 관리자 간단 검색바 ========= */
+function AdminSearchBar({ onSearch, isAdmin = false }) {
+  if (!isAdmin) return null; // 🔒 안전장치
+
   const [empName, setEmpName] = useState("");
   const [codeBid, setCodeBid] = useState("");
   const [keyword, setKeyword] = useState("");
