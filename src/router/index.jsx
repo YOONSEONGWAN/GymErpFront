@@ -26,6 +26,7 @@ import SalesItemCreate from "../pages/Sales/SalesItemCreate.jsx";
 import SalesServiceCreate from "../pages/Sales/SalesServiceCreate.jsx";
 import StockInbound from "../pages/Product/StockInbound.jsx";
 import ProductCreate from "../pages/Product/ProductCreate.jsx";
+import SalesItemDetail from "../pages/Sales/SalesItemDetail.jsx";
 
 
 
@@ -77,7 +78,7 @@ const router = createBrowserRouter([
       { path: "sales/salesitemlist", element: <SalesItemList /> },
       { path: "sales/salesitemcreate", element: <SalesItemCreate /> },
       { path: "sales/salesservicecreate", element: <SalesServiceCreate /> },
-
+      { path: "sales/salesitemdetail", element: <SalesItemDetail />  },
       { path: "member", element: <MemberList /> },
       { path: "member/:memNum", element: <MemberDetail /> },
       { path: "member/edit/:memNum", element: <MemberEdit /> },

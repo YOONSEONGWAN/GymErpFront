@@ -1,0 +1,122 @@
+/* 컨테이너 카드 */
+.sale-card {
+  margin: 0 1rem 1rem;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+
+/* 헤더 (모달 상단) */
+.sale-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 24px 8px;
+  border: 0;
+  background: #ffffff;
+}
+.sale-title {
+  margin: 0;
+  font-weight: 700;
+}
+.sale-close {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* 행(라벨+필드) */
+.sale-row {
+  display: grid;
+  grid-template-columns: 220px 1fr; /* 좌측 라벨 고정폭 */
+  align-items: stretch;
+  border-bottom: 1px solid #eef0f2;
+}
+.sale-row:first-of-type .sale-label {
+  border-top-left-radius: 18px;
+}
+.sale-row:last-of-type .sale-field {
+  border-bottom-right-radius: 18px;
+}
+
+/* 라벨 셀 (검은 배경) */
+.sale-label {
+  background: #0f1621;          /* 아주 짙은 남색/검정 느낌 */
+  color: #fff;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  padding: 16px 18px;
+}
+
+/* 필드 셀 (회색 바탕) */
+.sale-field {
+  background: #f2f4f6;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+}
+
+/* 인풋 */
+.sale-input {
+  width: 100%;
+  height: 38px;
+  border: 1px solid #d7dbe0;
+  border-radius: 8px;
+  padding: 0 12px;
+  background: #fff;
+  outline: none;
+}
+.sale-input:disabled {
+  background: #e9ecef;
+}
+
+/* 상품명 + 검색 버튼 */
+.sale-product-input {
+  display: grid;
+  grid-template-columns: 1fr 42px;
+  gap: 8px;
+  width: 100%;
+}
+.sale-icon-btn {
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid #d7dbe0;
+  background: #eef1f4;
+  cursor: pointer;
+}
+.sale-icon-btn:disabled { cursor: not-allowed; opacity: .6; }
+
+/* 하단 버튼 */
+.sale-footer {
+  padding: 18px;
+  display: flex;
+  justify-content: center;
+}
+.sale-btn-green {
+  min-width: 160px;
+  height: 42px;
+  border: 0;
+  border-radius: 10px;
+  background: #1f7a4f;         /* 이미지의 녹색 느낌 */
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: .2px;
+  box-shadow: 0 6px 16px rgba(31,122,79,.25);
+  transition: transform .02s ease-in;
+}
+.sale-btn-green:active { transform: translateY(1px); }
+
+/* 에러 */
+.sale-alert {
+  margin: 14px 18px 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #ffe8ea;
+  color: #a8303b;
+  font-weight: 600;
+}
