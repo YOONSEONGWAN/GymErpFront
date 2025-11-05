@@ -29,6 +29,10 @@ import ProductCreate from "../pages/Product/ProductCreate.jsx";
 import SalesServiceList from "../pages/Sales/SalesServiceList.jsx";
 import SalesServiceDetail from "../pages/Sales/SalesServiceDetail.jsx";
 import SalesServiceEdit from "../pages/Sales/SalesServiceEdit.jsx";
+import GraphTest from "../pages/Graphtest.jsx";
+
+
+
 
 
 
@@ -88,6 +92,8 @@ const router = createBrowserRouter([
       { path: "member/:memNum", element: <MemberDetail /> },
       { path: "member/edit/:memNum", element: <MemberEdit /> },
 
+      { path: "graphtest", element: <GraphTest /> },
+      
 
     ],
   },

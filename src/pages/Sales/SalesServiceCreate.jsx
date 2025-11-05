@@ -103,7 +103,7 @@ function SalesServiceCreate() {
     e.preventDefault();
     try {
       const { memberName, ...requestData } = form;
-      const res = await axios.post("/api/v1/sales/services", requestData);
+      const res = await axios.post("/v1/sales/services", requestData);
 
       if (res.data.result > 0) {
         alert(res.data.message);

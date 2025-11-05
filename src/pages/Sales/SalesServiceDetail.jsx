@@ -56,7 +56,7 @@ function SalesServiceDetail() {
 
         const today = new Date().toISOString().slice(0, 10);
 
-        // ✅ 회원 이름 조회
+        //  회원 이름 조회
         let memName = "";
         if (data.memNum) {
           try {
@@ -67,14 +67,14 @@ function SalesServiceDetail() {
           }
         }
 
-        // ✅ 직원 이름 조회
+        //  직원 이름 조회
         let empName = "";
         if (data.empNum) {
           try {
-            const empRes = await axios.get(`/v1/employee/${data.empNum}`);
+            const empRes = await axios.get(`/v1/emp/${data.empNum}`);
             empName = empRes.data.empName || "";
           } catch {
-            empName = "(퇴사 직원)";
+            empName = "(퇴사자)";
           }
         }
 
@@ -90,7 +90,7 @@ function SalesServiceDetail() {
     fetchData();
   }, [id]);
 
-  // ✅ 로딩 중일 때
+  //  로딩 중일 때
   if (loading) {
     return (
       <div className="text-center mt-5">
@@ -99,7 +99,7 @@ function SalesServiceDetail() {
     );
   }
 
-  // ✅ 에러 발생 시
+  //  에러 발생 시
   if (error) {
     return (
       <div className="text-center mt-5 text-danger">

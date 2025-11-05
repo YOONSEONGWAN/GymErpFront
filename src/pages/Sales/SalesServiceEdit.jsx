@@ -18,7 +18,9 @@ function SalesServiceEdit() {
     actualAmount: 0,
     discount: 0,
     memNum: "",
+    memName: "",
     empNum: "",
+    empName: "",
     createdAt: "",
     updatedAt: "",
   });
@@ -27,7 +29,7 @@ function SalesServiceEdit() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // ✅ 숫자 포맷/파싱
+  // 숫자 포맷 / 파싱 함수
   const formatNumber = (value) =>
     value === null || value === ""
       ? ""
@@ -35,7 +37,7 @@ function SalesServiceEdit() {
 
   const parseNumber = (value) => Number(value.replace(/[^0-9]/g, "")) || 0;
 
-  // ✅ 초기 데이터 로딩 (SalesServiceDetail과 동일)
+  // 초기 데이터 로딩
   useEffect(() => {
     if (!id) return;
 
@@ -59,11 +61,34 @@ function SalesServiceEdit() {
         }
 
         const today = new Date().toISOString().slice(0, 10);
-        const filled = { ...data, updatedAt: today };
+
+        // 회원 이름 조회
+        let memName = "";
+        if (data.memNum) {
+          try {
+            const memberRes = await axios.get(`/v1/member/${data.memNum}`);
+            memName = memberRes.data.memName || "";
+          } catch {
+            memName = "(탈퇴 회원)";
+          }
+        }
+
+        // 직원 이름 조회
+        let empName = "";
+        if (data.empNum) {
+          try {
+            const empRes = await axios.get(`/v1/emp/${data.empNum}`);
+            empName = empRes.data.empName || "";
+          } catch {
+            empName = "(퇴사자)";
+          }
+        }
+
+        const filled = { ...data, memName, empName, updatedAt: today };
         setForm(filled);
         setOriginal(filled);
       } catch (err) {
-        console.error("❌ 데이터 조회 실패:", err);
+        console.error("데이터 조회 실패:", err);
         setError("데이터 조회 중 오류가 발생했습니다.");
       } finally {
         setLoading(false);
@@ -73,6 +98,7 @@ function SalesServiceEdit() {
     fetchData();
   }, [id]);
 
+  // 로딩 중
   if (loading)
     return (
       <div className="text-center mt-5">
@@ -80,6 +106,7 @@ function SalesServiceEdit() {
       </div>
     );
 
+  // 에러 발생
   if (error)
     return (
       <div className="text-center mt-5 text-danger">
@@ -90,7 +117,7 @@ function SalesServiceEdit() {
       </div>
     );
 
-  // ✅ 입력값 변경
+  // 입력값 변경
   const handleChange = (e) => {
     const { name, value } = e.target;
     const num = parseNumber(value);
@@ -112,20 +139,34 @@ function SalesServiceEdit() {
     }
   };
 
-  // ✅ 수정 확인
+  // 수정 확인
   const handleConfirm = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.put(`/v1/sales/services/${id}`, form);
+      const payload = {
+        serviceSalesId: Number(id),
+        serviceName: form.serviceName,
+        serviceType: form.serviceType,
+        baseCount: form.baseCount,
+        actualCount: form.actualCount,
+        baseAmount: form.baseAmount,
+        actualAmount: form.actualAmount,
+        discount: form.discount,
+        memNum: form.memNum,
+        empNum: form.empNum,
+      };
+
+      console.log("전송 payload:", payload);
+      const res = await axios.put(`/v1/sales/services/${id}`, payload);
       alert(res.data.message || "수정이 완료되었습니다!");
       navigate(`/sales/salesservicedetail/${id}`);
     } catch (err) {
-      console.error("❌ 수정 오류:", err);
+      console.error("수정 오류:", err);
       alert("수정 중 오류가 발생했습니다.");
     }
   };
 
-  // ✅ 취소 → 수정 없이 상세페이지로 이동
+  // 수정 취소
   const handleCancel = () => {
     navigate(`/sales/salesservicedetail/${id}`);
   };
@@ -142,13 +183,19 @@ function SalesServiceEdit() {
       >
         <table className="table table-striped m-0 align-middle text-center">
           <tbody>
-            {/* [1] 상품명 */}
+            {/* 상품명 */}
             <tr>
-              <th className="bg-dark text-white text-center align-middle" style={{ width: "30%" }}>
+              <th
+                className="bg-dark text-white text-center align-middle"
+                style={{ width: "30%" }}
+              >
                 상품명
               </th>
               <td className="bg-light align-middle position-relative">
-                <div className="d-flex justify-content-center" style={{ width: "340px", margin: "0 auto" }}>
+                <div
+                  className="d-flex justify-content-center"
+                  style={{ width: "340px", margin: "0 auto" }}
+                >
                   <input
                     type="text"
                     name="serviceName"
@@ -161,7 +208,10 @@ function SalesServiceEdit() {
                   <button
                     type="button"
                     className="btn btn-outline-secondary position-absolute"
-                    style={{ right: "calc(50% - 170px - 45px)", height: "38px" }}
+                    style={{
+                      right: "calc(50% - 170px - 45px)",
+                      height: "38px",
+                    }}
                     onClick={() => console.log("상품 선택 모달 예정")}
                   >
                     <FaSearch />
@@ -170,9 +220,11 @@ function SalesServiceEdit() {
               </td>
             </tr>
 
-            {/* [2] 구분 */}
+            {/* 구분 */}
             <tr>
-              <th className="bg-dark text-white text-center align-middle">구분</th>
+              <th className="bg-dark text-white text-center align-middle">
+                구분
+              </th>
               <td className="bg-light align-middle">
                 <input
                   type="text"
@@ -185,24 +237,32 @@ function SalesServiceEdit() {
               </td>
             </tr>
 
-            {/* [3] 회원 */}
+            {/* 회원 */}
             <tr>
-              <th className="bg-dark text-white text-center align-middle">회원</th>
+              <th className="bg-dark text-white text-center align-middle">
+                회원
+              </th>
               <td className="bg-light align-middle position-relative">
-                <div className="d-flex justify-content-center" style={{ width: "340px", margin: "0 auto" }}>
+                <div
+                  className="d-flex justify-content-center"
+                  style={{ width: "340px", margin: "0 auto" }}
+                >
                   <input
                     type="text"
                     name="memNum"
                     className="form-control text-center"
                     placeholder="회원 선택"
-                    value={form.memNum}
+                    value={form.memName}
                     readOnly
                     style={{ width: "100%" }}
                   />
                   <button
                     type="button"
                     className="btn btn-outline-secondary position-absolute"
-                    style={{ right: "calc(50% - 170px - 45px)", height: "38px" }}
+                    style={{
+                      right: "calc(50% - 170px - 45px)",
+                      height: "38px",
+                    }}
                     onClick={() => console.log("회원 선택 모달 예정")}
                   >
                     <FaSearch />
@@ -211,24 +271,28 @@ function SalesServiceEdit() {
               </td>
             </tr>
 
-            {/* [4] 직원 ID */}
+            {/* 직원 */}
             <tr>
-              <th className="bg-dark text-white text-center align-middle">직원 ID</th>
+              <th className="bg-dark text-white text-center align-middle">
+                직원
+              </th>
               <td className="bg-light align-middle">
                 <input
                   type="text"
                   name="empNum"
                   className="form-control text-center mx-auto"
                   style={{ width: "340px" }}
-                  value={form.empNum}
+                  value={form.empName}
                   readOnly
                 />
               </td>
             </tr>
 
-            {/* [5] 횟수/일수 */}
+            {/* 횟수/일수 */}
             <tr>
-              <th className="bg-dark text-white text-center align-middle">횟수/일수</th>
+              <th className="bg-dark text-white text-center align-middle">
+                횟수/일수
+              </th>
               <td className="bg-light align-middle">
                 <input
                   type="number"
@@ -241,9 +305,11 @@ function SalesServiceEdit() {
               </td>
             </tr>
 
-            {/* [6] 실제 횟수/일수 */}
+            {/* 실제 횟수/일수 */}
             <tr>
-              <th className="bg-dark text-white text-center align-middle">실제 횟수/일수</th>
+              <th className="bg-dark text-white text-center align-middle">
+                실제 횟수/일수
+              </th>
               <td className="bg-light align-middle">
                 <input
                   type="number"
@@ -256,9 +322,11 @@ function SalesServiceEdit() {
               </td>
             </tr>
 
-            {/* [7] 총액 */}
+            {/* 총액 */}
             <tr>
-              <th className="bg-dark text-white text-center align-middle">총액</th>
+              <th className="bg-dark text-white text-center align-middle">
+                총액
+              </th>
               <td className="bg-light align-middle">
                 <input
                   type="text"
@@ -271,9 +339,11 @@ function SalesServiceEdit() {
               </td>
             </tr>
 
-            {/* [8] 할인금액 */}
+            {/* 할인금액 */}
             <tr>
-              <th className="bg-dark text-white text-center align-middle">할인금액</th>
+              <th className="bg-dark text-white text-center align-middle">
+                할인금액
+              </th>
               <td className="bg-light align-middle">
                 <input
                   type="text"
@@ -286,9 +356,11 @@ function SalesServiceEdit() {
               </td>
             </tr>
 
-            {/* [9] 최종금액 */}
+            {/* 최종금액 */}
             <tr>
-              <th className="bg-dark text-white text-center align-middle">최종금액</th>
+              <th className="bg-dark text-white text-center align-middle">
+                최종금액
+              </th>
               <td className="bg-light align-middle">
                 <input
                   type="text"
@@ -301,9 +373,11 @@ function SalesServiceEdit() {
               </td>
             </tr>
 
-            {/* [10] 등록일 */}
+            {/* 등록일 */}
             <tr>
-              <th className="bg-dark text-white text-center align-middle">등록일</th>
+              <th className="bg-dark text-white text-center align-middle">
+                등록일
+              </th>
               <td className="bg-light align-middle">
                 <input
                   type="date"
@@ -315,9 +389,11 @@ function SalesServiceEdit() {
               </td>
             </tr>
 
-            {/* [11] 수정일 */}
+            {/* 수정일 */}
             <tr>
-              <th className="bg-dark text-white text-center align-middle">수정일</th>
+              <th className="bg-dark text-white text-center align-middle">
+                수정일
+              </th>
               <td className="bg-light align-middle">
                 <input
                   type="date"
@@ -332,18 +408,24 @@ function SalesServiceEdit() {
         </table>
       </form>
 
-      {/* ✅ 버튼 컨테이너 */}
+      {/* 버튼 영역 */}
       <div
         className="d-flex justify-content-center align-items-center mt-4"
         style={{ gap: "20px" }}
       >
-        {/* 🔹 취소 → 상세페이지 이동 */}
-        <button type="button" className="btn btn-secondary px-5" onClick={handleCancel}>
+        <button
+          type="button"
+          className="btn btn-secondary px-5"
+          onClick={handleCancel}
+        >
           취소
         </button>
 
-        {/* 🔹 수정 확인 */}
-        <button type="submit" className="btn btn-primary px-5" onClick={handleConfirm}>
+        <button
+          type="submit"
+          className="btn btn-primary px-5"
+          onClick={handleConfirm}
+        >
           확인
         </button>
       </div>
