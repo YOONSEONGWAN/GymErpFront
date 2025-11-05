@@ -24,6 +24,7 @@ function ProductListComponent({ pageInfo, onPageChange, onToggleChange, columns,
                         id={`switch-${uniqueId}`} // 고유 ID
                         checked={item.isActive} 
                         onChange={onToggleChange ? (e) => onToggleChange(item, e.target.checked) : null}
+                        onClick={(e) => e.stopPropagation()}
                         disabled={!onToggleChange} // onToggleChange가 없으면 비활성화
                     />
                 </div>
