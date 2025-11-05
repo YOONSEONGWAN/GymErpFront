@@ -150,14 +150,14 @@ function ProductList() {
         const fromPath = `/product${location.search || ""}`;
 
         if (currentTab === 'PRODUCT' && item.productId) {
-            navigate(`/product/detail/product/${item.productId}`, {
+            navigate(`/product/product/${item.productId}`, {
                 state: { from: fromPath, type: "PRODUCT" },
             });
             return;
         }
 
         if (currentTab === 'SERVICE' && item.serviceId) {
-            navigate(`/product/detail/service/${item.serviceId}`, {
+            navigate(`/product/service/${item.serviceId}`, {
                 state: { from: fromPath, type: "SERVICE" },
             });
         }
