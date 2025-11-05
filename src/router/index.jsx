@@ -80,6 +80,7 @@ const router = createBrowserRouter([
       { path: "post/:postId", element: <PostView /> },
 
 
+
     ],
   },
 ]);
