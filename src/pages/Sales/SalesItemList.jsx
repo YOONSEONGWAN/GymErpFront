@@ -9,6 +9,7 @@ import SalesServiceSearchModal from '../../components/SalesServiceSearchModal';
 const API_BASE = 'http://localhost:9000';
 const LIST_API = `${API_BASE}/v1/sales/products`;
 
+// ✅ empEmail을 목록 표시용으로 사용
 const normalizeRow = (row, fallbackIndex) => {
   const id   = row.itemSalesId ?? fallbackIndex;
   const qty  = row.quantity ?? 0;
@@ -20,7 +21,8 @@ const normalizeRow = (row, fallbackIndex) => {
     category: row.productType ?? '-',
     productName: row.productName ?? '-',
     quantity: qty,
-    empText: row.empNum ?? '-',
+    // ← 여기! 이메일 우선, 없으면 사번/하이픈
+    empText: row.empEmail ?? row.empNum ?? '-',
     totalAmount: row.totalAmount ?? unit * qty,
   };
 };
@@ -236,10 +238,7 @@ function SalesItemList() {
           onClick={handleReset}
           disabled={isLoading}
           className="btn btn-outline-secondary d-flex align-items-center position-absolute end-0"
-          style={{
-            top: 120,          // ← 높이 조절 (스크린샷처럼 70~90 사이에서 맞춰보세요)
-            zIndex: 2
-          }}
+          style={{ top: 120, zIndex: 2 }}
           title="필터 초기화"
         >
           <i className="bi bi-arrow-counterclockwise me-1" />
@@ -257,7 +256,8 @@ function SalesItemList() {
             <th>구분</th>
             <th>상품명</th>
             <th>수량</th>
-            <th>직원 ID</th>
+            {/* ✅ 헤더 텍스트도 이메일로 변경 */}
+            <th>판매자 이메일</th>
             <th>총액(단위:원)</th>
           </tr>
         </thead>
@@ -277,6 +277,7 @@ function SalesItemList() {
                 <td className="fw-bold text-primary">{item.category}</td>
                 <td className="text-start">{item.productName}</td>
                 <td>{Number(item.quantity ?? 0).toLocaleString()}</td>
+                {/* ✅ 이메일 표시 */}
                 <td>{item.empText}</td>
                 <td className="fw-bold">{Number(item.totalAmount ?? 0).toLocaleString()}원</td>
               </tr>
@@ -328,7 +329,6 @@ function SalesItemList() {
           setPage(1);
           setSvcModalOpen(false);
         }}
-        // categories={[{ code: "PT", label: "PT" }, { code: "MEMBERSHIP", label: "회원권" }]}
       />
     </div>
   );

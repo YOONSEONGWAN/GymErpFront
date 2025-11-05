@@ -1,14 +1,14 @@
 // src/pages/Sales/SalesItemDetail.jsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Container, Row, Col, Form, InputGroup, Button, Alert, Spinner, Card } from "react-bootstrap";
 import axios from "axios";
-import SalesItemSearchModal from "../../components/SalesItemSearchModal"; // ⬅️ 기존 상품검색 모달 사용
+import SalesItemSearchModal from "../../components/SalesItemSearchModal";
 
 const API_BASE = "http://localhost:9000";
 const DETAIL_API  = (id) => `${API_BASE}/v1/sales/products/${id}`;
 const UPDATE_API  = (id) => `${API_BASE}/v1/sales/products/${id}`;
-const DELETE_API  = (id) => `${API_BASE}/v1/sales/products/${id}`; // 필요 시 경로만 바꾸면 됨
+const DELETE_API  = (id) => `${API_BASE}/v1/sales/products/${id}`;
 
 export default function SalesItemDetail() {
   const navigate = useNavigate();
@@ -16,12 +16,12 @@ export default function SalesItemDetail() {
   const { id: paramId } = useParams();
   const [searchParams] = useSearchParams();
 
-  // ID 우선순위: navigate state > URL param > ?id=
+  // 우선순위: navigate state > URL param > ?id=
   const stateId = location.state?.itemId;
   const queryId = searchParams.get("id");
   const itemId  = stateId ?? paramId ?? queryId ?? null;
 
-  // 기본은 조회 모드
+  // 모드
   const [mode, setMode] = useState("view"); // 'view' | 'edit'
   const readOnly = mode === "view";
 
@@ -29,17 +29,24 @@ export default function SalesItemDetail() {
   const [loading, setLoading] = useState(false);
   const [err, setErr]         = useState("");
 
+  // 화면 폼 상태 (표시용 empEmail, 저장키 empNum)
   const [form, setForm] = useState({
     itemSalesId: "",
     productId: null,
     productName: "",
     productType: "",
+    empNum: "",          // 저장/수정용 사번
+    empEmail: "",        // 화면표시용(판매자 이메일)
     quantity: 1,
     unitPrice: 0,
+    createdAt: "",       // yyyy-MM-dd (표시용)
+    updatedAt: "",       // yyyy-MM-dd (표시용)
   });
 
-  const [productModalOpen, setProductModalOpen] = useState(false);
+  // 처음 조회값 스냅샷 (수정취소 복원용)
+  const initialFormRef = useRef(null);
 
+  const [productModalOpen, setProductModalOpen] = useState(false);
   const patch = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
   const totalAmount = useMemo(() => {
@@ -49,6 +56,46 @@ export default function SalesItemDetail() {
   }, [form.quantity, form.unitPrice]);
 
   const numFmt = (v) => Number(v || 0).toLocaleString();
+
+  const toDateInput = (v) => {
+    if (!v) return "";
+    const d = new Date(v);
+    if (Number.isNaN(d.getTime())) return "";
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  // ✅ 인풋 자체 배경색: 수정 가능 → 흰색, 그 외 → 연회색
+  const ctrlStyle = (editable) =>
+    editable && !readOnly ? { backgroundColor: "#ffffff" } : { backgroundColor: "#f1f3f5" };
+
+  // 상세 재조회 헬퍼 (저장 직후 updatedAt 반영용)
+  const fetchDetail = async (id, { snapshotIfEmpty = false } = {}) => {
+    const { data } = await axios.get(DETAIL_API(id));
+    const next = {
+      itemSalesId: data.itemSalesId,
+      productId: data.productId,
+      productName: data.productName,
+      productType: data.productType,
+      empNum: data.empNum ?? "",
+      empEmail: data.empEmail ?? "",
+      quantity: data.quantity ?? 1,
+      unitPrice: data.unitPrice ?? 0,
+      createdAt: toDateInput(data.createdAt),
+      updatedAt: toDateInput(data.updatedAt ?? data.modifiedAt),
+    };
+    setForm(next);
+    if (snapshotIfEmpty && !initialFormRef.current) {
+      initialFormRef.current = JSON.parse(JSON.stringify(next));
+    }
+  };
+
+  // itemId가 바뀌면 스냅샷 초기화
+  useEffect(() => {
+    initialFormRef.current = null;
+  }, [itemId]);
 
   // 상세 조회
   useEffect(() => {
@@ -60,42 +107,60 @@ export default function SalesItemDetail() {
       setErr("");
       setLoading(true);
       try {
-        const { data } = await axios.get(DETAIL_API(itemId));
-        setForm({
-          itemSalesId: data.itemSalesId,
-          productId: data.productId,
-          productName: data.productName,
-          productType: data.productType,
-          quantity: data.quantity ?? 1,
-          unitPrice: data.unitPrice ?? 0,
-        });
+        await fetchDetail(itemId, { snapshotIfEmpty: true });
       } catch (e) {
         console.error("상세 조회 실패:", e);
-        setErr(e?.response?.data?.message || `상세 조회에 실패했습니다. (Error: ${e.response?.status || e.message})`);
+        setErr(
+          e?.response?.data?.message ||
+            `상세 조회에 실패했습니다. (Error: ${e.response?.status || e.message})`
+        );
       } finally {
         setLoading(false);
       }
     })();
-  }, [itemId]);
+  }, [itemId]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // 저장: **상품명 / 판매 수량만** 변경 (나머지는 서버 관리)
   const handleSave = async () => {
     if (readOnly) return;
     if (!form.productId || !form.productName) return setErr("상품을 선택하세요.");
     if (form.quantity < 0) return setErr("수량은 0 이상이어야 합니다.");
-    if (form.unitPrice < 0) return setErr("단가는 0 이상이어야 합니다.");
 
     setSaving(true);
     setErr("");
     try {
-      const payload = { ...form, totalAmount };
-      await axios.put(UPDATE_API(form.itemSalesId || itemId), payload);
-      setMode("view"); // 저장 후 조회모드
+      const idForSave = form.itemSalesId || itemId;
+
+      // 👇 바꿀 수 있는 것만 보냄: productId/productName/quantity(+계산 총액)
+      const payload = {
+        itemSalesId: idForSave,
+        productId: form.productId,
+        productName: form.productName,
+        empNum: form.empNum || null, // 백엔드가 필요하면 사용
+        quantity: Number(form.quantity ?? 0),
+        totalAmount,                  // 서버에서 써도 되고 무시해도 됨
+      };
+
+      await axios.put(UPDATE_API(idForSave), payload);
+
+      // 저장 직후 갱신된 updatedAt 재조회하여 반영
+      await fetchDetail(idForSave);
+
+      setMode("view");
     } catch (e) {
       console.error("저장 실패:", e);
       setErr(e?.response?.data?.message || "저장 중 오류가 발생했습니다.");
     } finally {
       setSaving(false);
     }
+  };
+
+  // 수정취소: 처음 조회 값으로 복원
+  const handleCancelEdit = () => {
+    if (initialFormRef.current) {
+      setForm(JSON.parse(JSON.stringify(initialFormRef.current)));
+    }
+    setMode("view");
   };
 
   const handleDelete = async () => {
@@ -113,18 +178,23 @@ export default function SalesItemDetail() {
     }
   };
 
-  // 상품명 영역 클릭 시 검색 (편의상 '수정 모드'에서만 열림)
+  // 상품 검색 (수정 모드에서만)
   const openProductSearch = () => {
     if (readOnly) return;
     setProductModalOpen(true);
   };
 
+  // 제목: n번 판매상품내역 조회 / n번 상품판매내역 수정
+  const displayId = form.itemSalesId || itemId || "-";
+  const titleText = readOnly
+    ? `${displayId}번 판매상품내역 조회`
+    : `${displayId}번 상품판매내역 수정`;
+
   return (
     <Container className="py-4">
-      {/* 상단: 제목 + 뒤로 */}
+      {/* 상단: 제목 */}
       <div className="d-flex align-items-center justify-content-between mb-3">
-        <h3 className="m-0">상품 판매 {readOnly ? "상세 (실물 상품)" : "수정 (실물 상품)"}</h3>
-        {/* <Button variant="outline-secondary" onClick={() => navigate(-1)}>← 뒤로</Button> */}
+        <h3 className="m-0">{titleText}</h3>
       </div>
 
       {err && <Alert variant="danger" className="mb-3">{err}</Alert>}
@@ -137,20 +207,20 @@ export default function SalesItemDetail() {
             </div>
           ) : (
             <>
-              {/* 1) 상품명 (텍스트/돋보기 클릭 시 검색) */}
+              {/* 1) 상품명 — 수정 모드에만 입력/검색 가능 (흰색) */}
               <Row className="g-0 border-bottom">
                 <Col md={3} className="bg-dark text-white fw-semibold d-flex align-items-center px-3 py-3">
                   상품명
                 </Col>
-                <Col md={9} className="bg-light d-flex align-items-center px-3 py-3">
-                  <InputGroup>
+                <Col md={9} className="d-flex align-items-center px-3 py-3">
+                  <InputGroup className="flex-grow-1">
                     <Form.Control
                       value={form.productName}
                       placeholder="상품명"
                       onChange={(e) => patch("productName", e.target.value)}
                       onClick={openProductSearch}
-                      readOnly={readOnly} // 조회 모드에선 입력 불가지만 클릭은 받게 아래 버튼도 제공
-                      style={{ cursor: readOnly ? "default" : "pointer" }}
+                      readOnly={readOnly}
+                      style={ctrlStyle(true)}
                     />
                     <Button
                       variant="outline-secondary"
@@ -164,59 +234,94 @@ export default function SalesItemDetail() {
                 </Col>
               </Row>
 
-              {/* 2) 구분 */}
+              {/* 2) 구분 — 항상 읽기 전용 (연회색) */}
               <Row className="g-0 border-bottom">
                 <Col md={3} className="bg-dark text-white fw-semibold d-flex align-items-center px-3 py-3">
                   구분
                 </Col>
-                <Col md={9} className="bg-light d-flex align-items-center px-3 py-3">
+                <Col md={9} className="d-flex align-items-center px-3 py-3">
                   <Form.Control
                     value={form.productType}
-                    onChange={(e) => patch("productType", e.target.value)}
-                    disabled={readOnly}
+                    readOnly
+                    style={ctrlStyle(false)}
                   />
                 </Col>
               </Row>
 
-              {/* 3) 판매 수량 */}
+              {/* 3) 판매자 이메일 — 항상 읽기 전용 (연회색) */}
+              <Row className="g-0 border-bottom">
+                <Col md={3} className="bg-dark text-white fw-semibold d-flex align-items-center px-3 py-3">
+                  판매자 이메일
+                </Col>
+                <Col md={9} className="d-flex align-items-center px-3 py-3">
+                  <Form.Control
+                    value={form.empEmail}
+                    readOnly
+                    placeholder="판매자 이메일"
+                    style={ctrlStyle(false)}
+                  />
+                </Col>
+              </Row>
+
+              {/* 4) 판매 수량 — 수정 가능 (흰색) */}
               <Row className="g-0 border-bottom">
                 <Col md={3} className="bg-dark text-white fw-semibold d-flex align-items-center px-3 py-3">
                   판매 수량
                 </Col>
-                <Col md={9} className="bg-light d-flex align-items-center px-3 py-3">
+                <Col md={9} className="d-flex align-items-center px-3 py-3">
                   <Form.Control
                     type="number"
                     min={0}
                     value={form.quantity}
                     onChange={(e) => patch("quantity", Number(e.target.value || 0))}
-                    disabled={readOnly}
+                    readOnly={readOnly}
+                    style={ctrlStyle(true)}
                   />
                 </Col>
               </Row>
 
-              {/* 4) 단가(원) */}
+              {/* 5) 단가(원) — 항상 읽기 전용 (상품 선택 시 자동 반영, 연회색) */}
               <Row className="g-0 border-bottom">
                 <Col md={3} className="bg-dark text-white fw-semibold d-flex align-items-center px-3 py-3">
                   단가 (원)
                 </Col>
-                <Col md={9} className="bg-light d-flex align-items-center px-3 py-3">
+                <Col md={9} className="d-flex align-items-center px-3 py-3">
                   <Form.Control
                     type="number"
-                    min={0}
                     value={form.unitPrice}
-                    onChange={(e) => patch("unitPrice", Number(e.target.value || 0))}
-                    disabled={readOnly}
+                    readOnly
+                    style={ctrlStyle(false)}
                   />
                 </Col>
               </Row>
 
-              {/* 5) 총액(원) */}
-              <Row className="g-0">
+              {/* 6) 총액(원) — 계산 표시용 (연회색) */}
+              <Row className="g-0 border-bottom">
                 <Col md={3} className="bg-dark text-white fw-semibold d-flex align-items-center px-3 py-3">
                   총액 (원)
                 </Col>
-                <Col md={9} className="bg-light d-flex align-items-center px-3 py-3">
-                  <Form.Control value={numFmt(totalAmount)} readOnly />
+                <Col md={9} className="d-flex align-items-center px-3 py-3">
+                  <Form.Control value={numFmt(totalAmount)} readOnly style={ctrlStyle(false)} />
+                </Col>
+              </Row>
+
+              {/* 7) 등록일 — 항상 읽기 전용 */}
+              <Row className="g-0 border-bottom">
+                <Col md={3} className="bg-dark text-white fw-semibold d-flex align-items-center px-3 py-3">
+                  등록일
+                </Col>
+                <Col md={9} className="d-flex align-items-center px-3 py-3">
+                  <Form.Control type="date" value={form.createdAt} readOnly style={ctrlStyle(false)} />
+                </Col>
+              </Row>
+
+              {/* 8) 수정일 — 항상 읽기 전용 */}
+              <Row className="g-0">
+                <Col md={3} className="bg-dark text-white fw-semibold d-flex align-items-center px-3 py-3">
+                  수정일
+                </Col>
+                <Col md={9} className="d-flex align-items-center px-3 py-3">
+                  <Form.Control type="date" value={form.updatedAt} readOnly style={ctrlStyle(false)} />
                 </Col>
               </Row>
             </>
@@ -240,7 +345,7 @@ export default function SalesItemDetail() {
           </>
         ) : (
           <>
-            <Button variant="secondary" onClick={() => setMode("view")} disabled={saving}>
+            <Button variant="secondary" onClick={handleCancelEdit} disabled={saving}>
               수정취소
             </Button>
             <Button variant="success" onClick={handleSave} disabled={saving || loading}>
@@ -259,7 +364,7 @@ export default function SalesItemDetail() {
         onHide={() => setProductModalOpen(false)}
         onExited={() => {}}
         onSelect={(p) => {
-          // 모달에서 선택 시 폼 반영
+          // 상품 선택 시 자동 반영(단가/구분도 서버 값 기반으로 표시만 변경)
           setForm((f) => ({
             ...f,
             productId: p.productId,

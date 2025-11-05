@@ -1,18 +1,19 @@
 // src/pages/Sales/SalesItemCreate.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import SalesItemSearchModal from "../../components/SalesItemSearchModal"; // ✅ MemberModal과 같은 방식으로 import
+import SalesItemSearchModal from "../../components/SalesItemSearchModal"; 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
-// 숫자 포맷
 const fmt = (v) =>
   (v ?? 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
 function SalesItemCreate() {
-  const navigate = useNavigate(); // useNavigate 훅 사용
+  const navigate = useNavigate();
+  const loggedInUser = useSelector(state => state.user.loggedInUser);
   const [form, setForm] = useState({
     productId: "",
     productName: "",
@@ -23,7 +24,7 @@ function SalesItemCreate() {
     discount: 0,
     actualAmount: 0,
     status: "ACTIVE",
-    empNum: 1, // 임시 직원 번호
+    empNum: loggedInUser?.empNum || null,
     memNum: null,
   });
 
