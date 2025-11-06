@@ -3,6 +3,62 @@ import { Modal, Tabs, Tab, Button, Row, Col, Form } from "react-bootstrap";
 import axios from "axios";
 import "./css/ScheduleModal.css";
 
+/* ================= 공통 에러 파서 - 강화판 ================= */
+function parseErrorMessages(err) {
+  const res = err?.response;
+  const status = res?.status;
+  const data = res?.data;
+
+  // 서버에서 온 모든 단서 모으기
+  const parts = [];
+  if (typeof data === "string") parts.push(data);
+  if (typeof data === "object" && data) {
+    ["message", "error", "code", "errorCode", "detail", "details", "cause", "trace", "path"].forEach((k) => {
+      if (data[k]) parts.push(String(data[k]));
+    });
+  }
+  // 에러 객체 문자열/스택까지
+  if (err?.message) parts.push(String(err.message));
+  if (err?.stack) parts.push(String(err.stack));
+  const raw = parts.join(" ").replace(/\s+/g, " ").trim();
+
+  const msgs = [];
+  const has = (re) => re.test(raw);
+
+  // 도메인: 회원권/이용권
+  if (has(/회원권|이용권|멤버십|membership|pass|ticket|잔여|남은|만료/i)) {
+    msgs.push("이 회원은 유효한 회원권이 없습니다. 회원권 등록 후 다시 시도하세요.");
+  }
+
+  // 시간/중복
+  if (has(/중복|overlap|already|duplicate/i)) {
+    msgs.push("해당 시간대에 이미 다른 일정이 존재합니다. 시간을 변경해 주세요.");
+  }
+  if (has(/시간.*유효|invalid time|start.*after|end.*before/i)) {
+    msgs.push("시작/종료 시간이 올바르지 않습니다.");
+  }
+
+  // 리소스 없음
+  if (has(/member.*not.*found|회원.*없음/i)) msgs.push("선택한 회원을 찾을 수 없습니다.");
+  if (has(/emp.*not.*found|직원.*없음|trainer/i)) msgs.push("트레이너 정보를 찾을 수 없습니다.");
+
+  // DB 제약/오라클
+  const ora = raw.match(/ORA-\d{5}/);
+  if (ora) {
+    msgs.push("데이터 제약조건을 위반했습니다. 입력 값을 확인하세요.");
+  }
+
+  // HTTP 상태 기본 처리
+  if (status === 400 && msgs.length === 0) msgs.push("요청 값이 올바르지 않습니다.");
+  if (status === 403) msgs.push("권한이 없습니다.");
+  if (status === 404) msgs.push("대상을 찾을 수 없습니다.");
+  if (status >= 500 && msgs.length === 0) msgs.push("서버 오류가 발생했습니다. 잠시 후 다시 시도하세요.");
+
+  if (msgs.length === 0) msgs.push("등록에 실패했습니다.");
+
+  return { msgs: [...new Set(msgs)].filter(Boolean), raw };
+}
+
 /* ============================================================= */
 /* 메인 ScheduleModal */
 export default function ScheduleModal({
@@ -20,6 +76,7 @@ export default function ScheduleModal({
 }) {
   const [tab, setTab] = useState(defaultTab);
   const isView = mode === "view";
+
 
   // 수정/조회 시 → 탭 자동 이동
   useEffect(() => {
@@ -144,6 +201,10 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate, readOnly=fals
     endTime: "",
     memo: "",
   });
+  const [members, setMembers] = useState([]);
+  const [errors, setErrors] = useState([]);       // 사용자용 메시지
+  const [errorRaw, setErrorRaw] = useState("");   // 원문
+  const [showRaw, setShowRaw] = useState(false);  // 원문 토글
 
   const fmtPhone = (v) => {
     if (!v) return "";
@@ -157,8 +218,6 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate, readOnly=fals
     [...(Array.isArray(arr) ? arr : [])].sort((a, b) =>
       (a.memName || "").localeCompare(b.memName || "", "ko")
     );
-
-  const [members, setMembers] = useState([]);
 
   useEffect(() => {
     if (empNum || empName) {
@@ -183,12 +242,14 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate, readOnly=fals
     } else {
       setForm((prev) => ({ ...prev, date: selectedDate || "" }));
       setEndDirty(false);  // 새 일정: 자동 +1h 모드
+
     }
 
     axios
       .get("http://localhost:9000/v1/member")
       .then((res) => setMembers(sortByKoName(res.data)))
       .catch((err) => console.error("회원 목록 불러오기 실패:", err));
+
   }, [empNum, empName, editData, selectedDate]);
 
   // 공용 onChange: 시작시간이면 endDirty=false일 때 자동 +1h
@@ -228,6 +289,7 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate, readOnly=fals
     e.preventDefault();
     if (readOnly) return;
 
+
     const payload = {
       shNum: editData?.shNum,
       empNum: toStrId(form.empNum),
@@ -247,11 +309,17 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate, readOnly=fals
         alert("PT 일정이 등록되었습니다.");
       }
       onSaved?.(payload);
+      //PT 등록 실패 시 메시지 처리용 추가 catch문
     } catch (err) {
       console.error("PT 일정 등록/수정 실패:", err);
-      alert("등록 중 오류가 발생했습니다.");
+      const { msgs, raw } = parseErrorMessages(err);
+      setErrors(msgs);
+      setErrorRaw(raw);
     }
   };
+
+  const hasMembershipError = errors.some((m) => /회원권/.test(m));
+  const hasTimeError = errors.some((m) => /시간|중복/.test(m));
 
   return (
     <Form onSubmit={submit}>
@@ -299,6 +367,7 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate, readOnly=fals
         <Col md={4}>
           <Form.Label className="fw-bold">종료 시간</Form.Label>
           <Form.Control type="time" name="endTime" value={form.endTime} onChange={onEndTimeChange} disabled={disabled} />
+
         </Col>
 
         <Col md={12}>
@@ -306,6 +375,7 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate, readOnly=fals
           <Form.Control as="textarea" rows={3} name="memo" value={form.memo} onChange={onChange} disabled={disabled} />
         </Col>
       </Row>
+
 
       {!readOnly && (
         <div className="d-flex justify-content-end mt-3">
@@ -333,6 +403,9 @@ function VacationTab({ empNum, empName, onSaved, editData, selectedDate, readOnl
     endDate: "",
     reason: "",
   });
+  const [errors, setErrors] = useState([]);
+  const [errorRaw, setErrorRaw] = useState("");
+  const [showRaw, setShowRaw] = useState(false);
 
   useEffect(() => {
     if (empNum && empName) setForm((prev) => ({ ...prev, empNum, registrant: empName }));
@@ -480,6 +553,9 @@ function EtcTab({ empNum, empName, onSaved, editData, selectedDate, readOnly=fal
     endDate: "",
     memo: "",
   });
+  const [errors, setErrors] = useState([]);
+  const [errorRaw, setErrorRaw] = useState("");
+  const [showRaw, setShowRaw] = useState(false);
 
   useEffect(() => {
     if (empNum && empName) setForm((prev) => ({ ...prev, empNum, registrant: empName }));

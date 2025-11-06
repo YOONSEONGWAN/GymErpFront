@@ -2,7 +2,9 @@
 import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { format } from "date-fns";
-import { Button, Form, Row, Col } from "react-bootstrap";
+
+import { ko } from "date-fns/locale";
+import { Modal, Button, Form, Row, Col } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
 import ScheduleCalendar from "../components/ScheduleCalendar";
 import ScheduleModal from "../components/ScheduleModal";
@@ -33,6 +35,7 @@ const codeColor = (codeBid) =>
     : codeBid === "ETC-MEETING"
     ? "#34495e"
     : "#95a5a6";
+
 
 
 function mapToEvents(list = []) {
@@ -225,12 +228,30 @@ tream/frontend
 
   return (
     <div>
+      <div className="d-flex align-items-center gap-2 mb-3">
+        <span className="cal-badge">
+          <i className="bi bi-calendar2-week" />
+        </span>
 
-      <h4 style={{ fontWeight: 600, color: "#444", fontSize: "1.8rem", marginBottom: "1.2rem" }}>
-        일정관리
-      </h4>
+        <div className="d-flex flex-column">
+          <h4 className="m-0 fw-semibold" style={{ color: "#2b2b2b", fontSize: "1.6rem" }}>
+            일정관리
+          </h4>
+          <div className="cal-subtitle">
+            {format(focusDate || new Date(), "yyyy.MM.dd (EEE)", { locale: ko })}
+          </div>
+        </div>
 
-      <hr />
+        {/* <div className="ms-auto d-flex gap-2">
+    <Button variant="outline-secondary" size="sm" onClick={() => setFocusDate?.(new Date())}>
+      오늘
+    </Button>
+    <Button variant="primary" size="sm" onClick={() => { setEditData(null); setShowModal(true); }}>
+      새 일정
+    </Button>
+  </div> */}
+      </div>
+      <hr className="mt-2" />
 
       {/* 관리자 전용 간단 검색바 */}
       {isAdmin ? <AdminSearchBar onSearch={searchAdmin} isAdmin={isAdmin} /> : null}
