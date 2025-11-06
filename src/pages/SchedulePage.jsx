@@ -34,6 +34,7 @@ const codeColor = (codeBid) =>
     ? "#34495e"
     : "#95a5a6";
 
+
 function mapToEvents(list = []) {
   return list.map((e) => {
     const label = typeMap[e.codeBid] || e.codeBName || "일정";
@@ -88,7 +89,7 @@ export default function SchedulePage() {
   const [focusDate, setFocusDate] = useState(null);
 
   const [showModal, setShowModal] = useState(false);         // 등록/수정 모달 표시
-  const [modalKey, setModalKey] = useState(0);               // 🔑 강제 리마운트 키
+  const [modalKey, setModalKey] = useState(0);               // 강제 리마운트 키
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [editData, setEditData] = useState(null);
@@ -111,6 +112,7 @@ export default function SchedulePage() {
   /* ============================================ */
   /** 일정 로딩 */
   const loadSchedules = useCallback(async () => {
+
     try {
       const url = empNum
         ? `http://localhost:9000/v1/schedule/emp/${empNum}`
@@ -123,21 +125,24 @@ export default function SchedulePage() {
       console.error("[일정 불러오기 실패]:", err);
     }
   }, [empNum]);
+tream/frontend
 
   // 최초 & empNum 변경 시 로딩
   useEffect(() => {
     loadSchedules();
   }, [loadSchedules]);
 
+
   /* ============================================ */
   /** 관리자 검색 (직원이름, 유형, 키워드만) */
   const searchAdmin = async ({ empName, codeBid, keyword }) => {
-    if (!isAdmin) return;
 
+    if (!isAdmin) return;
     const params = { page: 1, size: 20 };
+
     const kw = (empName || keyword || "").trim();
-    if (kw) params.keyword = kw;
-    if (codeBid) params.codeBid = codeBid;
+    if (kw) q.keyword = kw;
+    if (codeBid) q.codeBid = codeBid;
 
     const { data } = await axios.get(`http://localhost:9000/v1/schedules/search`, { params });
 
@@ -154,6 +159,7 @@ export default function SchedulePage() {
       navigate({ search: `?${next.toString()}` }, { replace: true });
     } else {
       alert("검색 결과가 없습니다.");
+
     }
   };
 
@@ -163,8 +169,8 @@ export default function SchedulePage() {
     const dateStr = format(slotInfo.start, "yyyy-MM-dd");
     setClickedDate(dateStr);
     setEditData(null);
-    setModalKey(Date.now());          // 🔑 항상 새 키로 리마운트
-    setShowModal(true);               // ✅ 표시
+    setModalKey(Date.now());          // 항상 새 키로 리마운트
+    setShowModal(true);               // 표시
   };
 
   /** 일정 클릭 → 상세 보기 */
@@ -198,13 +204,13 @@ export default function SchedulePage() {
   const handleEdit = () => {
     setShowDetailModal(false);
     setEditData(selectedEvent);
-    setModalKey(Date.now());          // 🔑 수정 모달도 새 키로
+    setModalKey(Date.now());          // 수정 모달도 새 키로
     setShowModal(true);
   };
 
   /** 등록/수정 모달 닫기 (X/ESC/닫기) */
   const handleCloseEditModal = () => {
-    setShowModal(false);              // ✅ 반드시 false로 내려 언마운트
+    setShowModal(false);              // 반드시 false로 내려 언마운트
     setEditData(null);
     setClickedDate(null);
   };
@@ -219,11 +225,11 @@ export default function SchedulePage() {
 
   return (
     <div>
-      {/* <div className="d-flex justify-content-between align-items-end mb-3">
-        <div>
-          <h2 className="page-title mb-1">일정관리</h2>
-        </div>
-      </div> */}
+
+      <h4 style={{ fontWeight: 600, color: "#444", fontSize: "1.8rem", marginBottom: "1.2rem" }}>
+        일정관리
+      </h4>
+
       <hr />
 
       {/* 관리자 전용 간단 검색바 */}
@@ -236,19 +242,20 @@ export default function SchedulePage() {
         onSelectEvent={handleSelectEvent}
         isAdmin={isAdmin}
         focusDate={focusDate}
+
       />
 
       {/* 등록/수정 모달 — 조건부 렌더링 + 강제 리마운트 키 */}
       {showModal && (
         <ScheduleModal
-          key={modalKey}             // 🔑 동일 날짜/데이터여도 항상 새로 마운트
+          key={modalKey}             // 동일 날짜/데이터여도 항상 새로 마운트
           show={true}
           empNum={empNum}
           empName={empName}
           editData={editData}
           selectedDate={clickedDate}
           onSaved={handleSaved}      // 저장 후 닫고, 목록 새로고침
-          onClose={handleCloseEditModal}  // ✅ 닫기 버튼/ESC/X 처리
+          onClose={handleCloseEditModal}  // 닫기 버튼/ESC/X 처리
         />
       )}
 

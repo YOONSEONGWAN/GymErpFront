@@ -42,8 +42,9 @@ function CustomToolbar({ date, label, onNavigate, onView, isAdmin = false, onAdm
           </div>
         </div>
       </div>
-
+      
       <hr className="my-3 toolbar-divider" />
+
     </div>
   );
 }
