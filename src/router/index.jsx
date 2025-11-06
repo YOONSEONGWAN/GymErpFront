@@ -69,7 +69,6 @@ const router = createBrowserRouter([
       { path: "product/:itemType/:itemId", element: <ProductDetail /> },
       { path: "product/create", element: <ProductCreate /> },
       { path: "product/edit/:itemType/:itemId", element: <ProductUpdate /> },
-      { path: "stock/inbound", element: <StockInbound /> },
       { path: "stock", element: <StockList/> },
       { path: "stock/inbound/:productId", element: <StockInbound /> },
       { path: "stock/outbound/:productId", element: <StockOutbound /> },
