@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { format } from "date-fns";
+import { ko } from "date-fns/locale";
 import { Modal, Button, Form, Row, Col } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
 import ScheduleCalendar from "../components/ScheduleCalendar";
@@ -23,10 +24,10 @@ const typeMap = {
 };
 const codeColor = (codeBid) =>
   codeBid === "PT" || codeBid === "SCHEDULE-PT" ? "#2ecc71" :
-  codeBid === "VACATION" ? "#e74c3c" :
-  codeBid === "ETC-COMPETITION" ? "#9b59b6" :
-  codeBid === "ETC-COUNSEL" ? "#f39c12" :
-  codeBid === "ETC-MEETING" ? "#34495e" : "#95a5a6";
+    codeBid === "VACATION" ? "#e74c3c" :
+      codeBid === "ETC-COMPETITION" ? "#9b59b6" :
+        codeBid === "ETC-COUNSEL" ? "#f39c12" :
+          codeBid === "ETC-MEETING" ? "#34495e" : "#95a5a6";
 
 function mapToEvents(list = []) {
   return list.map((e) => {
@@ -195,10 +196,30 @@ export default function SchedulePage() {
 
   return (
     <div>
-      <h4 style={{ fontWeight: 600, color: "#444", fontSize: "1.8rem", marginBottom: "1.2rem" }}>
-        일정관리
-      </h4>
-      <hr />
+      <div className="d-flex align-items-center gap-2 mb-3">
+        <span className="cal-badge">
+          <i className="bi bi-calendar2-week" />
+        </span>
+
+        <div className="d-flex flex-column">
+          <h4 className="m-0 fw-semibold" style={{ color: "#2b2b2b", fontSize: "1.6rem" }}>
+            일정관리
+          </h4>
+          <div className="cal-subtitle">
+            {format(focusDate || new Date(), "yyyy.MM.dd (EEE)", { locale: ko })}
+          </div>
+        </div>
+
+        {/* <div className="ms-auto d-flex gap-2">
+    <Button variant="outline-secondary" size="sm" onClick={() => setFocusDate?.(new Date())}>
+      오늘
+    </Button>
+    <Button variant="primary" size="sm" onClick={() => { setEditData(null); setShowModal(true); }}>
+      새 일정
+    </Button>
+  </div> */}
+      </div>
+      <hr className="mt-2" />
 
       {/* 관리자 전용 간단 검색바 */}
       {isAdmin ? <AdminSearchBar onSearch={searchAdmin} isAdmin={isAdmin} /> : null}
