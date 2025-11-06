@@ -5,22 +5,19 @@ import App from "../App.jsx";
 import ProtectedRoute from "../components/ProtectedRoute.jsx";
 import Login from "../pages/Login.jsx";
 import Home from "../pages/Home.jsx";
-
-// ✅ 직원 관련
 import EmpList from "../pages/EmpList.jsx";
 import EmpDetail from "../pages/EmpDetail.jsx";
 import EmpEdit from "../pages/EmpEdit.jsx";
 import EmpAttendanceMy from "../pages/EmpAttendance/myAttendance.jsx";
 import SchedulePage from "../pages/SchedulePage.jsx";
 
-// ✅ 회원 관련
 import MembersList from "../pages/Members/MembersList.jsx";
 
 // ✅ 상품/재고 관련
 import ProductList from "../pages/Product/ProductList.jsx";
-import ProductDetail from "../pages/Product/ProductDetail.jsx";
 import ProductCreate from "../pages/Product/ProductCreate.jsx";
 import ProductUpdate from "../pages/Product/ProductUpdate.jsx";
+import ProductDetail from "../pages/Product/ProductDetail.jsx";
 import StockList from "../pages/Product/StockList.jsx";
 import StockInbound from "../pages/Product/StockInbound.jsx";
 import StockOutbound from "../pages/Product/StockOutbound.jsx";
@@ -40,15 +37,13 @@ import PostEdit from "../pages/PostEdit.jsx";
 import PostView from "../pages/PostView.jsx";
 
 // ✅ 그래프 테스트
-import GraphTest from "../pages/Graphtest.jsx";
+import GraphTest from "../pages/GraphTest.jsx";
 
 
-// =====================================================
-// 라우터 정의
-// =====================================================
+
 const router = createBrowserRouter([
 
-  // 로그인 (비보호)
+  // 2) 로그인 (비보호)
   {
     path: "/login",
     element: (
@@ -56,10 +51,10 @@ const router = createBrowserRouter([
         <Login />
       </div>
     ),
-    errorElement: <div>로그인 페이지 에러</div>,
+    errorElement: <div>로그인 페이지 에러</div>
   },
 
-  // 메인 앱 (보호)
+  // 3) 메인 앱 (보호)
   {
     path: "/",
     element: (
@@ -69,11 +64,10 @@ const router = createBrowserRouter([
     ),
     errorElement: <div>Route 에러</div>,
     children: [
-      // 홈
       { index: true, element: <Home /> },
       { path: "home", element: <Home /> },
 
-      // 직원
+      // 직원 관련
       { path: "emp", element: <EmpList /> },
       { path: "emp/:empNum", element: <EmpDetail /> },
       { path: "emp/edit/:empNum", element: <EmpEdit /> },
@@ -85,22 +79,27 @@ const router = createBrowserRouter([
 
       // 상품
       { path: "product", element: <ProductList /> },
-      { path: "product/create", element: <ProductCreate /> },
       { path: "product/:itemType/:itemId", element: <ProductDetail /> },
-      { path: "product/update/:itemType/:itemId", element: <ProductUpdate /> },
+      { path: "product/create", element: <ProductCreate /> },
+      { path: "product/edit/:productId", element: <ProductUpdate /> },
+      { path: "service/edit/:serviceId", element: <ProductUpdate /> },
+      { path: "product/edit/:itemType/:itemId", element: <ProductUpdate /> },
 
       // 재고
       { path: "stock", element: <StockList /> },
       { path: "stock/inbound", element: <StockInbound /> },
+      { path: "stock/inbound/:productId", element: <StockInbound /> },
       { path: "stock/outbound/:productId", element: <StockOutbound /> },
 
-      // 판매
-      { path: "sales/items", element: <SalesItemList /> },
-      { path: "sales/items/create", element: <SalesItemCreate /> },
-      { path: "sales/services", element: <SalesServiceList /> },
-      { path: "sales/services/create", element: <SalesServiceCreate /> },
-      { path: "sales/services/edit/:id", element: <SalesServiceEdit /> },
-      { path: "sales/services/:id", element: <SalesServiceDetail /> },
+      // 판매 (상품)
+      { path: "sales/salesitemlist", element: <SalesItemList /> },
+      { path: "sales/salesitemcreate", element: <SalesItemCreate /> },
+
+      // ✅ 판매 (서비스)
+      { path: "sales/salesservicelist", element: <SalesServiceList /> },
+      { path: "sales/salesservicecreate", element: <SalesServiceCreate /> },
+      { path: "sales/salesserviceedit/:id", element: <SalesServiceEdit /> },
+      { path: "sales/salesservicedetail/:id", element: <SalesServiceDetail /> },
 
       // 게시판
       { path: "post", element: <PostList /> },
@@ -108,7 +107,7 @@ const router = createBrowserRouter([
       { path: "post/edit/:postId", element: <PostEdit /> },
       { path: "post/:postId", element: <PostView /> },
 
-      // 그래프
+      // ✅ 그래프 테스트
       { path: "graphtest", element: <GraphTest /> },
     ],
   },
