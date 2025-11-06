@@ -24,7 +24,7 @@ function SalesItemCreate() {
     discount: 0,
     actualAmount: 0,
     status: "ACTIVE",
-    empNum: loggedInUser?.empNum || null,
+    empNum: 1, // 임시 직원 번호
     memNum: null,
   });
 
