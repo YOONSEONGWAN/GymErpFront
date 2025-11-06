@@ -47,13 +47,11 @@ function SalesItemSearchModal({ show, onHide, onSelect, onExited }) {
     }
     // 모달 닫힐 때 진행 중 요청 취소
     return () => controllerRef.current?.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [show]);
 
   // 페이지 변경 시 로드
   useEffect(() => {
     if (show) fetchList({ pg: page });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
 
   // 키워드 변경 시 디바운스 검색
@@ -68,7 +66,6 @@ function SalesItemSearchModal({ show, onHide, onSelect, onExited }) {
       clearTimeout(t);
       controllerRef.current?.abort();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [keyword, show]);
 
   const handleSearch = () => {

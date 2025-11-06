@@ -9,10 +9,10 @@ import SalesServiceSearchModal from '../../components/SalesServiceSearchModal';
 const API_BASE = 'http://localhost:9000';
 const LIST_API = `${API_BASE}/v1/sales/products`;
 
-// ✅ empEmail을 목록 표시용으로 사용
+// empEmail을 목록 표시용으로 사용
 const normalizeRow = (row, fallbackIndex) => {
-  const id   = row.itemSalesId ?? fallbackIndex;
-  const qty  = row.quantity ?? 0;
+  const id = row.itemSalesId ?? fallbackIndex;
+  const qty = row.quantity ?? 0;
   const unit = row.unitPrice ?? 0;
 
   return {
@@ -21,7 +21,6 @@ const normalizeRow = (row, fallbackIndex) => {
     category: row.productType ?? '-',
     productName: row.productName ?? '-',
     quantity: qty,
-    // ← 여기! 이메일 우선, 없으면 사번/하이픈
     empText: row.empEmail ?? row.empNum ?? '-',
     totalAmount: row.totalAmount ?? unit * qty,
   };
@@ -39,9 +38,9 @@ const fetchSalesData = async (filter) => {
 
   const res = await axios.get(LIST_API, { params });
 
-  const pageSize   = Number(res.data?.pageSize ?? filter.size ?? 10);
+  const pageSize = Number(res.data?.pageSize ?? filter.size ?? 10);
   const totalCount = Number(res.data?.totalCount ?? 0);
-  const list       = Array.isArray(res.data?.list) ? res.data.list : [];
+  const list = Array.isArray(res.data?.list) ? res.data.list : [];
 
   return {
     list,
@@ -309,7 +308,7 @@ function SalesItemList() {
       <EmpSearchModal
         show={empModalOpen}
         onHide={() => setEmpModalOpen(false)}
-        onExited={() => {}}
+        onExited={() => { }}
         onConfirm={(picked) => {
           setFilterDetails(prev => ({ ...prev, empNum: picked.empNum }));
           setPage(1);
@@ -321,7 +320,7 @@ function SalesItemList() {
       <SalesServiceSearchModal
         show={svcModalOpen}
         onHide={() => setSvcModalOpen(false)}
-        onExited={() => {}}
+        onExited={() => { }}
         onSelect={(svc) => {
           const name = svc.name || svc.serviceName || '';
           setPickedService(svc);

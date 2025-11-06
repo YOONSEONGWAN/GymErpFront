@@ -4,7 +4,6 @@ import { Modal, Button, Table, Form, InputGroup } from "react-bootstrap";
 import axios from "axios";
 
 const API_BASE = "http://localhost:9000";
-// GET /v1/modals/services?keyword=&page=&limit=&categoryCodes=PT&categoryCodes=MEMBERSHIP
 const LIST_API = `${API_BASE}/v1/modals/services`;
 
 export default function SalesServiceSearchModal({
@@ -12,7 +11,7 @@ export default function SalesServiceSearchModal({
   onHide,
   onExited,
   onSelect,
-  categories = [], // 예: [{code:'PT',label:'PT'}, {code:'MEMBERSHIP',label:'회원권'}]
+  categories = [], 
 }) {
   const [list, setList] = useState([]);
   const [keyword, setKeyword] = useState("");
@@ -25,7 +24,7 @@ export default function SalesServiceSearchModal({
     [totalCount]
   );
 
-  const [pickedCats, setPickedCats] = useState(new Set()); // 체크된 카테고리 코드들
+  const [pickedCats, setPickedCats] = useState(new Set()); 
 
   const fetchList = async (signal) => {
     try {
@@ -58,7 +57,6 @@ export default function SalesServiceSearchModal({
     const controller = new AbortController();
     fetchList(controller.signal);
     return () => controller.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [show]);
 
   // ✅ 키입력/페이지/카테고리 변경 시 자동 조회 (디바운스 300ms)
@@ -70,7 +68,6 @@ export default function SalesServiceSearchModal({
       clearTimeout(t);
       controller.abort();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [keyword, page, pickedCats, show]);
 
   const fmt = (v) => (v ?? 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");

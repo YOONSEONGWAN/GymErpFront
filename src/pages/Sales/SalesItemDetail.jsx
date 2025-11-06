@@ -16,20 +16,17 @@ export default function SalesItemDetail() {
   const { id: paramId } = useParams();
   const [searchParams] = useSearchParams();
 
-  // 우선순위: navigate state > URL param > ?id=
   const stateId = location.state?.itemId;
   const queryId = searchParams.get("id");
   const itemId  = stateId ?? paramId ?? queryId ?? null;
 
-  // 모드
-  const [mode, setMode] = useState("view"); // 'view' | 'edit'
+  const [mode, setMode] = useState("view"); 
   const readOnly = mode === "view";
 
   const [saving, setSaving]   = useState(false);
   const [loading, setLoading] = useState(false);
   const [err, setErr]         = useState("");
 
-  // 화면 폼 상태 (표시용 empEmail, 저장키 empNum)
   const [form, setForm] = useState({
     itemSalesId: "",
     productId: null,
@@ -67,7 +64,7 @@ export default function SalesItemDetail() {
     return `${yyyy}-${mm}-${dd}`;
   };
 
-  // ✅ 인풋 자체 배경색: 수정 가능 → 흰색, 그 외 → 연회색
+  // 인풋 자체 배경색: 수정 가능 → 흰색, 그 외 → 연회색
   const ctrlStyle = (editable) =>
     editable && !readOnly ? { backgroundColor: "#ffffff" } : { backgroundColor: "#f1f3f5" };
 
@@ -118,7 +115,7 @@ export default function SalesItemDetail() {
         setLoading(false);
       }
     })();
-  }, [itemId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [itemId]); 
 
   // 저장: **상품명 / 판매 수량만** 변경 (나머지는 서버 관리)
   const handleSave = async () => {
@@ -131,19 +128,17 @@ export default function SalesItemDetail() {
     try {
       const idForSave = form.itemSalesId || itemId;
 
-      // 👇 바꿀 수 있는 것만 보냄: productId/productName/quantity(+계산 총액)
       const payload = {
         itemSalesId: idForSave,
         productId: form.productId,
         productName: form.productName,
-        empNum: form.empNum || null, // 백엔드가 필요하면 사용
+        empNum: form.empNum || null, 
         quantity: Number(form.quantity ?? 0),
-        totalAmount,                  // 서버에서 써도 되고 무시해도 됨
+        totalAmount,                  
       };
 
       await axios.put(UPDATE_API(idForSave), payload);
 
-      // 저장 직후 갱신된 updatedAt 재조회하여 반영
       await fetchDetail(idForSave);
 
       setMode("view");
@@ -155,7 +150,6 @@ export default function SalesItemDetail() {
     }
   };
 
-  // 수정취소: 처음 조회 값으로 복원
   const handleCancelEdit = () => {
     if (initialFormRef.current) {
       setForm(JSON.parse(JSON.stringify(initialFormRef.current)));

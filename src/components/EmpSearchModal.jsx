@@ -4,18 +4,17 @@ import { Modal, Button, Table, Form, Badge, ListGroup, InputGroup } from "react-
 import axios from "axios";
 
 const API_BASE = "http://localhost:9000";
-// 예: GET /v1/modals/employees?keyword=&page=&limit=
 const LIST_API = `${API_BASE}/v1/modals/employees`;
 
 export default function EmpSearchModal({
   show,
   onHide,
   onExited,
-  onConfirm,         // 확인: 선택된 직원 배열을 인자로 전달
+  onConfirm,       
 }) {
   // ---- 선택/장바구니 정책(하드 코딩) ----
   const MULTI_SELECT = true;
-  const MAX_SELECT   = 3;
+  const MAX_SELECT = 3;
 
   // ---- 목록/검색 페이징 ----
   const [list, setList] = useState([]);
@@ -32,7 +31,7 @@ export default function EmpSearchModal({
   // ---- 선택 상태: id -> row ----
   const [selected, setSelected] = useState({});
   const getId = (row) => row?.empNum ?? row?.empId ?? row?.id;
-  const selectedArr   = useMemo(() => Object.values(selected), [selected]);
+  const selectedArr = useMemo(() => Object.values(selected), [selected]);
   const selectedCount = selectedArr.length;
 
   // ---- 진행 중 요청 취소용 ----
@@ -66,16 +65,14 @@ export default function EmpSearchModal({
     setSelected({});
     fetchList({ kw: "", pg: 1 });
     return () => controllerRef.current?.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [show]);
 
   // 페이지 변경 시 로드
   useEffect(() => {
     if (show) fetchList({ pg: page });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
 
-  // ✅ 키워드 변경 시 디바운스 검색 (실시간 LIKE)
+  // 키워드 변경 시 디바운스 검색 (실시간 LIKE)
   useEffect(() => {
     if (!show) return;
     const t = setTimeout(() => {
@@ -86,7 +83,6 @@ export default function EmpSearchModal({
       clearTimeout(t);
       controllerRef.current?.abort();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [keyword, show]);
 
   const handleSearch = () => {
@@ -264,7 +260,7 @@ export default function EmpSearchModal({
             <div className="border rounded p-2 h-100">
               <div className="d-flex align-items-center justify-content-between mb-2">
                 <div className="fw-semibold">
-                  선택한 직원
+                  선택한 직원3
                   <Badge bg={selectedCount >= MAX_SELECT ? "danger" : "secondary"} className="ms-2">
                     {selectedCount} / {MAX_SELECT}
                   </Badge>

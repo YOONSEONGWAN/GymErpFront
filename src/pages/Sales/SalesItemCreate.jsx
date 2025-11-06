@@ -1,7 +1,7 @@
 // src/pages/Sales/SalesItemCreate.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import SalesItemSearchModal from "../../components/SalesItemSearchModal"; 
+import SalesItemSearchModal from "../../components/SalesItemSearchModal";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
@@ -13,7 +13,7 @@ const fmt = (v) =>
 
 function SalesItemCreate() {
   const navigate = useNavigate();
-  const loggedInUser = useSelector(state => state.user.loggedInUser);
+  const loggedInUser = useSelector(state => state.user);
   const [form, setForm] = useState({
     productId: "",
     productName: "",
@@ -24,45 +24,46 @@ function SalesItemCreate() {
     discount: 0,
     actualAmount: 0,
     status: "ACTIVE",
-    empNum: 1, // 임시 직원 번호
+    empNum: loggedInUser?.empNum || null, // 로그인한 사용자의 empNum 사용
     memNum: null,
   });
 
-// ✅ Form 제출 핸들러
-const handleSubmit = async (e) => {
-  e.preventDefault(); // 기본 제출 막기
+  // Form 제출 핸들러
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // 기본 제출 막기
 
-  // 유효성 검사
-  if (!form.productId) {
-    alert("상품을 선택해주세요.");
-    return;
-  }
-  if (form.quantity <= 0) {
-    alert("수량은 1 이상이어야 합니다.");
-    return;
-  }
+    // 유효성 검사
+    if (!form.productId) {
+      alert("상품을 선택해주세요.");
+      return;
+    }
+    if (form.quantity <= 0) {
+      alert("수량은 1 이상이어야 합니다.");
+      return;
+    }
 
-  // API에 보낼 최소 데이터
-  const salesItemData = {
-    productId: form.productId,
-    quantity: form.quantity,
-    empNum: form.empNum,
-    memNum: form.memNum,
+    // API에 보낼 최소 데이터
+    console.log("Debug: loggedInUser object:", loggedInUser); // 디버깅 로그 추가
+    const salesItemData = {
+      productId: form.productId,
+      quantity: form.quantity,
+      empNum: loggedInUser?.empNum, // form 상태 대신, 현재 로그인된 사용자 정보 직접 사용
+      memNum: form.memNum,
+    };
+
+    try {
+      // ✅ 엔드포인트 확인: /v1/sales/products
+      await axios.post("http://localhost:9000/v1/sales/products", salesItemData);
+
+      alert("판매 내역이 성공적으로 등록되었습니다.");
+      navigate("/sales/salesitemlist"); // 등록 후 목록으로 이동
+    } catch (error) {
+      console.error("판매 내역 등록 실패:", error);
+      const errorMessage =
+        error.response?.data?.message || "판매 내역 등록 중 오류가 발생했습니다.";
+      alert(errorMessage);
+    }
   };
-
-  try {
-    // ✅ 엔드포인트 확인: /v1/sales/products
-    await axios.post("http://localhost:9000/v1/sales/products", salesItemData);
-
-    alert("판매 내역이 성공적으로 등록되었습니다.");
-    navigate("/sales/salesitemlist"); // 등록 후 목록으로 이동
-  } catch (error) {
-    console.error("판매 내역 등록 실패:", error);
-    const errorMessage =
-      error.response?.data?.message || "판매 내역 등록 중 오류가 발생했습니다.";
-    alert(errorMessage);
-  }
-};
 
 
   // ... (기존 수량 변경 핸들러 등)
