@@ -261,8 +261,12 @@ export default function SchedulePage() {
       <hr className="mt-2" />
 
       {/* 관리자 전용 간단 검색바 */}
-      {isAdmin ? <AdminSearchBar onSearch={searchAdmin} isAdmin={isAdmin} /> : null}
-
+      {isAdmin && (
+        <>
+          <AdminSearchBar onSearch={searchAdmin} isAdmin />
+          <div className="w-100 border-top my-3" />
+        </>
+      )}
       {/* 캘린더 */}
       <ScheduleCalendar
         events={events}
