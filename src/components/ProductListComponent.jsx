@@ -2,7 +2,7 @@ import React from 'react';
 import Pagination from './Pagination';
 
 
-function ProductListComponent({ pageInfo, onPageChange, onToggleChange, columns, onRowClick, onSort, sortConfig }) {
+function ProductListComponent({ pageInfo, onPageChange, onToggleChange, columns, onRowClick, onSort, sortConfig, selectedRowId }) {
 
     const getSortIcon = (key) => {
         if (!sortConfig || sortConfig.key !== key) return null; // ' ▲▼' (회색 아이콘)
@@ -42,7 +42,7 @@ function ProductListComponent({ pageInfo, onPageChange, onToggleChange, columns,
 
     return (
         <>
-            <table className="table table-striped text-center">
+            <table className="table table-striped table-hover text-center">
                 <thead className="table-dark">
                     <tr>
                         {/*부모가 준 'columns' 배열로 <th>를 동적 생성 */}
@@ -61,28 +61,31 @@ function ProductListComponent({ pageInfo, onPageChange, onToggleChange, columns,
                     </tr>
                 </thead>
                 <tbody>
-                    {pageInfo.list && pageInfo.list.map((item, index) => (
-                        <tr key={item.productId || item.serviceId || index} onClick={() => onRowClick && onRowClick(item)}>
-
-                    {/* {pageInfo.list && pageInfo.list.map((item, index) => {
+                    {pageInfo.list && pageInfo.list.map((item, index) => {
                         const rowId = item.productId || item.serviceId || index;
                         const clickable = typeof onRowClick === 'function';
-                        return (
-                        <tr
-                            key={rowId}
-                            onClick={clickable ? () => onRowClick(item) : undefined}
-                            style={clickable ? { cursor: 'pointer' } : undefined}
-                        > */}
+                        const isSelected = selectedRowId !== null && selectedRowId !== undefined && rowId === selectedRowId; // 선택된 상품 여부
+                        const rowClassNames = [
+                            clickable ? 'table-row-clickable' : '',
+                            isSelected ? 'table-row-selected table-active' : ''
+                        ].filter(Boolean).join(' ') || undefined;
 
-                            {/* 부모가 준 'columns' 배열 순서대로 <td>를 동적 생성 */}
-                            {columns.map((col) => (
-                                <td key={col.key}>
-                                    {/* renderCell 함수가 렌더링 담당 */}
-                                    {renderCell(item, col)} 
-                                </td>
-                            ))}
-                        </tr>
-                    ))}
+                        return (
+                            <tr
+                                key={rowId}
+                                onClick={clickable ? () => onRowClick(item) : undefined}
+                                className={rowClassNames}
+                            >
+                                {/* 부모가 준 'columns' 배열 순서대로 <td>를 동적 생성 */}
+                                {columns.map((col) => (
+                                    <td key={col.key}>
+                                        {/* renderCell 함수가 렌더링 담당 */}
+                                        {renderCell(item, col)} 
+                                    </td>
+                                ))}
+                            </tr>
+                        );
+                    })}
                 </tbody>
             </table>
             <Pagination 
