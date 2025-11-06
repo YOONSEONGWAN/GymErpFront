@@ -3,6 +3,62 @@ import { Modal, Tabs, Tab, Button, Row, Col, Form } from "react-bootstrap";
 import axios from "axios";
 import "./css/ScheduleModal.css";
 
+/* ================= 공통 에러 파서 - 강화판 ================= */
+function parseErrorMessages(err) {
+  const res = err?.response;
+  const status = res?.status;
+  const data = res?.data;
+
+  // 서버에서 온 모든 단서 모으기
+  const parts = [];
+  if (typeof data === "string") parts.push(data);
+  if (typeof data === "object" && data) {
+    ["message", "error", "code", "errorCode", "detail", "details", "cause", "trace", "path"].forEach((k) => {
+      if (data[k]) parts.push(String(data[k]));
+    });
+  }
+  // 에러 객체 문자열/스택까지
+  if (err?.message) parts.push(String(err.message));
+  if (err?.stack) parts.push(String(err.stack));
+  const raw = parts.join(" ").replace(/\s+/g, " ").trim();
+
+  const msgs = [];
+  const has = (re) => re.test(raw);
+
+  // 도메인: 회원권/이용권
+  if (has(/회원권|이용권|멤버십|membership|pass|ticket|잔여|남은|만료/i)) {
+    msgs.push("이 회원은 유효한 회원권이 없습니다. 회원권 등록 후 다시 시도하세요.");
+  }
+
+  // 시간/중복
+  if (has(/중복|overlap|already|duplicate/i)) {
+    msgs.push("해당 시간대에 이미 다른 일정이 존재합니다. 시간을 변경해 주세요.");
+  }
+  if (has(/시간.*유효|invalid time|start.*after|end.*before/i)) {
+    msgs.push("시작/종료 시간이 올바르지 않습니다.");
+  }
+
+  // 리소스 없음
+  if (has(/member.*not.*found|회원.*없음/i)) msgs.push("선택한 회원을 찾을 수 없습니다.");
+  if (has(/emp.*not.*found|직원.*없음|trainer/i)) msgs.push("트레이너 정보를 찾을 수 없습니다.");
+
+  // DB 제약/오라클
+  const ora = raw.match(/ORA-\d{5}/);
+  if (ora) {
+    msgs.push("데이터 제약조건을 위반했습니다. 입력 값을 확인하세요.");
+  }
+
+  // HTTP 상태 기본 처리
+  if (status === 400 && msgs.length === 0) msgs.push("요청 값이 올바르지 않습니다.");
+  if (status === 403) msgs.push("권한이 없습니다.");
+  if (status === 404) msgs.push("대상을 찾을 수 없습니다.");
+  if (status >= 500 && msgs.length === 0) msgs.push("서버 오류가 발생했습니다. 잠시 후 다시 시도하세요.");
+
+  if (msgs.length === 0) msgs.push("등록에 실패했습니다.");
+
+  return { msgs: [...new Set(msgs)].filter(Boolean), raw };
+}
+
 /* ============================================================= */
 /* 🧩 메인 ScheduleModal */
 export default function ScheduleModal({
@@ -16,7 +72,6 @@ export default function ScheduleModal({
 }) {
   const [tab, setTab] = useState(defaultTab);
 
-  // 수정 모드 → 탭 자동 변경
   useEffect(() => {
     if (!editData) return;
     if (editData.codeBid === "VACATION") setTab("vacation");
@@ -43,7 +98,6 @@ export default function ScheduleModal({
           className="mb-3"
           justify
         >
-          {/* PT 탭 */}
           <Tab eventKey="pt" title="PT">
             <PTTab
               empNum={empNum}
@@ -54,7 +108,6 @@ export default function ScheduleModal({
             />
           </Tab>
 
-          {/* 휴가 탭 */}
           <Tab eventKey="vacation" title="휴가">
             <VacationTab
               empNum={empNum}
@@ -65,7 +118,6 @@ export default function ScheduleModal({
             />
           </Tab>
 
-          {/* 기타 탭 */}
           <Tab eventKey="etc" title="기타">
             <EtcTab
               empNum={empNum}
@@ -79,9 +131,7 @@ export default function ScheduleModal({
       </Modal.Body>
 
       <Modal.Footer>
-        <Button variant="secondary" onClick={() => onSaved?.()}>
-          닫기
-        </Button>
+        <Button variant="secondary" onClick={() => onSaved?.()}>닫기</Button>
       </Modal.Footer>
     </Modal>
   );
@@ -99,23 +149,22 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate }) {
     endTime: "",
     memo: "",
   });
+  const [members, setMembers] = useState([]);
+  const [errors, setErrors] = useState([]);       // 사용자용 메시지
+  const [errorRaw, setErrorRaw] = useState("");   // 원문
+  const [showRaw, setShowRaw] = useState(false);  // 원문 토글
 
-  //회원 선택 시 전화번호 관련 기능
   const fmtPhone = (v) => {
     if (!v) return "";
     const s = String(v).replace(/\D/g, "");
-    if (s.length === 11) return s.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3"); // 010-1234-5678
-    if (s.length === 10) return s.replace(/(\d{2,3})(\d{3,4})(\d{4})/, "$1-$2-$3"); // 02-1234-5678 등
-    return v; // 그 외는 원문
+    if (s.length === 11) return s.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3");
+    if (s.length === 10) return s.replace(/(\d{2,3})(\d{3,4})(\d{4})/, "$1-$2-$3");
+    return v;
   };
-
-  //회원 가나다 정렬용 유틸
   const sortByKoName = (arr) =>
     [...(Array.isArray(arr) ? arr : [])].sort((a, b) =>
       (a.memName || "").localeCompare(b.memName || "", "ko")
     );
-
-  const [members, setMembers] = useState([]);
 
   useEffect(() => {
     if (empNum) setForm((prev) => ({ ...prev, empNum, empName }));
@@ -130,16 +179,13 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate }) {
         endTime: editData.endTime?.slice(11, 16) || "",
         memo: editData.memo || "",
       });
-    } else if (!editData) {
-      setForm((prev) => ({
-        ...prev,
-        date: selectedDate || "",
-      }));
+    } else {
+      setForm((prev) => ({ ...prev, date: selectedDate || "" }));
     }
 
     axios
       .get("http://localhost:9000/v1/member")
-      .then((res) => setMembers(sortByKoName(res.data)))  // ← 정렬해서 세팅
+      .then((res) => setMembers(sortByKoName(res.data)))
       .catch((err) => console.error("❌ 회원 목록 불러오기 실패:", err));
   }, [empNum, empName, editData, selectedDate]);
 
@@ -147,6 +193,10 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate }) {
 
   const submit = async (e) => {
     e.preventDefault();
+    setErrors([]);
+    setErrorRaw("");
+    setShowRaw(false);
+
     const payload = {
       shNum: editData?.shNum,
       empNum: form.empNum,
@@ -166,23 +216,32 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate }) {
         await axios.post("http://localhost:9000/v1/schedule/add", payload);
         alert("PT 일정이 등록되었습니다.");
       }
-
       onSaved?.(payload);
+      //PT 등록 실패 시 메시지 처리용 추가 catch문
     } catch (err) {
       console.error("PT 일정 등록/수정 실패:", err);
-      alert("등록 중 오류가 발생했습니다.");
+      const { msgs, raw } = parseErrorMessages(err);
+      setErrors(msgs);
+      setErrorRaw(raw);
     }
   };
+
+  const hasMembershipError = errors.some((m) => /회원권/.test(m));
+  const hasTimeError = errors.some((m) => /시간|중복/.test(m));
 
   return (
     <Form onSubmit={submit}>
       <Row className="g-3">
         <Col md={6}>
           <Form.Label>회원명</Form.Label>
-          <Form.Select name="memNum" value={form.memNum} onChange={onChange}>
+          <Form.Select
+            name="memNum"
+            value={form.memNum}
+            onChange={onChange}
+            className={hasMembershipError ? "is-invalid" : ""}
+          >
             <option value="">선택</option>
             {members.map((m) => {
-              // 프로젝트 컬럼명 대비: memPhone → phone → tel → memTel → mobile 순
               const rawPhone = m.memPhone ?? m.phone ?? m.tel ?? m.memTel ?? m.mobile ?? "";
               const label = `${m.memName}${rawPhone ? " : " + fmtPhone(rawPhone) : ""}`;
               return (
@@ -203,11 +262,23 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate }) {
         </Col>
         <Col md={4}>
           <Form.Label>시작 시간</Form.Label>
-          <Form.Control type="time" name="startTime" value={form.startTime} onChange={onChange} />
+          <Form.Control
+            type="time"
+            name="startTime"
+            value={form.startTime}
+            onChange={onChange}
+            className={hasTimeError ? "is-invalid" : ""}
+          />
         </Col>
         <Col md={4}>
           <Form.Label>종료 시간</Form.Label>
-          <Form.Control type="time" name="endTime" value={form.endTime} onChange={onChange} />
+          <Form.Control
+            type="time"
+            name="endTime"
+            value={form.endTime}
+            onChange={onChange}
+            className={hasTimeError ? "is-invalid" : ""}
+          />
         </Col>
         <Col md={12}>
           <Form.Label>메모</Form.Label>
@@ -215,10 +286,35 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate }) {
         </Col>
       </Row>
 
+      {/* 실패 사유 + 자세히 보기 추가함 */}
+      {errors.length > 0 && (
+        <div className="mt-3">
+          {errors.map((m, i) => (
+            <div key={i} className="alert alert-danger py-2 mb-2">{m}</div>
+          ))}
+          {errorRaw && (
+            <>
+              <div className="text-end">
+                <button
+                  type="button"
+                  className="btn btn-link btn-sm text-muted p-0"
+                  onClick={() => setShowRaw((s) => !s)}
+                >
+                  {showRaw ? "자세히 닫기" : "자세히 보기"}
+                </button>
+              </div>
+              {showRaw && (
+                <pre className="mt-2 p-2 bg-light border rounded" style={{ whiteSpace: "pre-wrap" }}>
+                  {errorRaw}
+                </pre>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
       <div className="d-flex justify-content-end mt-3">
-        <Button type="submit" variant="primary">
-          저장
-        </Button>
+        <Button type="submit" variant="primary">저장</Button>
       </div>
     </Form>
   );
@@ -234,6 +330,9 @@ function VacationTab({ empNum, empName, onSaved, editData, selectedDate }) {
     endDate: "",
     reason: "",
   });
+  const [errors, setErrors] = useState([]);
+  const [errorRaw, setErrorRaw] = useState("");
+  const [showRaw, setShowRaw] = useState(false);
 
   useEffect(() => {
     if (empNum && empName) setForm((prev) => ({ ...prev, empNum, registrant: empName }));
@@ -252,6 +351,10 @@ function VacationTab({ empNum, empName, onSaved, editData, selectedDate }) {
 
   const submit = async (e) => {
     e.preventDefault();
+    setErrors([]);
+    setErrorRaw("");
+    setShowRaw(false);
+
     const payload = {
       shNum: editData?.shNum,
       empNum: form.empNum,
@@ -273,6 +376,9 @@ function VacationTab({ empNum, empName, onSaved, editData, selectedDate }) {
       onSaved?.(payload);
     } catch (err) {
       console.error("휴가 일정 등록 실패:", err);
+      const { msgs, raw } = parseErrorMessages(err);
+      setErrors(msgs);
+      setErrorRaw(raw);
     }
   };
 
@@ -297,10 +403,34 @@ function VacationTab({ empNum, empName, onSaved, editData, selectedDate }) {
         </Col>
       </Row>
 
+      {errors.length > 0 && (
+        <div className="mt-3">
+          {errors.map((m, i) => (
+            <div key={i} className="alert alert-danger py-2 mb-2">{m}</div>
+          ))}
+          {errorRaw && (
+            <>
+              <div className="text-end">
+                <button
+                  type="button"
+                  className="btn btn-link btn-sm text-muted p-0"
+                  onClick={() => setShowRaw((s) => !s)}
+                >
+                  {showRaw ? "자세히 닫기" : "자세히 보기"}
+                </button>
+              </div>
+              {showRaw && (
+                <pre className="mt-2 p-2 bg-light border rounded" style={{ whiteSpace: "pre-wrap" }}>
+                  {errorRaw}
+                </pre>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
       <div className="d-flex justify-content-end mt-3">
-        <Button type="submit" variant="primary">
-          저장
-        </Button>
+        <Button type="submit" variant="primary">저장</Button>
       </div>
     </Form>
   );
@@ -318,6 +448,9 @@ function EtcTab({ empNum, empName, onSaved, editData, selectedDate }) {
     endDate: "",
     memo: "",
   });
+  const [errors, setErrors] = useState([]);
+  const [errorRaw, setErrorRaw] = useState("");
+  const [showRaw, setShowRaw] = useState(false);
 
   useEffect(() => {
     if (empNum && empName) setForm((prev) => ({ ...prev, empNum, registrant: empName }));
@@ -336,20 +469,14 @@ function EtcTab({ empNum, empName, onSaved, editData, selectedDate }) {
     axios
       .get("http://localhost:9000/v1/schedule-types")
       .then((res) => {
-        // ETC만 필터링하고 한글명 추가
         const nameMap = {
           "ETC-COMPETITION": "대회",
           "ETC-COUNSEL": "상담",
           "ETC-MEETING": "회의",
         };
-
         const etc = res.data
           .filter((c) => c.codeBId.startsWith("ETC"))
-          .map((c) => ({
-            ...c,
-            displayName: nameMap[c.codeBId] || c.codeBName || c.codeBId,
-          }));
-        console.log("[ETC 코드 변환 결과]", etc);
+          .map((c) => ({ ...c, displayName: nameMap[c.codeBId] || c.codeBName || c.codeBId }));
         setScheduleCodes(etc);
       })
       .catch((err) => console.error("일정유형 코드 불러오기 실패:", err));
@@ -359,6 +486,10 @@ function EtcTab({ empNum, empName, onSaved, editData, selectedDate }) {
 
   const submit = async (e) => {
     e.preventDefault();
+    setErrors([]);
+    setErrorRaw("");
+    setShowRaw(false);
+
     const payload = {
       shNum: editData?.shNum,
       empNum: form.empNum,
@@ -380,6 +511,9 @@ function EtcTab({ empNum, empName, onSaved, editData, selectedDate }) {
       onSaved?.(payload);
     } catch (err) {
       console.error("기타 일정 등록 실패:", err);
+      const { msgs, raw } = parseErrorMessages(err);
+      setErrors(msgs);
+      setErrorRaw(raw);
     }
   };
 
@@ -415,10 +549,34 @@ function EtcTab({ empNum, empName, onSaved, editData, selectedDate }) {
         </Col>
       </Row>
 
+      {errors.length > 0 && (
+        <div className="mt-3">
+          {errors.map((m, i) => (
+            <div key={i} className="alert alert-danger py-2 mb-2">{m}</div>
+          ))}
+          {errorRaw && (
+            <>
+              <div className="text-end">
+                <button
+                  type="button"
+                  className="btn btn-link btn-sm text-muted p-0"
+                  onClick={() => setShowRaw((s) => !s)}
+                >
+                  {showRaw ? "자세히 닫기" : "자세히 보기"}
+                </button>
+              </div>
+              {showRaw && (
+                <pre className="mt-2 p-2 bg-light border rounded" style={{ whiteSpace: "pre-wrap" }}>
+                  {errorRaw}
+                </pre>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
       <div className="d-flex justify-content-end mt-3">
-        <Button type="submit" variant="primary">
-          저장
-        </Button>
+        <Button type="submit" variant="primary">저장</Button>
       </div>
     </Form>
   );
