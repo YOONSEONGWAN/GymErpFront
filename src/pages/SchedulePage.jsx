@@ -12,6 +12,7 @@ import ScheduleModal from "../components/ScheduleModal";
 /* ========= 공통 유틸 ========= */
 const safeJson = (s) => {
   try { return JSON.parse(s); } catch { return null; }
+
 };
 
 // 공통 매핑 함수 (일정 → 캘린더 이벤트)
@@ -35,7 +36,6 @@ const codeColor = (codeBid) =>
     : codeBid === "ETC-MEETING"
     ? "#34495e"
     : "#95a5a6";
-
 
 
 function mapToEvents(list = []) {
@@ -161,7 +161,6 @@ export default function SchedulePage() {
       navigate({ search: `?${next.toString()}` }, { replace: true });
     } else {
       alert("검색 결과가 없습니다.");
-
     }
   };
 
@@ -169,6 +168,7 @@ export default function SchedulePage() {
   /** 캘린더 빈 칸 클릭 → 등록 */
   const handleSelectSlot = (slotInfo) => {
     const dateStr = format(slotInfo.start, "yyyy-MM-dd");
+
     setClickedDate(dateStr);
     setEditData(null);
     setModalKey(Date.now());          // 항상 새 키로 리마운트
