@@ -1,14 +1,14 @@
 // src/pages/SchedulePage.jsx
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react"; // ✅ FIX: useCallback 추가
 import axios from "axios";
-import { format, isSameDay } from "date-fns";               // ✅ MOD: isSameDay
+import { format, isSameDay } from "date-fns";
 import { ko } from "date-fns/locale";
 import { Modal, Button, Form, Row, Col } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
 import ScheduleCalendar from "../components/ScheduleCalendar";
 import ScheduleModal from "../components/ScheduleModal";
-import ScheduleOpenModal from "../components/ScheduleOpenModal"; // ✅ MOD
-import "bootstrap-icons/font/bootstrap-icons.css";               // ✅ MOD
+import ScheduleOpenModal from "../components/ScheduleOpenModal";
+import "bootstrap-icons/font/bootstrap-icons.css";
 import "../components/css/SchedulePage.css";
 
 /* ========= 공통 유틸 ========= */
@@ -45,7 +45,7 @@ function mapToEvents(list = []) {
   });
 }
 
-// 저장소에서 역할 뽑기(여러 케이스 커버)
+// 저장소에서 역할 뽑기
 function readRoleFromStorage() {
   const candidates = [
     localStorage.getItem("loginUser"),
@@ -81,16 +81,17 @@ export default function SchedulePage() {
   const [events, setEvents] = useState([]);
   const [focusDate, setFocusDate] = useState(null);
 
-  const [showModal, setShowModal] = useState(false);          // 등록/수정 모달
+  const [showModal, setShowModal] = useState(false);   // 등록/수정 모달
+  const [modalKey, setModalKey] = useState(0);         // ✅ FIX: 강제 리마운트 키
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [editData, setEditData] = useState(null);
   const [clickedDate, setClickedDate] = useState(null);
 
-  // ✅ MOD: 일정 목록 모달 상태 + 대기 편집 데이터
+  // +N 목록 모달
   const [showListModal, setShowListModal] = useState(false);
   const [listDate, setListDate] = useState(null);
-  const [pendingEdit, setPendingEdit] = useState(null);       // ✅ MOD: 닫힘 후 열기용 버퍼
+  const [pendingEdit, setPendingEdit] = useState(null); // 닫힌 뒤 열기용 버퍼
 
   // 직원 상세 → 일정으로 넘어올 때 URL 파라미터로 empNum/empName 받기
   const location = useLocation();
@@ -108,7 +109,7 @@ export default function SchedulePage() {
 
   /* ============================================ */
   /** 일정 로딩 */
-  const loadSchedules = async () => {
+  const loadSchedules = useCallback(async () => {          // ✅ FIX: useCallback 적용
     try {
       const url = empNum
         ? `http://localhost:9000/v1/schedule/emp/${empNum}`
@@ -118,22 +119,24 @@ export default function SchedulePage() {
     } catch (err) {
       console.error("[일정 불러오기 실패]:", err);
     }
-  };
+  }, [empNum]);
 
-  // 최초 & empNum 변경 시 로딩
-  useEffect(() => { loadSchedules(); /* eslint-disable-next-line */ }, [empNum]);
+  useEffect(() => { loadSchedules(); }, [loadSchedules]);
 
   /* ============================================ */
   /** 관리자 검색 (직원이름, 유형, 키워드만) */
   const searchAdmin = async ({ empName, codeBid, keyword }) => {
     if (!isAdmin) return;
-    const q = { page: 1, size: 20 };
+    const params = { page: 1, size: 20 };                 // ✅ FIX: 변수명 통일(params)
     const kw = (empName || keyword || "").trim();
-    if (kw) q.keyword = kw;
-    if (codeBid) q.codeBid = codeBid;
+    if (kw) params.keyword = kw;
+    if (codeBid) params.codeBid = codeBid;
 
-    try {
-      const { data } = await axios.get(`http://localhost:9000/v1/schedules/search`, { params: q });
+    try {                                                 // ✅ FIX: try/catch 추가
+      const { data } = await axios.get(
+        "http://localhost:9000/v1/schedules/search",
+        { params }                                       // ✅ FIX: q → params
+      );
       const list = data?.list || [];
       setEvents(mapToEvents(list));
 
@@ -149,6 +152,7 @@ export default function SchedulePage() {
       }
     } catch (e) {
       console.error("[관리자 검색 실패]", e);
+      alert("검색 중 오류가 발생했습니다.");
     }
   };
 
@@ -158,6 +162,7 @@ export default function SchedulePage() {
     const dateStr = format(slotInfo.start, "yyyy-MM-dd");
     setClickedDate(dateStr);
     setEditData(null);
+    setModalKey(Date.now());         // ✅ FIX: 항상 새 키로 리마운트
     setShowModal(true);
   };
 
@@ -167,23 +172,22 @@ export default function SchedulePage() {
     setShowDetailModal(true);
   };
 
-  /* ============================================ */
-  // ✅ MOD: +N 클릭 시 해당 날짜의 목록 모달 열기
+  // +N 클릭 시 해당 날짜의 목록 모달 열기
   const openListForDate = (dateObj) => {
     setListDate(dateObj);
     setShowListModal(true);
   };
 
-  // ✅ MOD: 해당 날짜의 이벤트 목록
+  // 해당 날짜의 이벤트 목록
   const eventsOfThatDay = useMemo(() => {
     if (!listDate) return [];
     return events.filter((ev) => isSameDay(new Date(ev.start), listDate));
   }, [events, listDate]);
 
-  // ✅ MOD: 목록 모달에서 "편집" → 닫힘 완료 후 등록 모달 열기
+  // 목록 모달에서 "편집" → 닫힘 완료 후 등록 모달 열기
   const handleOpenEdit = (evEditData) => {
-    setPendingEdit(evEditData);          // 닫힌 뒤 열기 위해 보관
-    setShowListModal(false);             // 목록 모달 닫기 (onExited에서 열림)
+    setPendingEdit(evEditData);
+    setShowListModal(false); // onExited에서 실제 등록 모달 오픈
   };
 
   // 상세 보기 → 삭제
@@ -208,12 +212,28 @@ export default function SchedulePage() {
     setShowDetailModal(false);
     setEditData(selectedEvent);
     setClickedDate(format(selectedEvent.start, "yyyy-MM-dd"));
+    setModalKey(Date.now());   // ✅ FIX
     setShowModal(true);
+  };
+
+  // 등록/수정 모달 닫기(취소/X/ESC)
+  const handleCloseEditModal = () => {
+    setShowModal(false);
+    setEditData(null);
+    setClickedDate(null);
+  };
+
+  // 저장 완료 후 닫기 + 리로드
+  const handleSaved = async () => {
+    setShowModal(false);
+    setEditData(null);
+    setClickedDate(null);
+    await loadSchedules();
   };
 
   return (
     <div>
-      {/* ✅ MOD: 헤더(아이콘+현재 날짜) */}
+      {/* 헤더 */}
       <div className="d-flex align-items-center gap-2 mb-3">
         <span className="cal-badge"><i className="bi bi-calendar2-week" /></span>
         <div className="d-flex flex-column">
@@ -228,7 +248,7 @@ export default function SchedulePage() {
       </div>
       <hr className="mt-2" />
 
-      {/* 관리자 전용 간단 검색바 */}
+      {/* 관리자 전용 검색바 */}
       {isAdmin ? <AdminSearchBar onSearch={searchAdmin} isAdmin={isAdmin} /> : null}
 
       {/* 캘린더 */}
@@ -238,42 +258,41 @@ export default function SchedulePage() {
         onSelectEvent={handleSelectEvent}
         isAdmin={isAdmin}
         focusDate={focusDate}
-        onShowMore={(eventsInDay, date) => openListForDate(date)}  // ✅ MOD
+        onShowMore={(_, date) => openListForDate(date)} // ✅ FIX: +N -> 목록 모달
       />
 
-      {/* ✅ MOD: 일정 목록 모달(+N 클릭 시) */}
+      {/* +N 목록 모달 */}
       <ScheduleOpenModal
         show={showListModal}
         date={listDate}
         events={eventsOfThatDay}
         onClose={() => setShowListModal(false)}
         onEdit={handleOpenEdit}
-        onExited={() => {                          // ✅ MOD: 닫힘 완료 후 열기
+        onExited={() => {
           if (!pendingEdit) return;
           setEditData(pendingEdit);
           setClickedDate(pendingEdit.startTime?.slice(0, 10) || null);
+          setModalKey(Date.now());       // ✅ FIX: 열기 전에 키 갱신
           setShowModal(true);
           setPendingEdit(null);
         }}
       />
 
-      {/* 등록/수정 모달 */}
+      {/* 등록/수정 모달 (강제 리마운트 키 사용) */}
       {showModal && (
         <ScheduleModal
-          show={showModal}
+          key={modalKey}        // ✅ FIX
+          show={true}
           empNum={empNum}
           empName={empName}
           editData={editData}
           selectedDate={clickedDate}
-          onSaved={async () => {
-            await loadSchedules();
-            setShowModal(false);
-            setEditData(null);
-          }}
+          onSaved={handleSaved} // 닫기/저장 모두 이걸로 처리(컴포넌트 내부 닫기 버튼은 onSaved 호출)
+          onClose={handleCloseEditModal} // 컴포넌트가 지원하면 사용, 아니면 무시됨
         />
       )}
 
-      {/* 상세 보기 모달 */}
+      {/* 상세 보기 모달(보기/삭제/수정 버튼) */}
       <Modal show={showDetailModal} onHide={() => setShowDetailModal(false)} centered>
         <Modal.Header closeButton><Modal.Title>일정 상세 정보</Modal.Title></Modal.Header>
         <Modal.Body>
@@ -316,50 +335,42 @@ function AdminSearchBar({ onSearch, isAdmin = false }) {
   };
 
   return (
-    <div className="sch-wrap">
-      <Form onSubmit={submit} className="sch-card">
-        <Row className="gy-3 align-items-end">
-          <Col md={3}>
-            <div className="sch-label">직원이름</div>
-            <Form.Control
-              className="sch-input"
-              value={empName}
-              onChange={(e) => setEmpName(e.target.value)}
-              placeholder="예) 시스템관리자"
-            />
-          </Col>
-          <Col md={2}>
-            <div className="sch-label">유형</div>
-            <Form.Select
-              className="sch-select"
-              value={codeBid}
-              onChange={(e) => setCodeBid(e.target.value)}
-            >
-              <option value="">전체</option>
-              <option value="SCHEDULE-PT">PT</option>
-              <option value="VACATION">휴가</option>
-              <option value="ETC-MEETING">회의</option>
-              <option value="ETC-COUNSEL">상담</option>
-              <option value="ETC-COMPETITION">대회</option>
-            </Form.Select>
-          </Col>
-          <Col md={4}>
-            <div className="sch-label">키워드(메모/회원명 등)</div>
-            <Form.Control
-              className="sch-input"
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-              placeholder="예) 초기상담, 김철수"
-            />
-          </Col>
-          <Col md="auto">
-            <div className="d-flex gap-2 sch-actions">
-              <Button type="submit" variant="primary">검색</Button>
-              <Button type="button" variant="secondary" onClick={reset}>초기화</Button>
-            </div>
-          </Col>
-        </Row>
-      </Form>
-    </div>
+    <Form onSubmit={submit} className="mb-3">
+      <Row className="gy-2 align-items-end">
+        <Col md={3}>
+          <Form.Label>직원이름</Form.Label>
+          <Form.Control
+            value={empName}
+            onChange={(e) => setEmpName(e.target.value)}
+            placeholder="예) 시스템관리자"
+          />
+        </Col>
+        <Col md={2}>
+          <Form.Label>유형</Form.Label>
+          <Form.Select value={codeBid} onChange={(e) => setCodeBid(e.target.value)}>
+            <option value="">전체</option>
+            <option value="SCHEDULE-PT">PT</option>
+            <option value="VACATION">휴가</option>
+            <option value="ETC-MEETING">회의</option>
+            <option value="ETC-COUNSEL">상담</option>
+            <option value="ETC-COMPETITION">대회</option>
+          </Form.Select>
+        </Col>
+        <Col md={4}>
+          <Form.Label>키워드(메모/회원명 등)</Form.Label>
+          <Form.Control
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            placeholder="예) 초기상담, 김철수"
+          />
+        </Col>
+        <Col md="auto">
+          <div className="d-flex gap-2">
+            <Button type="submit" variant="primary">검색</Button>
+            <Button type="button" variant="secondary" onClick={reset}>초기화</Button>
+          </div>
+        </Col>
+      </Row>
+    </Form>
   );
 }
