@@ -67,7 +67,7 @@ export default function BsSideBar() {
       }}
     >
       {/* 상단 브랜드 */}
-      <div className="p-3 border-bottom border-secondary">
+      <div className="px-3 border-bottom border-secondary d-flex align-items-center" style={{ height: 56 }}>
         <NavLink to="/" className="text-decoration-none text-white d-flex align-items-center">
           <span className="fs-4 fw-bold">Gym</span>
         </NavLink>
