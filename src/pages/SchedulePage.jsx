@@ -128,7 +128,6 @@ export default function SchedulePage() {
       console.error("[일정 불러오기 실패]:", err);
     }
   }, [empNum]);
-tream/frontend
 
   // 최초 & empNum 변경 시 로딩
   useEffect(() => {
