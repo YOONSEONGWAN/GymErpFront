@@ -11,7 +11,6 @@ import ScheduleOpenModal from "../components/ScheduleOpenModal"; // ✅ MOD
 import "bootstrap-icons/font/bootstrap-icons.css";               // ✅ MOD
 import "../components/css/SchedulePage.css";
 
-
 /* ========= 공통 유틸 ========= */
 const safeJson = (s) => { try { return JSON.parse(s); } catch { return null; } };
 
@@ -131,16 +130,13 @@ export default function SchedulePage() {
   }, [empNum]);
 
   // 최초 & empNum 변경 시 로딩
-
   useEffect(() => {
     loadSchedules();
   }, [loadSchedules]);
 
-
   /* ============================================ */
   /** 관리자 검색 (직원이름, 유형, 키워드만) */
   const searchAdmin = async ({ empName, codeBid, keyword }) => {
-
 
     if (!isAdmin) return;
     const params = { page: 1, size: 20 };
@@ -302,14 +298,12 @@ export default function SchedulePage() {
           empName={empName}
           editData={editData}
           selectedDate={clickedDate}
-
           onSaved={handleSaved}      // 저장 후 닫고, 목록 새로고침
           onClose={handleCloseEditModal}  // 닫기 버튼/ESC/X 처리
         />
       )}
 
-      {/* 상세 보기 모달 */}
-
+      {/* 상세 보기: 이벤트 클릭 → 읽기 전용 모달(풀기능 유지) */}
       {showDetailModal && selectedEvent && (
         <ScheduleModal
           show={showDetailModal}

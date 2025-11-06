@@ -58,7 +58,7 @@ export default function ScheduleOpenModal({
   onClose,
   onEdit,
   onDeleted,
-  onExited,                       // ✅ MOD: 부모에서 닫힘 완료 콜백 받기
+  onExited,                       // ✅ 닫힘 완료 콜백
 }) {
   const sorted = useMemo(() => [...events].sort((a,b) => new Date(a.start) - new Date(b.start)), [events]);
   const titleDate = useMemo(() => (date ? format(date, "yyyy.MM.dd (E)", { locale: ko }) : ""), [date]);
@@ -74,19 +74,11 @@ export default function ScheduleOpenModal({
   const handleItemClick = (ev) => {
     if (!onEdit) return;
     const payload = toEditData(ev);
-    console.log("[OpenModal] onEdit by button:", payload);
-    onEdit(payload);              // 부모에서 setShowListModal(false) → onExited에서 등록모달 오픈
+    onEdit(payload);              // 부모: setShowListModal(false), onExited에서 등록모달 오픈
   };
 
   return (
-    <Modal
-      show={show}
-      onHide={onClose}
-      onExited={onExited}         // ✅ MOD: 닫힘 애니 끝난 후 부모 콜백 호출
-      centered
-      size="lg"
-      backdrop="static"
-    >
+    <Modal show={show} onHide={onClose} onExited={onExited} centered size="lg" backdrop="static">
       <Modal.Header closeButton>
         <Modal.Title>{titleDate} 일정 목록</Modal.Title>
       </Modal.Header>
@@ -100,7 +92,6 @@ export default function ScheduleOpenModal({
               const m = metaOf(ev.codeBid);
               return (
                 <ListGroup.Item key={ev.shNum ?? ev.id} className="p-0">
-                  {/* button 중첩 에러 방지: div로 클릭 영역 구성 */}
                   <div
                     role="button"
                     tabIndex={0}
@@ -116,32 +107,19 @@ export default function ScheduleOpenModal({
                   >
                     <Badge
                       bg={!["purple","navy","orange"].includes(m.variant) ? m.variant : undefined}
-                      className={`mt-1 ${
-                        m.variant === "purple" ? "badge-purple" :
-                        m.variant === "navy"   ? "badge-navy"   :
-                        m.variant === "orange" ? "badge-orange" : ""
-                      }`}
+                      className={`mt-1 ${m.variant === "purple" ? "badge-purple" : m.variant === "navy" ? "badge-navy" : m.variant === "orange" ? "badge-orange" : ""}`}
                     >
                       {m.label}
                     </Badge>
 
                     <div className="flex-grow-1">
                       <div className="fw-semibold">{titleLine(ev)}</div>
-                      <div className="small text-muted">
-                        {fmtTime(ev.start)} ~ {fmtTime(ev.end)}
-                      </div>
+                      <div className="small text-muted">{fmtTime(ev.start)} ~ {fmtTime(ev.end)}</div>
                       {ev.memo && <div className="small mt-1 text-break">{ev.memo}</div>}
                     </div>
 
                     <div className="d-flex gap-2">
-                      <Button
-                        variant="outline-primary"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation(); // 부모 클릭 막기
-                          handleItemClick(ev);
-                        }}
-                      >
+                      <Button variant="outline-primary" size="sm" onClick={(e) => { e.stopPropagation(); handleItemClick(ev); }}>
                         편집
                       </Button>
                     </div>
