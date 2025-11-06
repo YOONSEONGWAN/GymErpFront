@@ -1,0 +1,103 @@
+/* ====== 상단 검색바(관리자) ====== */
+.sch-wrap { margin-bottom: 10px; }
+.sch-card {
+  background: #ffffff;
+  border: 1px solid #e9ecf1;
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 2px 10px rgba(18, 22, 33, 0.04);
+}
+.sch-label {
+  font-size: 12px;
+  letter-spacing: .2px;
+  color: #6c757d;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+.sch-input, .sch-select {
+  border-radius: 12px;
+  border: 1px solid #dfe3ea;
+  font-size: 14px;
+  padding: 10px 12px;
+  transition: box-shadow .15s ease, border-color .15s ease;
+}
+.sch-input::placeholder { color: #a6aebb; }
+.sch-input:focus, .sch-select:focus {
+  border-color: #7a6fff;
+  box-shadow: 0 0 0 4px rgba(122,111,255,.12);
+}
+.sch-actions .btn {
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 600;
+}
+.sch-actions .btn-primary { background: #695cff; border-color: #695cff; }
+.sch-actions .btn-primary:hover { filter: brightness(.95); }
+.sch-actions .btn-secondary { background: #e9eef7; color:#334155; border-color:#e9eef7; }
+.sch-actions .btn-secondary:hover { background:#e1e7f3; }
+
+/* ====== 캘린더 툴바(react-big-calendar) ====== */
+.rbc-toolbar {
+  margin: 8px 0 14px;
+  align-items: center;
+}
+.rbc-toolbar .rbc-toolbar-label {
+  font-weight: 800;
+  font-size: 16px;
+  color: #2b313b;
+}
+.rbc-toolbar .rbc-btn-group > button {
+  border-radius: 10px;
+  border: 1px solid #dfe3ea;
+  padding: 7px 12px;
+  background: #fff;
+  transition: background .15s ease, box-shadow .15s ease;
+}
+.rbc-toolbar .rbc-btn-group > button:hover {
+  background: #f6f8fb;
+  box-shadow: 0 2px 6px rgba(18,22,33,.06);
+}
+.rbc-toolbar .rbc-btn-group > button.rbc-active {
+  background: #695cff; color:#fff; border-color:#695cff;
+}
+
+/* ====== 이벤트 타이틀 가독성 보정 ====== */
+.rbc-event {
+  border-radius: 8px;
+  font-weight: 600;
+  letter-spacing: .1px;
+}
+.rbc-event-content { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ====== 캘린더 커스텀 배지 ====== */
+.cal-badge{
+  width: 44px; height: 44px;
+  border-radius: 14px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #5c74ff, #7b93ff);
+  box-shadow: 0 6px 16px rgba(105,92,255,.28);
+}
+.cal-badge i{ font-size: 20px; color: #fff; }
+.cal-badge:hover{
+  transform: translateY(-1px);
+  transition: transform .15s ease, box-shadow .15s ease;
+  box-shadow: 0 10px 22px rgba(105,92,255,.35);
+}
+/* 일정관리 서브타이틀(현재 날짜) */
+.cal-subtitle{
+  margin-top: 2px;
+  font-size: 1.05rem;        /* 더 크게 */
+  font-weight: 600;          /* 또렷하게 */
+  color: #4b5563;            /* 차분한 회색 */
+  letter-spacing: .2px;
+}
+
+/* (선택) 칩 느낌 원하면 아래 클래스 추가해서 <div className="cal-subtitle cal-chip"> 로 사용 */
+.cal-chip{
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+}
+
