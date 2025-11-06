@@ -238,6 +238,7 @@ function StockList() {
                             onRowClick={handleRowClick}
                             onSort={handleSort}
                             sortConfig={sortConfig}
+                            selectedRowId={selectedItemId} // 선택된 상품을 전달해 강조 표시
                         />
                     </div>
                 </div>
@@ -311,7 +312,7 @@ function StockList() {
                         <div className="col-md-6">
                             <NavLink 
                                 to={`/stock/outbound/${selectedItemId}`}
-                                className="btn btn-secondary mb-2" 
+                                className="btn btn-danger mb-2" // 출고 버튼을 위험(빨간) 색상으로 변경
                             >
                                 출고
                             </NavLink>
