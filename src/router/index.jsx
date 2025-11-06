@@ -15,9 +15,9 @@ import EmpVacationList from "../pages/EmpVacation/list.jsx";
 import JONGBOKHome from "../pages/JONGBOKHome.jsx";
 import SchedulePage from "../pages/SchedulePage.jsx";
 import ProductList from "../pages/Product/ProductList.jsx";
-import MemberList from "../pages/MemberList.jsx";
-import MemberDetail from "../pages/MemberDetail.jsx";
-import MemberEdit from "../pages/MemberEdit.jsx";
+
+import MembersList from "../pages/Members/MembersList.jsx";
+
 import SalesItemList from "../pages/Sales/SalesItemList.jsx";
 import SalesItemCreate from "../pages/Sales/SalesItemCreate.jsx";
 import SalesServiceCreate from "../pages/Sales/SalesServiceCreate.jsx";
@@ -29,6 +29,7 @@ import PostEdit from "../pages/PostEdit.jsx";
 import PostView from "../pages/PostView.jsx";
 import ProductUpdate from "../pages/Product/ProductUpdate.jsx";
 import ProductDetail from "../pages/Product/ProductDetail.jsx";
+
 
 
 const router = createBrowserRouter([
@@ -73,15 +74,11 @@ const router = createBrowserRouter([
       { path: "product/edit/:productId", element: <ProductUpdate /> },
       { path: "service/edit/:serviceId", element: <ProductUpdate /> },
       { path: "stock/inbound", element: <StockInbound /> },
-      { path: "member", element: <MemberList /> },
-      { path: "member/:memNum", element: <MemberDetail /> },
-      { path: "member/edit/:memNum", element: <MemberEdit /> },
+      { path: "member", element: <MembersList /> },
+
       { path: "sales/salesitemlist", element: <SalesItemList /> },
       { path: "sales/salesitemcreate", element: <SalesItemCreate /> },
       { path: "sales/salesservicecreate", element: <SalesServiceCreate /> },
-      { path: "member", element: <MemberList /> },
-      { path: "member/:memNum", element: <MemberDetail /> },
-      { path: "member/edit/:memNum", element: <MemberEdit /> },
       { path: "post", element: <PostList /> },
       { path: "post/new", element: <PostAdd /> },
       { path: "post/edit/:postId", element: <PostEdit /> },
