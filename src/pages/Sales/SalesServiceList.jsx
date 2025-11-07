@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Pagination from "../../components/Pagination";
 
-axios.defaults.baseURL = "";
+ // axios.defaults.baseURL = "";
 
 function SalesServiceList() {
   const [salesList, setSalesList] = useState([]);
