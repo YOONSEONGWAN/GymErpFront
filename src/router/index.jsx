@@ -1,5 +1,5 @@
 // src/router/index.jsx
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 
 import App from "../App.jsx";
 import ProtectedRoute from "../components/ProtectedRoute.jsx";
@@ -11,11 +11,15 @@ import EmpEdit from "../pages/EmpEdit.jsx";
 import EmpAttendanceMy from "../pages/EmpAttendance/myAttendance.jsx";
 import SchedulePage from "../pages/SchedulePage.jsx";
 
+
 import MembersList from "../pages/Members/MembersList.jsx";
 
+
 // ✅ 상품/재고 관련
+
 import ProductList from "../pages/Product/ProductList.jsx";
 import ProductCreate from "../pages/Product/ProductCreate.jsx";
+import SalesItemDetail from "../pages/Sales/SalesItemDetail.jsx";
 import ProductUpdate from "../pages/Product/ProductUpdate.jsx";
 import ProductDetail from "../pages/Product/ProductDetail.jsx";
 import StockList from "../pages/Product/StockList.jsx";
@@ -35,6 +39,7 @@ import PostList from "../pages/PostList.jsx";
 import PostAdd from "../pages/PostAdd.jsx";
 import PostEdit from "../pages/PostEdit.jsx";
 import PostView from "../pages/PostView.jsx";
+import MemberDetail from "../pages/Members/MemberDetail.jsx";
 
 // ✅ 그래프 테스트
 import GraphTest from "../pages/GraphTest.jsx";
@@ -83,6 +88,7 @@ const router = createBrowserRouter([
       { path: "product/create", element: <ProductCreate /> },
       { path: "product/edit/:productId", element: <ProductUpdate /> },
       { path: "service/edit/:serviceId", element: <ProductUpdate /> },
+
       { path: "product/edit/:itemType/:itemId", element: <ProductUpdate /> },
 
       // 재고
@@ -98,6 +104,10 @@ const router = createBrowserRouter([
       // ✅ 판매 (서비스)
       { path: "sales/salesservicelist", element: <SalesServiceList /> },
       { path: "sales/salesservicecreate", element: <SalesServiceCreate /> },
+
+      { path: "sales/salesitemdetail", element: <SalesItemDetail />  },
+      { path: "member/:memNum", element: <MemberDetail /> },
+      // { path: "member/edit/:memNum", element: <MemberEdit /> },
       { path: "sales/salesserviceedit/:id", element: <SalesServiceEdit /> },
       { path: "sales/salesservicedetail/:id", element: <SalesServiceDetail /> },
 
