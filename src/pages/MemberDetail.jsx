@@ -320,6 +320,25 @@ function MemberDetail() {
                     <td>
                       {(mem.memCreated?.slice?.(0, 10) || "-") + " / " + (mem.memUpdated?.slice?.(0, 10) || "-")}
                     </td>
+                    
+                  </tr>
+                    <tr>
+                    <th>회원권 상태</th>
+                    <td>
+                      
+                    </td>
+                  </tr>
+                   <tr>
+                    <th>회원권</th>
+                    <td>
+                      
+                    </td>
+                  </tr>
+                   <tr>
+                    <th>담당직원</th>
+                    <td>
+                     
+                    </td>
                   </tr>
                 </tbody>
               </table>
