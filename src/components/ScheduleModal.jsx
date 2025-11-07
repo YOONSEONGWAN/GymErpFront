@@ -1,10 +1,75 @@
+// src/components/ScheduleModal.jsx
 import { useState, useEffect } from "react";
-import { Modal, Tabs, Tab, Button, Row, Col, Form } from "react-bootstrap";
+import { Modal, Tabs, Tab, Button, Row, Col, Form, InputGroup } from "react-bootstrap";
 import axios from "axios";
 import "./css/ScheduleModal.css";
+import MemberSearchModal from "../components/MemberSearchModal";
+
+/* ================= 공통 에러 파서 - 코드/스택 미노출 ================= */
+function parseErrorMessages(err) {
+  const res = err?.response;
+  const status = res?.status;
+  const data = res?.data;
+
+  // 서버 문구 1순위(스택/클래스명 제거)
+  const clean = (t) => {
+    if (!t) return "";
+    let s = String(t).replace(/\s+/g, " ").trim();
+    // 스택/프레임 힌트 잘라내기
+    s = s.split("\n")[0];
+    s = s.split(" at ")[0];
+    s = s.replace(/^"(.+)"$/, "$1"); // 양끝 쿼트 제거
+    return s;
+  };
+
+  let serverMsg = "";
+  if (typeof data === "string") serverMsg = clean(data);
+  else if (typeof data === "object" && data) {
+    serverMsg = clean(data.message || data.error || data.detail || data.details || data.cause || "");
+  }
+  // 문자열 전체에서 따옴표 안의 짧은 한글 문장 추출 시도(예: "해당 트레이너의 …")
+  if (!serverMsg) {
+    const raw = clean((typeof data === "string" ? data : JSON.stringify(data)) || err?.message || "");
+    const m = raw.match(/"([^"]{5,200})"/);
+    if (m) serverMsg = clean(m[1]);
+  }
+
+  const msgs = [];
+  const hasText = (re) => re.test([serverMsg, (typeof data === "string" ? data : JSON.stringify(data) || ""), err?.message || ""].join(" "));
+
+  // 409 & 중복류 → 서버 문구 그대로 우선 표시
+  if (status === 409 && serverMsg) {
+    msgs.push(serverMsg);
+  } else if (hasText(/같은\s*시간대|이미\s*일정|conflict/i)) {
+    msgs.push(serverMsg || "해당 시간대에 이미 다른 일정이 있습니다. 시간을 변경해 주세요.");
+  }
+
+  // 회원권/시간/리소스/제약 공통 휴리스틱
+  if (hasText(/회원권|이용권|멤버십|membership|pass|ticket|잔여|만료/i)) {
+    msgs.push("이 회원은 유효한 회원권이 없습니다. 회원권 등록 후 다시 시도하세요.");
+  }
+  if (hasText(/start.*after|end.*before|시간.*유효/i)) {
+    msgs.push("시작/종료 시간이 올바르지 않습니다.");
+  }
+  if (hasText(/member.*not.*found|회원.*없음/i)) msgs.push("선택한 회원을 찾을 수 없습니다.");
+  if (hasText(/emp.*not.*found|직원.*없음|trainer/i)) msgs.push("트레이너 정보를 찾을 수 없습니다.");
+  if (hasText(/ORA-\d{5}/)) msgs.push("데이터 제약조건을 위반했습니다. 입력 값을 확인하세요.");
+
+  // HTTP 상태 기본
+  if (status === 400 && msgs.length === 0) msgs.push("요청 값이 올바르지 않습니다.");
+  if (status === 403) msgs.push("권한이 없습니다.");
+  if (status === 404) msgs.push("대상을 찾을 수 없습니다.");
+  if (status >= 500 && msgs.length === 0) msgs.push("서버 오류가 발생했습니다. 잠시 후 다시 시도하세요.");
+
+  // 서버 문구가 있고 아직 안 넣었으면 마지막으로 추가
+  if (serverMsg && !msgs.some((m) => m === serverMsg)) msgs.push(serverMsg);
+
+  if (msgs.length === 0) msgs.push("등록에 실패했습니다.");
+  return { msgs: [...new Set(msgs)].filter(Boolean) };
+}
 
 /* ============================================================= */
-/* 🧩 메인 ScheduleModal */
+/* 메인 ScheduleModal */
 export default function ScheduleModal({
   show,
   defaultTab = "pt",
@@ -13,150 +78,199 @@ export default function ScheduleModal({
   onSaved,
   editData,
   selectedDate,
+  mode = "edit",     // 'view' | 'edit' | 'create'
+  onEdit,
+  onDelete,
+  onClose,
 }) {
   const [tab, setTab] = useState(defaultTab);
+  const isView = mode === "view";
 
-  // 수정 모드 → 탭 자동 변경
   useEffect(() => {
-    if (!editData) return;
+    if (!editData) {
+      setTab(defaultTab);
+      return;
+    }
     if (editData.codeBid === "VACATION") setTab("vacation");
     else if (editData.codeBid?.startsWith("ETC")) setTab("etc");
     else if (editData.codeBid === "SCHEDULE-PT") setTab("pt");
-  }, [editData]);
+  }, [editData, defaultTab]);
 
   const handleSaved = (payload) => {
-    console.log("[일정 저장 완료] payload:", payload);
     onSaved?.(payload);
   };
 
   return (
-    <Modal show={show} centered backdrop="static" size="lg">
-      <Modal.Header>
-        <Modal.Title>일정 관리</Modal.Title>
+    <Modal show={show} centered size="lg" backdrop="static" onHide={onClose}>
+      <Modal.Header closeButton>
+        <Modal.Title>일정 {isView ? "상세" : "관리"}</Modal.Title>
       </Modal.Header>
 
       <Modal.Body>
-        <Tabs
-          id="schedule-tabs"
-          activeKey={tab}
-          onSelect={(k) => setTab(k || "pt")}
-          className="mb-3"
-          justify
-        >
-          {/* PT 탭 */}
+        <Tabs id="schedule-tabs" activeKey={tab} onSelect={(k) => setTab(k || "pt")} className="mb-3" justify mountOnEnter unmountOnExit>
           <Tab eventKey="pt" title="PT">
-            <PTTab
-              empNum={empNum}
-              empName={empName}
-              onSaved={handleSaved}
-              editData={editData}
-              selectedDate={selectedDate}
-            />
+            <PTTab empNum={empNum} empName={empName} onSaved={handleSaved} editData={editData} selectedDate={selectedDate} readOnly={isView} />
           </Tab>
-
-          {/* 휴가 탭 */}
           <Tab eventKey="vacation" title="휴가">
-            <VacationTab
-              empNum={empNum}
-              empName={empName}
-              onSaved={handleSaved}
-              editData={editData}
-              selectedDate={selectedDate}
-            />
+            <VacationTab empNum={empNum} empName={empName} onSaved={handleSaved} editData={editData} selectedDate={selectedDate} readOnly={isView} />
           </Tab>
-
-          {/* 기타 탭 */}
           <Tab eventKey="etc" title="기타">
-            <EtcTab
-              empNum={empNum}
-              empName={empName}
-              onSaved={handleSaved}
-              editData={editData}
-              selectedDate={selectedDate}
-            />
+            <EtcTab empNum={empNum} empName={empName} onSaved={handleSaved} editData={editData} selectedDate={selectedDate} readOnly={isView} />
           </Tab>
         </Tabs>
       </Modal.Body>
 
       <Modal.Footer>
-        <Button variant="secondary" onClick={() => onSaved?.()}>
-          닫기
-        </Button>
+        {isView ? (
+          <>
+            {onEdit && <Button variant="primary" onClick={() => onEdit(editData)}>수정</Button>}
+            {onDelete && <Button variant="danger" onClick={() => onDelete(editData)}>삭제</Button>}
+            <Button type="button" variant="secondary" onClick={onClose}>닫기</Button>
+          </>
+        ) : (
+          <Button type="button" variant="secondary" onClick={onClose}>닫기</Button>
+        )}
       </Modal.Footer>
     </Modal>
   );
 }
 
 /* ============================================================= */
-/* PT 탭 */
-function PTTab({ empNum, empName, onSaved, editData, selectedDate }) {
+/* PT 탭 — 조회/수정 */
+function PTTab({ empNum, empName, onSaved, editData, selectedDate, readOnly=false }) {
+  const disabled = readOnly;
+  const toStrId = (v) => (v === null || v === undefined ? "" : String(v));
+  const [showMemberModal, setShowMemberModal] = useState(false);
+
+  const handlePickMember = (m) => {
+    setForm(prev => ({ ...prev, memNum: toStrId(m.memNum) }));
+    setShowMemberModal(false);
+  };
+
+  const addMinutesToTime = (timeStr, minutes) => {
+    if (!timeStr) return "";
+    const [h, m] = timeStr.split(":").map(Number);
+    const total = (h * 60 + m + minutes + 1440) % 1440;
+    const hh = String(Math.floor(total / 60)).padStart(2, "0");
+    const mm = String(total % 60).padStart(2, "0");
+    return `${hh}:${mm}`;
+  };
+
+  const [endDirty, setEndDirty] = useState(false);
+
   const [form, setForm] = useState({
     memNum: "",
-    empNum: empNum || "",
+    empNum: toStrId(empNum),
     empName: empName || "",
     date: selectedDate || "",
     startTime: "",
     endTime: "",
     memo: "",
   });
+  const [members, setMembers] = useState([]);
+  const [errors, setErrors] = useState([]);
 
-  //회원 선택 시 전화번호 관련 기능
   const fmtPhone = (v) => {
     if (!v) return "";
     const s = String(v).replace(/\D/g, "");
-    if (s.length === 11) return s.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3"); // 010-1234-5678
-    if (s.length === 10) return s.replace(/(\d{2,3})(\d{3,4})(\d{4})/, "$1-$2-$3"); // 02-1234-5678 등
-    return v; // 그 외는 원문
+    if (s.length === 11) return s.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3");
+    if (s.length === 10) return s.replace(/(\d{2,3})(\d{3,4})(\d{4})/, "$1-$2-$3");
+    return v;
   };
 
-  //회원 가나다 정렬용 유틸
-  const sortByKoName = (arr) =>
-    [...(Array.isArray(arr) ? arr : [])].sort((a, b) =>
-      (a.memName || "").localeCompare(b.memName || "", "ko")
-    );
-
-  const [members, setMembers] = useState([]);
+  const sortByKoName = (arr) => [...(Array.isArray(arr) ? arr : [])].sort((a, b) => (a.memName || "").localeCompare(b.memName || "", "ko"));
 
   useEffect(() => {
-    if (empNum) setForm((prev) => ({ ...prev, empNum, empName }));
-
-    if (editData) {
-      setForm({
-        memNum: editData.memNum || "",
-        empNum: editData.empNum || empNum,
-        empName: editData.empName || empName,
-        date: editData.startTime?.slice(0, 10) || selectedDate || "",
-        startTime: editData.startTime?.slice(11, 16) || "",
-        endTime: editData.endTime?.slice(11, 16) || "",
-        memo: editData.memo || "",
-      });
-    } else if (!editData) {
-      setForm((prev) => ({
-        ...prev,
-        date: selectedDate || "",
-      }));
+    if (empNum || empName) {
+      setForm((prev) => ({ ...prev, empNum: toStrId(empNum), empName: empName || prev.empName }));
     }
 
-    axios
-      .get("http://localhost:9000/v1/member")
-      .then((res) => setMembers(sortByKoName(res.data)))  // ← 정렬해서 세팅
-      .catch((err) => console.error("❌ 회원 목록 불러오기 실패:", err));
+    if (editData) {
+      const st = editData.startTime?.slice(11, 16) || "";
+      const et = editData.endTime?.slice(11, 16) || "";
+      setForm({
+        memNum: toStrId(editData.memNum),
+        empNum: toStrId(editData.empNum || empNum),
+        empName: editData.empName || empName || "",
+        date: editData.startTime?.slice(0, 10) || selectedDate || "",
+        startTime: st,
+        endTime: et,
+        memo: editData.memo || "",
+      });
+      // 기존 일정이 정확히 +60분이면 '자동값'으로 간주 → 이후에도 자동 갱신 유지
+      setEndDirty(!(st && et && et === addMinutesToTime(st, 60)));
+    } else {
+      setForm((prev) => ({ ...prev, date: selectedDate || "" }));
+      setEndDirty(false);
+    }
+
+    axios.get("http://localhost:9000/v1/member")
+      .then((res) => setMembers(sortByKoName(res.data)))
+      .catch((err) => console.error("회원 목록 불러오기 실패:", err));
   }, [empNum, empName, editData, selectedDate]);
 
-  const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const onChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => {
+      const next = { ...prev, [name]: value };
+      if (name === "startTime") {
+        if (!value) next.endTime = "";
+        const newAuto = addMinutesToTime(value, 60);
+        const prevAuto = prev.startTime ? addMinutesToTime(prev.startTime, 60) : "";
+        const userCustomizedEnd =
+          endDirty && prev.endTime && prev.endTime !== prevAuto; // 진짜 수동 변경?
+        if (!userCustomizedEnd) {
+          next.endTime = newAuto;
+        }
+      }
+      return next;
+    });
+  };
+
+  const onEndTimeChange = (e) => {
+    setEndDirty(true);
+    setForm((prev) => ({ ...prev, endTime: e.target.value }));
+  };
+
+  const currentValue = toStrId(form.memNum);
+  const currentMember =
+    members.find((m) => toStrId(m.memNum) === currentValue) || null;
+
+  // 🔹 동명이인 구분을 위해 "이름 : 전화" 라벨 구성
+  const currentLabel = (() => {
+    if (currentMember) {
+      const raw = currentMember.memPhone ?? currentMember.phone ?? currentMember.tel ?? currentMember.mobile ?? "";
+      const ph = fmtPhone(raw);
+      return `${currentMember.memName}${ph ? ` : ${ph}` : ""}`;
+    }
+    if (editData?.memName) {
+      const raw = editData.memPhone ?? "";
+      const ph = fmtPhone(raw);
+      return `${editData.memName}${ph ? ` : ${ph}` : ""}`;
+    }
+    return currentValue ? `회원번호 ${currentValue}` : "";
+  })();
+
 
   const submit = async (e) => {
     e.preventDefault();
+    if (readOnly) return;
+
     const payload = {
       shNum: editData?.shNum,
-      empNum: form.empNum,
-      memNum: form.memNum,
+      empNum: toStrId(form.empNum),
+      memNum: toStrId(form.memNum),
       codeBid: "SCHEDULE-PT",
       startTime: `${form.date}T${form.startTime}`,
       endTime: `${form.date}T${form.endTime}`,
       memo: form.memo,
     };
-    console.log("[PT payload 확인]", payload);
+
+    // 🔹 PT는 회원 선택 필수
+    if (!payload.memNum) {
+      alert("PT 예약에는 회원 선택이 필요합니다.");
+      return;
+    }
 
     try {
       if (editData) {
@@ -166,67 +280,109 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate }) {
         await axios.post("http://localhost:9000/v1/schedule/add", payload);
         alert("PT 일정이 등록되었습니다.");
       }
-
+      setErrors([]);         // 성공 시 에러 비우기
       onSaved?.(payload);
     } catch (err) {
       console.error("PT 일정 등록/수정 실패:", err);
-      alert("등록 중 오류가 발생했습니다.");
+      const msg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        "등록 중 오류가 발생했습니다.";
+      alert(msg);
+      const { msgs } = parseErrorMessages(err);
+      setErrors(msgs);
     }
   };
 
-  return (
-    <Form onSubmit={submit}>
-      <Row className="g-3">
-        <Col md={6}>
-          <Form.Label>회원명</Form.Label>
-          <Form.Select name="memNum" value={form.memNum} onChange={onChange}>
-            <option value="">선택</option>
-            {members.map((m) => {
-              // 프로젝트 컬럼명 대비: memPhone → phone → tel → memTel → mobile 순
-              const rawPhone = m.memPhone ?? m.phone ?? m.tel ?? m.memTel ?? m.mobile ?? "";
-              const label = `${m.memName}${rawPhone ? " : " + fmtPhone(rawPhone) : ""}`;
-              return (
-                <option key={m.memNum} value={m.memNum} title={label}>
-                  {label}
-                </option>
-              );
-            })}
-          </Form.Select>
-        </Col>
-        <Col md={6}>
-          <Form.Label>트레이너</Form.Label>
-          <Form.Control name="empName" value={form.empName} readOnly />
-        </Col>
-        <Col md={4}>
-          <Form.Label>날짜</Form.Label>
-          <Form.Control type="date" name="date" value={form.date} onChange={onChange} />
-        </Col>
-        <Col md={4}>
-          <Form.Label>시작 시간</Form.Label>
-          <Form.Control type="time" name="startTime" value={form.startTime} onChange={onChange} />
-        </Col>
-        <Col md={4}>
-          <Form.Label>종료 시간</Form.Label>
-          <Form.Control type="time" name="endTime" value={form.endTime} onChange={onChange} />
-        </Col>
-        <Col md={12}>
-          <Form.Label>메모</Form.Label>
-          <Form.Control as="textarea" rows={3} name="memo" value={form.memo} onChange={onChange} />
-        </Col>
-      </Row>
+  const hasMembershipError = errors.some((m) => /회원권/.test(m));
+  const hasTimeError = errors.some((m) => /시간|중복|같은 시간대|이미 일정/.test(m));
 
-      <div className="d-flex justify-content-end mt-3">
-        <Button type="submit" variant="primary">
-          저장
-        </Button>
-      </div>
-    </Form>
+  return (
+
+    <>
+      <Form onSubmit={submit}>
+        <Row className="g-3">
+          <Col md={6}>
+            <Form.Label className="fw-bold">회원명</Form.Label>
+
+            {readOnly ? (
+              <Form.Select name="memNum" value={currentValue} disabled>
+                <option value={currentValue}>{currentLabel}</option>
+              </Form.Select>
+            ) : (
+              <InputGroup>
+                <Form.Control
+                  readOnly
+                  placeholder="회원 검색을 눌러 선택하세요"
+                  value={currentLabel || ""}
+                />
+                <Button variant="outline-secondary" onClick={() => setShowMemberModal(true)}>
+                  회원 검색
+                </Button>
+                {!!currentValue && (
+                  <Button
+                    variant="outline-dark"
+                    onClick={() => setForm(prev => ({ ...prev, memNum: "" }))}
+                  >
+                    지우기
+                  </Button>
+                )}
+              </InputGroup>
+            )}
+          </Col>
+
+          <Col md={6}>
+            <Form.Label className="fw-bold">트레이너</Form.Label>
+            <Form.Control name="empName" value={form.empName} readOnly />
+          </Col>
+
+          <Col md={4}>
+            <Form.Label className="fw-bold">날짜</Form.Label>
+            <Form.Control type="date" name="date" value={form.date} onChange={onChange} disabled={disabled} />
+          </Col>
+          <Col md={4}>
+            <Form.Label className="fw-bold">시작 시간</Form.Label>
+            <Form.Control type="time" name="startTime" value={form.startTime} onChange={onChange} disabled={disabled} />
+          </Col>
+          <Col md={4}>
+            <Form.Label className="fw-bold">종료 시간</Form.Label>
+            <Form.Control type="time" name="endTime" value={form.endTime} onChange={onEndTimeChange} disabled={disabled} />
+          </Col>
+
+          <Col md={12}>
+            <Form.Label className="fw-bold">메모</Form.Label>
+            <Form.Control as="textarea" rows={3} name="memo" value={form.memo} onChange={onChange} disabled={disabled} />
+          </Col>
+        </Row>
+
+        {!readOnly && (
+          <div className="d-flex justify-content-end mt-3">
+            <Button type="submit" variant="primary">저장</Button>
+          </div>
+        )}
+      </Form>
+
+      {/* 🔹 회원 검색 모달 (중첩 모달) */}
+      <MemberSearchModal
+        show={showMemberModal}
+        onHide={() => setShowMemberModal(false)}
+        onSelect={handlePickMember}
+        // 필요시: enforceFocus를 끄고 싶다면 MemberSearchModal에서 Modal props 받아서 전달하도록 확장
+        // enforceFocus={false}
+      />
+    </>
   );
 }
 
+
+
+
 /* ============================================================= */
 /* 휴가 탭 */
-function VacationTab({ empNum, empName, onSaved, editData, selectedDate }) {
+function VacationTab({ empNum, empName, onSaved, editData, selectedDate, readOnly=false }) {
+  const disabled = readOnly;
+
   const [form, setForm] = useState({
     empNum: empNum || "",
     registrant: empName || "",
@@ -234,6 +390,7 @@ function VacationTab({ empNum, empName, onSaved, editData, selectedDate }) {
     endDate: "",
     reason: "",
   });
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (empNum && empName) setForm((prev) => ({ ...prev, empNum, registrant: empName }));
@@ -252,6 +409,17 @@ function VacationTab({ empNum, empName, onSaved, editData, selectedDate }) {
 
   const submit = async (e) => {
     e.preventDefault();
+    if (readOnly) return;
+
+    if (!form.startDate || !form.endDate) {
+      alert("휴가 시작일/종료일을 선택하세요.");
+      return;
+    }
+    if (form.endDate < form.startDate) {
+      alert("종료일이 시작일보다 빠를 수 없습니다.");
+      return;
+    }
+
     const payload = {
       shNum: editData?.shNum,
       empNum: form.empNum,
@@ -260,9 +428,9 @@ function VacationTab({ empNum, empName, onSaved, editData, selectedDate }) {
       endTime: `${form.endDate}T23:59`,
       memo: form.reason,
     };
-    console.log("[VACATION payload 확인]", payload);
 
     try {
+      setSaving(true);
       if (editData && editData.codeBid === "VACATION") {
         await axios.put("http://localhost:9000/v1/schedule/update", payload);
         alert("휴가 일정이 수정되었습니다.");
@@ -272,7 +440,11 @@ function VacationTab({ empNum, empName, onSaved, editData, selectedDate }) {
       }
       onSaved?.(payload);
     } catch (err) {
-      console.error("휴가 일정 등록 실패:", err);
+      // 휴가도 서버 문구가 오면 바로 표시
+      const { msgs } = parseErrorMessages(err);
+      alert(msgs[0]);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -280,35 +452,40 @@ function VacationTab({ empNum, empName, onSaved, editData, selectedDate }) {
     <Form onSubmit={submit}>
       <Row className="g-3">
         <Col md={6}>
-          <Form.Label>등록자</Form.Label>
+          <Form.Label className="fw-bold">등록자</Form.Label>
           <Form.Control name="registrant" value={form.registrant} readOnly />
         </Col>
+        <Col md={6} />
+
         <Col md={6}>
-          <Form.Label>사유</Form.Label>
-          <Form.Control as="textarea" rows={2} name="reason" value={form.reason} onChange={onChange} />
+          <Form.Label className="fw-bold">시작일</Form.Label>
+          <Form.Control type="date" name="startDate" value={form.startDate} onChange={onChange} disabled={disabled} />
         </Col>
         <Col md={6}>
-          <Form.Label>시작일</Form.Label>
-          <Form.Control type="date" name="startDate" value={form.startDate} onChange={onChange} />
+          <Form.Label className="fw-bold">종료일</Form.Label>
+          <Form.Control type="date" name="endDate" value={form.endDate} onChange={onChange} disabled={disabled} />
         </Col>
-        <Col md={6}>
-          <Form.Label>종료일</Form.Label>
-          <Form.Control type="date" name="endDate" value={form.endDate} onChange={onChange} />
+
+        <Col md={12}>
+          <Form.Label className="fw-bold">사유</Form.Label>
+          <Form.Control as="textarea" rows={6} name="reason" value={form.reason} onChange={onChange} placeholder="휴가 사유를 입력하세요" disabled={disabled} />
         </Col>
       </Row>
 
-      <div className="d-flex justify-content-end mt-3">
-        <Button type="submit" variant="primary">
-          저장
-        </Button>
-      </div>
+      {!readOnly && (
+        <div className="d-flex justify-content-end mt-3">
+          <Button type="submit" variant="primary" disabled={saving}>저장</Button>
+        </div>
+      )}
     </Form>
   );
 }
 
 /* ============================================================= */
 /* 기타 탭 */
-function EtcTab({ empNum, empName, onSaved, editData, selectedDate }) {
+function EtcTab({ empNum, empName, onSaved, editData, selectedDate, readOnly=false }) {
+  const disabled = readOnly;
+
   const [scheduleCodes, setScheduleCodes] = useState([]);
   const [form, setForm] = useState({
     empNum: empNum || "",
@@ -318,10 +495,10 @@ function EtcTab({ empNum, empName, onSaved, editData, selectedDate }) {
     endDate: "",
     memo: "",
   });
+  const [errors, setErrors] = useState([]);
 
   useEffect(() => {
     if (empNum && empName) setForm((prev) => ({ ...prev, empNum, registrant: empName }));
-
     if (editData && editData.codeBid?.startsWith("ETC")) {
       setForm({
         empNum: editData.empNum || empNum,
@@ -333,23 +510,10 @@ function EtcTab({ empNum, empName, onSaved, editData, selectedDate }) {
       });
     }
 
-    axios
-      .get("http://localhost:9000/v1/schedule-types")
+    axios.get("http://localhost:9000/v1/schedule-types")
       .then((res) => {
-        // ETC만 필터링하고 한글명 추가
-        const nameMap = {
-          "ETC-COMPETITION": "대회",
-          "ETC-COUNSEL": "상담",
-          "ETC-MEETING": "회의",
-        };
-
-        const etc = res.data
-          .filter((c) => c.codeBId.startsWith("ETC"))
-          .map((c) => ({
-            ...c,
-            displayName: nameMap[c.codeBId] || c.codeBName || c.codeBId,
-          }));
-        console.log("[ETC 코드 변환 결과]", etc);
+        const nameMap = { "ETC-COMPETITION": "대회", "ETC-COUNSEL": "상담", "ETC-MEETING": "회의" };
+        const etc = res.data.filter((c) => c.codeBId.startsWith("ETC")).map((c) => ({ ...c, displayName: nameMap[c.codeBId] || c.codeBName || c.codeBId }));
         setScheduleCodes(etc);
       })
       .catch((err) => console.error("일정유형 코드 불러오기 실패:", err));
@@ -359,6 +523,8 @@ function EtcTab({ empNum, empName, onSaved, editData, selectedDate }) {
 
   const submit = async (e) => {
     e.preventDefault();
+    if (readOnly) return;
+
     const payload = {
       shNum: editData?.shNum,
       empNum: form.empNum,
@@ -367,7 +533,6 @@ function EtcTab({ empNum, empName, onSaved, editData, selectedDate }) {
       endTime: `${form.endDate}T23:59`,
       memo: form.memo,
     };
-    console.log("[ETC payload 확인]", payload);
 
     try {
       if (editData && editData.codeBid?.startsWith("ETC")) {
@@ -377,9 +542,11 @@ function EtcTab({ empNum, empName, onSaved, editData, selectedDate }) {
         await axios.post("http://localhost:9000/v1/schedule/add", payload);
         alert("기타 일정이 등록되었습니다.");
       }
+      setErrors([]);
       onSaved?.(payload);
     } catch (err) {
-      console.error("기타 일정 등록 실패:", err);
+      const { msgs } = parseErrorMessages(err);
+      setErrors(msgs);
     }
   };
 
@@ -387,39 +554,45 @@ function EtcTab({ empNum, empName, onSaved, editData, selectedDate }) {
     <Form onSubmit={submit}>
       <Row className="g-3">
         <Col md={6}>
-          <Form.Label>등록자</Form.Label>
+          <Form.Label className="fw-bold">등록자</Form.Label>
           <Form.Control name="registrant" value={form.registrant} readOnly />
         </Col>
         <Col md={6}>
-          <Form.Label>일정유형</Form.Label>
-          <Form.Select name="category" value={form.category} onChange={onChange}>
+          <Form.Label className="fw-bold">일정유형</Form.Label>
+          <Form.Select name="category" value={form.category} onChange={onChange} disabled={disabled}>
             <option value="">선택</option>
             {scheduleCodes.map((c) => (
-              <option key={c.codeBId} value={c.codeBId}>
-                {c.displayName}
-              </option>
+              <option key={c.codeBId} value={c.codeBId}>{c.displayName}</option>
             ))}
           </Form.Select>
         </Col>
         <Col md={6}>
-          <Form.Label>시작일</Form.Label>
-          <Form.Control type="date" name="startDate" value={form.startDate} onChange={onChange} />
+          <Form.Label className="fw-bold">시작일</Form.Label>
+          <Form.Control type="date" name="startDate" value={form.startDate} onChange={onChange} disabled={disabled} />
         </Col>
         <Col md={6}>
-          <Form.Label>종료일</Form.Label>
-          <Form.Control type="date" name="endDate" value={form.endDate} onChange={onChange} />
+          <Form.Label className="fw-bold">종료일</Form.Label>
+          <Form.Control type="date" name="endDate" value={form.endDate} onChange={onChange} disabled={disabled} />
         </Col>
         <Col md={12}>
-          <Form.Label>메모</Form.Label>
-          <Form.Control as="textarea" rows={3} name="memo" value={form.memo} onChange={onChange} />
+          <Form.Label className="fw-bold">메모</Form.Label>
+          <Form.Control as="textarea" rows={3} name="memo" value={form.memo} onChange={onChange} disabled={disabled} />
         </Col>
       </Row>
 
-      <div className="d-flex justify-content-end mt-3">
-        <Button type="submit" variant="primary">
-          저장
-        </Button>
-      </div>
+      {errors.length > 0 && (
+        <div className="mt-3">
+          {errors.map((m, i) => (
+            <div key={i} className="alert alert-danger py-2 mb-2">{m}</div>
+          ))}
+        </div>
+      )}
+
+      {!readOnly && (
+        <div className="d-flex justify-content-end mt-3">
+          <Button type="submit" variant="primary">저장</Button>
+        </div>
+      )}
     </Form>
   );
 }
