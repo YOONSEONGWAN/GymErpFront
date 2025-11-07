@@ -12,7 +12,7 @@ function TrainerPerformanceChart() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get("/api/v1/analytics/trainer/performance");
+        const res = await axios.get("/v1/analytics/trainer/performance");
         setData(res.data || []);
       } catch (err) {
         console.error("트레이너 실적 그래프 조회 실패:", err);
