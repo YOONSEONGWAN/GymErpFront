@@ -4,7 +4,7 @@ import { Modal, Button, Table, Form, InputGroup } from "react-bootstrap";
 import axios from "axios";
 
 const API_BASE = "http://localhost:9000";
-const LIST_API = `${API_BASE}/v1/modals/services`;
+const LIST_API = `${API_BASE}/api/v1/modals/services`;
 
 export default function SalesServiceSearchModal({
   show,
