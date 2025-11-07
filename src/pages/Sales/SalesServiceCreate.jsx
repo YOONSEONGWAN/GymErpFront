@@ -4,7 +4,7 @@ import axios from "axios";
 import { FaSearch } from "react-icons/fa";
 
 // ✅ 프록시 강제 사용 (절대경로 방지)
-axios.defaults.baseURL = "";
+// axios.defaults.baseURL = "";
 
 function SalesServiceCreate() {
   const [form, setForm] = useState({
