@@ -15,11 +15,6 @@ import MembersList from "../pages/Members/MembersList.jsx";
 
 
 // ✅ 상품/재고 관련
-
-import SalesItemList from "../pages/Sales/SalesItemList.jsx";
-import SalesItemCreate from "../pages/Sales/SalesItemCreate.jsx";
-import SalesServiceCreate from "../pages/Sales/SalesServiceCreate.jsx";
-import ProductList from "../pages/Product/ProductList.jsx";
 import ProductCreate from "../pages/Product/ProductCreate.jsx";
 import ProductUpdate from "../pages/Product/ProductUpdate.jsx";
 import ProductDetail from "../pages/Product/ProductDetail.jsx";
