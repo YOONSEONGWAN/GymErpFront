@@ -282,7 +282,6 @@ export default function SchedulePage() {
         </>
       )} 
       
-      
       {/* 캘린더 */}
       <ScheduleCalendar
         events={events}
