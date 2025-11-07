@@ -85,7 +85,6 @@ function SalesItemSearchModal({ show, onHide, onSelect, onExited }) {
       size="lg"
       backdrop="static"
       keyboard
-      unmountOnClose
     >
       {/* 가운데 정렬 + 큰 제목 */}
       <Modal.Header className="border-0">
