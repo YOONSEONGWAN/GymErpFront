@@ -27,6 +27,7 @@ import PostList from "../pages/PostList.jsx";
 import PostAdd from "../pages/PostAdd.jsx";
 import PostEdit from "../pages/PostEdit.jsx";
 import PostView from "../pages/PostView.jsx";
+import ProductList from "../pages/Product/ProductList.jsx";
 
 
 
