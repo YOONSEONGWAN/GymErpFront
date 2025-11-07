@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { Modal, Tabs, Tab, Button, Row, Col, Form } from "react-bootstrap";
+import { Modal, Tabs, Tab, Button, Row, Col, Form, InputGroup } from "react-bootstrap";
 import axios from "axios";
 import "./css/ScheduleModal.css";
+import MemberSearchModal from "../components/MemberSearchModal";
 
 /* ============================================================= */
 /* 메인 ScheduleModal */
@@ -121,6 +122,12 @@ export default function ScheduleModal({
 function PTTab({ empNum, empName, onSaved, editData, selectedDate, readOnly=false }) {
   const disabled = readOnly;
   const toStrId = (v) => (v === null || v === undefined ? "" : String(v));
+  const [showMemberModal, setShowMemberModal] = useState(false);
+
+  const handlePickMember = (m) => {
+    setForm(prev => ({ ...prev, memNum: toStrId(m.memNum) }));
+    setShowMemberModal(false);
+  };
 
   // HH:mm 문자열에 분 더하기
   const addMinutesToTime = (timeStr, minutes) => {
@@ -219,10 +226,21 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate, readOnly=fals
   const currentValue = toStrId(form.memNum);
   const currentMember =
     members.find((m) => toStrId(m.memNum) === currentValue) || null;
-  const currentLabel =
-    editData?.memName ||
-    currentMember?.memName ||
-    (currentValue ? `회원번호 ${currentValue}` : "");
+
+  // 🔹 동명이인 구분을 위해 "이름 : 전화" 라벨 구성
+  const currentLabel = (() => {
+    if (currentMember) {
+      const raw = currentMember.memPhone ?? currentMember.phone ?? currentMember.tel ?? currentMember.mobile ?? "";
+      const ph = fmtPhone(raw);
+      return `${currentMember.memName}${ph ? ` : ${ph}` : ""}`;
+    }
+    if (editData?.memName) {
+      const raw = editData.memPhone ?? "";
+      const ph = fmtPhone(raw);
+      return `${editData.memName}${ph ? ` : ${ph}` : ""}`;
+    }
+    return currentValue ? `회원번호 ${currentValue}` : "";
+  })();
 
   const submit = async (e) => {
     e.preventDefault();
@@ -238,6 +256,12 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate, readOnly=fals
       memo: form.memo,
     };
 
+    // 🔹 PT는 회원 선택 필수
+    if (!payload.memNum) {
+      alert("PT 예약에는 회원 선택이 필요합니다.");
+      return;
+    }
+
     try {
       if (editData) {
         await axios.put("http://localhost:9000/v1/schedule/update", payload);
@@ -249,72 +273,91 @@ function PTTab({ empNum, empName, onSaved, editData, selectedDate, readOnly=fals
       onSaved?.(payload);
     } catch (err) {
       console.error("PT 일정 등록/수정 실패:", err);
-      alert("등록 중 오류가 발생했습니다.");
+      const msg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        "등록 중 오류가 발생했습니다.";
+      alert(msg);
     }
   };
 
   return (
-    <Form onSubmit={submit}>
-      <Row className="g-3">
-        <Col md={6}>
-          <Form.Label className="fw-bold">회원명</Form.Label>
+    <>
+      <Form onSubmit={submit}>
+        <Row className="g-3">
+          <Col md={6}>
+            <Form.Label className="fw-bold">회원명</Form.Label>
 
-          {readOnly ? (
-            <Form.Select name="memNum" value={currentValue} disabled>
-              <option value={currentValue}>{currentLabel}</option>
-            </Form.Select>
-          ) : (
-            <Form.Select
-              name="memNum"
-              value={currentValue}
-              onChange={onChange}
-            >
-              <option value="">선택</option>
-              {members.map((m) => {
-                const rawPhone = m.memPhone ?? m.phone ?? m.tel ?? m.memTel ?? m.mobile ?? "";
-                const label = `${m.memName}${rawPhone ? " : " + fmtPhone(rawPhone) : ""}`;
-                return (
-                  <option key={toStrId(m.memNum)} value={toStrId(m.memNum)} title={label}>
-                    {label}
-                  </option>
-                );
-              })}
-            </Form.Select>
-          )}
-        </Col>
+            {readOnly ? (
+              <Form.Select name="memNum" value={currentValue} disabled>
+                <option value={currentValue}>{currentLabel}</option>
+              </Form.Select>
+            ) : (
+              <InputGroup>
+                <Form.Control
+                  readOnly
+                  placeholder="회원 검색을 눌러 선택하세요"
+                  value={currentLabel || ""}
+                />
+                <Button variant="outline-secondary" onClick={() => setShowMemberModal(true)}>
+                  회원 검색
+                </Button>
+                {!!currentValue && (
+                  <Button
+                    variant="outline-dark"
+                    onClick={() => setForm(prev => ({ ...prev, memNum: "" }))}
+                  >
+                    지우기
+                  </Button>
+                )}
+              </InputGroup>
+            )}
+          </Col>
 
-        <Col md={6}>
-          <Form.Label className="fw-bold">트레이너</Form.Label>
-          <Form.Control name="empName" value={form.empName} readOnly />
-        </Col>
+          <Col md={6}>
+            <Form.Label className="fw-bold">트레이너</Form.Label>
+            <Form.Control name="empName" value={form.empName} readOnly />
+          </Col>
 
-        <Col md={4}>
-          <Form.Label className="fw-bold">날짜</Form.Label>
-          <Form.Control type="date" name="date" value={form.date} onChange={onChange} disabled={disabled} />
-        </Col>
-        <Col md={4}>
-          <Form.Label className="fw-bold">시작 시간</Form.Label>
-          <Form.Control type="time" name="startTime" value={form.startTime} onChange={onChange} disabled={disabled} />
-        </Col>
-        <Col md={4}>
-          <Form.Label className="fw-bold">종료 시간</Form.Label>
-          <Form.Control type="time" name="endTime" value={form.endTime} onChange={onEndTimeChange} disabled={disabled} />
-        </Col>
+          <Col md={4}>
+            <Form.Label className="fw-bold">날짜</Form.Label>
+            <Form.Control type="date" name="date" value={form.date} onChange={onChange} disabled={disabled} />
+          </Col>
+          <Col md={4}>
+            <Form.Label className="fw-bold">시작 시간</Form.Label>
+            <Form.Control type="time" name="startTime" value={form.startTime} onChange={onChange} disabled={disabled} />
+          </Col>
+          <Col md={4}>
+            <Form.Label className="fw-bold">종료 시간</Form.Label>
+            <Form.Control type="time" name="endTime" value={form.endTime} onChange={onEndTimeChange} disabled={disabled} />
+          </Col>
 
-        <Col md={12}>
-          <Form.Label className="fw-bold">메모</Form.Label>
-          <Form.Control as="textarea" rows={3} name="memo" value={form.memo} onChange={onChange} disabled={disabled} />
-        </Col>
-      </Row>
+          <Col md={12}>
+            <Form.Label className="fw-bold">메모</Form.Label>
+            <Form.Control as="textarea" rows={3} name="memo" value={form.memo} onChange={onChange} disabled={disabled} />
+          </Col>
+        </Row>
 
-      {!readOnly && (
-        <div className="d-flex justify-content-end mt-3">
-          <Button type="submit" variant="primary">저장</Button>
-        </div>
-      )}
-    </Form>
+        {!readOnly && (
+          <div className="d-flex justify-content-end mt-3">
+            <Button type="submit" variant="primary">저장</Button>
+          </div>
+        )}
+      </Form>
+
+      {/* 🔹 회원 검색 모달 (중첩 모달) */}
+      <MemberSearchModal
+        show={showMemberModal}
+        onHide={() => setShowMemberModal(false)}
+        onSelect={handlePickMember}
+        // 필요시: enforceFocus를 끄고 싶다면 MemberSearchModal에서 Modal props 받아서 전달하도록 확장
+        // enforceFocus={false}
+      />
+    </>
   );
 }
+
 
 
 

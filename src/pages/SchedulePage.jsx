@@ -125,7 +125,6 @@ export default function SchedulePage() {
       console.error("[일정 불러오기 실패]:", err);
     }
   }, [empNum]);
-tream/frontend
 
   // 최초 & empNum 변경 시 로딩
   useEffect(() => {
@@ -141,8 +140,8 @@ tream/frontend
     const params = { page: 1, size: 20 };
 
     const kw = (empName || keyword || "").trim();
-    if (kw) q.keyword = kw;
-    if (codeBid) q.codeBid = codeBid;
+    if (kw) params.keyword = kw;
+    if (codeBid) params.codeBid = codeBid;
 
     const { data } = await axios.get(`http://localhost:9000/v1/schedules/search`, { params });
 
@@ -233,8 +232,14 @@ tream/frontend
       <hr />
 
       {/* 관리자 전용 간단 검색바 */}
-      {isAdmin ? <AdminSearchBar onSearch={searchAdmin} isAdmin={isAdmin} /> : null}
-
+      {isAdmin && (
+        <>
+        <AdminSearchBar onSearch={searchAdmin} isAdmin={isAdmin} />
+        <hr className="my-3" />
+        </>
+      )} 
+      
+      
       {/* 캘린더 */}
       <ScheduleCalendar
         events={events}
@@ -306,15 +311,15 @@ function AdminSearchBar({ onSearch, isAdmin = false }) {
     <Form onSubmit={submit} className="mb-3">
       <Row className="gy-2 align-items-end">
         <Col md={3}>
-          <Form.Label>직원이름</Form.Label>
+          <Form.Label className="fw-bold">직원이름</Form.Label>
           <Form.Control
             value={empName}
             onChange={(e) => setEmpName(e.target.value)}
-            placeholder="예) 시스템관리자"
+            placeholder="직원이름을 입력하세요..."
           />
         </Col>
         <Col md={2}>
-          <Form.Label>유형</Form.Label>
+          <Form.Label className="fw-bold">유형</Form.Label>
           <Form.Select value={codeBid} onChange={(e) => setCodeBid(e.target.value)}>
             <option value="">전체</option>
             <option value="SCHEDULE-PT">PT</option>
@@ -325,11 +330,11 @@ function AdminSearchBar({ onSearch, isAdmin = false }) {
           </Form.Select>
         </Col>
         <Col md={4}>
-          <Form.Label>키워드(메모/회원명 등)</Form.Label>
+          <Form.Label className="fw-bold">키워드 검색(메모/회원명)</Form.Label>
           <Form.Control
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
-            placeholder="예) 초기상담, 김철수"
+            placeholder="검색어를 입력하세요..."
           />
         </Col>
         <Col md="auto">
