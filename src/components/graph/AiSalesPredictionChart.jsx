@@ -47,7 +47,7 @@ function AiSalesPredictionChart() {
   const options = {
     chart: { type: "line", backgroundColor: "transparent" },
     title: {
-      text: "AI 매출 예측 (작년 + 올해 + 내년 예측)",
+      text: "",
       style: { fontSize: "16px", fontWeight: "bold" },
     },
     xAxis: {
@@ -90,7 +90,7 @@ function AiSalesPredictionChart() {
       {
         name: `${nextYear}년 (예측)`,
         data: nextYearPredicted,
-        color: "#FB8C00",
+        color: "#fb4f00ff",
         dashStyle: "ShortDash",
       },
     ],
@@ -98,7 +98,7 @@ function AiSalesPredictionChart() {
   };
 
   return (
-    <ChartWrapper title="AI 매출 예측 그래프">
+    <ChartWrapper title="AI 매출 예측 (작년 + 올해 + 내년 예측)">
       <HighchartsReact highcharts={Highcharts} options={options} />
     </ChartWrapper>
   );

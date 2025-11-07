@@ -4,13 +4,14 @@
 // - 우측: 모드별 패널 (상세/등록/수정/삭제)
 // =============================================
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
-import axios from "axios";
+import api from "../../api/axiosConfig";
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import MemberDetail from "./MemberDetail.jsx";
 import MemberCreate from "./MemberCreate.jsx";
 import MemberUpdate from "./MemberUpdate.jsx";
 import MemberDelete from "./MemberDelete.jsx";
+import ScrollBar from "../../components/SharedComponents/ScrollBar.jsx"; // ✅ 추가: 재사용 무한스크롤
 
 export default function MembersList() {
   // 목록/선택/모드 상태
@@ -29,7 +30,7 @@ export default function MembersList() {
     setLoading(true);
     try {
       // 항상 전체를 받아와서(ALL) 클라이언트에서 상태/검색/정렬 처리
-      const res = await axios.get('http://localhost:9000/v1/member');
+      const res = await api.get('/v1/member');
       setMembers(res.data || []);
     } catch (err) {
       console.error('회원 목록 조회 실패:', err);
@@ -143,7 +144,10 @@ export default function MembersList() {
   return (
     <div className="d-flex" style={{ height: '100vh', overflow: 'hidden' }}>
       {/* 왼쪽 패널 */}
-      <div style={{ width: '350px', borderRight: '1px solid #dee2e6', overflowY: 'auto' }} className="bg-light d-flex flex-column">
+      <div
+        style={{ width: '350px', borderRight: '1px solid #dee2e6', overflow: 'hidden' }} // ✅ 변경: 패널 자체 스크롤 제거
+        className="bg-light d-flex flex-column"
+      >
         {/* 등록 버튼 */}
         <div className="p-3 border-bottom">
           <button className="btn btn-primary w-100" onClick={() => { setMode('create'); setSelectedId(null); }}>
@@ -176,40 +180,42 @@ export default function MembersList() {
           </div>
         </div>
 
-        {/* 리스트 */}
-        <div className="flex-grow-1">
-          {loading ? (
-            <div className="p-3 text-center text-muted">불러오는 중…</div>
-          ) : sortedMembers.length === 0 ? (
-            <div className="p-3 text-center text-muted">검색된 회원이 없습니다.</div>
-          ) : (
-            sortedMembers.map((m) => (
-              <div
-                key={m.memNum}
-                className={`p-3 border-bottom small ${selectedId === m.memNum && mode !== 'create' ? 'bg-primary text-white' : 'bg-white'}`}
-                style={{ cursor: 'pointer' }}
-                onClick={() => { setSelectedId(m.memNum); setMode('detail'); }}
-              >
-                <div className="fw-semibold">
-                  {m.memName ? `${m.memName}${m.memBirthday ? `(${String(m.memBirthday).slice(0,10)})` : ''}` : '-'}
-                </div>
-                <div className={`mt-1 small ${selectedId === m.memNum && mode!=='create' ? 'text-white-50':'text-muted'}`}>
-                  <i className="bi bi-person-badge me-1"></i>{m.trainerName || '담당 미지정'}
-                  <span className="mx-2">·</span>
-                  <i className="bi bi-ticket-detailed me-1"></i>{m.voucherEndDate ? `${String(m.voucherEndDate).slice(0,10)} 까지` : '회원권 없음'}
-                  <span className="mx-2">·</span>
-                  <i className="bi bi-dumbbell me-1"></i>잔여 PT {m.ptRemain ?? 0}
-                  <span className="float-end">
-                    <span className={`badge rounded-pill ${m.membershipStatus==='미사용중' ? 'bg-secondary' : 'bg-success'}`}>
-                      {m.membershipStatus || '-'}
+        {/* 리스트: 이 영역만 스크롤 + 20개씩 무한 로딩 */}
+        <div className="flex-grow-1" style={{ minHeight: 0 }}> {/* ✅ 추가: 스크롤 허용 */}
+          <ScrollBar                                   // ✅ 추가: 무한스크롤 적용
+            items={sortedMembers}
+            pageSize={20}
+            loading={loading}
+            emptyNode={<div className="p-3 text-center text-muted">검색된 회원이 없습니다.</div>}
+            renderRow={(m) => {
+              const selected = selectedId === m.memNum && mode !== 'create';
+              return (
+                <div
+                  key={m.memNum}
+                  className={`p-3 border-bottom small ${selected ? 'bg-primary text-white' : 'bg-white'}`}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => { setSelectedId(m.memNum); setMode('detail'); }}
+                >
+                  <div className="fw-semibold">
+                    {m.memName ? `${m.memName}${m.memBirthday ? `(${String(m.memBirthday).slice(0,10)})` : ''}` : '-'}
+                  </div>
+                  <div className={`mt-1 small ${selected ? 'text-white-50':'text-muted'}`}>
+                    <i className="bi bi-person-badge me-1"></i>{m.trainerName || '담당 미지정'}
+                    <span className="mx-2">·</span>
+                    <i className="bi bi-ticket-detailed me-1"></i>{m.voucherEndDate ? `${String(m.voucherEndDate).slice(0,10)} 까지` : '회원권 없음'}
+                    <span className="mx-2">·</span>
+                    <i className="bi bi-dumbbell me-1"></i>잔여 PT {m.ptRemain ?? 0}
+                    <span className="float-end">
+                      <span className={`badge rounded-pill ${m.membershipStatus==='미사용중' ? 'bg-secondary' : 'bg-success'}`}>
+                        {m.membershipStatus || '-'}
+                      </span>
                     </span>
-                  </span>
+                  </div>
                 </div>
-              </div>
-            ))
-          )}
+              );
+            }}
+          />
         </div>
-
       </div>
 
       {/* 오른쪽 패널 */}

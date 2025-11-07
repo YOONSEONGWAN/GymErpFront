@@ -1,6 +1,5 @@
 // src/main.jsx
 import 'bootstrap/dist/css/bootstrap.min.css';
-
 import './api/axiosConfig'; // axios 설정 import
 import store from "./store"; // store import
 import router from "./router"; // 라우팅 설정
