@@ -3,7 +3,9 @@ import axios from "axios";
 import { FaSearch } from "react-icons/fa";
 import MemberSearchModal from "../../components/MemberSearchModal"; // ✅ 검색용 모달 import
 
-axios.defaults.baseURL = "";
+
+// ✅ 프록시 강제 사용 (절대경로 방지)
+// axios.defaults.baseURL = "";
 
 function SalesServiceCreate() {
   const [form, setForm] = useState({
