@@ -10,7 +10,7 @@ function AiSalesPredictionChart() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get("/api/v1/analytics/ai/sales");
+        const res = await axios.get("/v1/analytics/ai/sales");
         console.log("✅ AI 매출 예측 응답:", res.data);
         setData(res.data || []);
       } catch (err) {
