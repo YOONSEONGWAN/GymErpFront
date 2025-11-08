@@ -268,9 +268,6 @@ export default function SchedulePage() {
             {format(focusDate || new Date(), "yyyy.MM.dd (EEE)", { locale: ko })}
           </div>
         </div>
-        <div className="ms-auto d-flex gap-2">
-          <Button variant="outline-secondary" size="sm" onClick={() => setFocusDate?.(new Date())}>오늘</Button>
-        </div>
       </div>
       <hr className="mt-2" />
 
