@@ -111,6 +111,7 @@ function ProductList() {
 
     const handleCategoryChange = (newCategories) => {
         const qs = new URLSearchParams();
+        qs.set("tab", tabName); // 현재 탭 정보를 유지
         qs.set("pageNum", "1");
         if (search.keyword) {
             qs.set("keyword", search.keyword);
