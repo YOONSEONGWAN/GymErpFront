@@ -1,4 +1,4 @@
-// src/components/Graph/TrainerPerformanceChart.jsx
+// ⚠️ import 및 초기화 부분 절대 수정 금지
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Highcharts from "highcharts";
@@ -23,7 +23,7 @@ function TrainerPerformanceChart() {
 
   const options = {
     chart: {
-      type: "bar", // ✅ 가로 막대 그래프로 변경
+      type: "bar", // ✅ 가로형 그래프
       backgroundColor: "transparent",
       height: 360,
     },
@@ -36,7 +36,6 @@ function TrainerPerformanceChart() {
       tickWidth: 0,
     },
     yAxis: {
-      min: 0,
       title: { text: null },
       labels: {
         formatter: function () {
@@ -45,6 +44,13 @@ function TrainerPerformanceChart() {
         style: { fontSize: "12px", color: "#666" },
       },
       gridLineDashStyle: "Dash",
+      gridLineColor: "#e0e0e0",
+
+      // ✅ 추가된 부분 (가로축 숫자 중복 방지)
+      min: 0,
+      tickInterval: 1,          // 눈금 간격 명확히 지정
+      endOnTick: false,         // 마지막 눈금 중복 방지
+      maxPadding: 0.05,         // 여백 줄이기
     },
     legend: { enabled: false },
     tooltip: {
@@ -73,7 +79,7 @@ function TrainerPerformanceChart() {
         data: data.map((d) =>
           Math.abs(Number(d.TOTAL_SESSIONS || d.total_sessions || 0))
         ),
-        colors: ["#1565C0", "#42A5F5", "#90CAF9"],
+        colors: ["#1565C0", "#159277ff", "#FFA726"],
       },
     ],
   };

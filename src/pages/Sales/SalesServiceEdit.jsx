@@ -3,6 +3,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { FaSearch } from "react-icons/fa";
+import MemberSearchModal from "../../components/MemberSearchModal";
+import SalesServiceSearchModal from "../../components/SalesServiceSearchModal";
 
 function SalesServiceEdit() {
   const { id } = useParams();
@@ -28,6 +30,10 @@ function SalesServiceEdit() {
   const [original, setOriginal] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // ✅ 모달 상태
+  const [showMemberModal, setShowMemberModal] = useState(false);
+  const [showServiceModal, setShowServiceModal] = useState(false);
 
   // 숫자 포맷 / 파싱 함수
   const formatNumber = (value) =>
@@ -139,10 +145,47 @@ function SalesServiceEdit() {
     }
   };
 
+  // ✅ 회원 선택 완료
+  const handleSelectMember = (member) => {
+    setForm((prev) => ({
+      ...prev,
+      memNum: member.memNum,
+      memName: member.memName,
+    }));
+    setShowMemberModal(false);
+  };
+
+  // ✅ 서비스 선택 완료
+  const handleSelectService = (service) => {
+    if (!service) return;
+    const price = Number(service.price ?? 0);
+    const count = Number(service.serviceValue ?? service.value ?? 1);
+    const code = service.categoryCode ?? service.codeBId ?? "기타";
+
+    setForm((prev) => ({
+      ...prev,
+      serviceId: service.serviceId,
+      serviceName: service.serviceName ?? service.name,
+      serviceType: code,
+      baseCount: count,
+      actualCount: count,
+      baseAmount: price,
+      actualAmount: price,
+      discount: 0,
+    }));
+
+    setShowServiceModal(false);
+  };
+
   // 수정 확인
   const handleConfirm = async (e) => {
     e.preventDefault();
     try {
+      // ✅ 로그인한 사용자 정보에서 empNum 가져오기
+      const storedUser = sessionStorage.getItem("user");
+      const currentEmpNum = storedUser ? JSON.parse(storedUser).empNum : null;
+      // ✅ UI에는 기존 empName 그대로 표시,
+      // ✅ 요청은 로그인한 직원(empNum)으로 전송
       const payload = {
         serviceSalesId: Number(id),
         serviceName: form.serviceName,
@@ -153,10 +196,9 @@ function SalesServiceEdit() {
         actualAmount: form.actualAmount,
         discount: form.discount,
         memNum: form.memNum,
-        empNum: form.empNum,
+        empNum: currentEmpNum ?? form.empNum, 
       };
 
-      console.log("전송 payload:", payload);
       const res = await axios.put(`/v1/sales/services/${id}`, payload);
       alert(res.data.message || "수정이 완료되었습니다!");
       navigate(`/sales/salesservicedetail/${id}`);
@@ -176,6 +218,19 @@ function SalesServiceEdit() {
       <h4 className="fw-bold mb-5 text-start">
         {id}번 서비스 판매 내역 수정
       </h4>
+
+      {/* ✅ 모달 연결 */}
+      <MemberSearchModal
+        show={showMemberModal}
+        onHide={() => setShowMemberModal(false)}
+        onSelect={handleSelectMember}
+      />
+
+      <SalesServiceSearchModal
+        show={showServiceModal}
+        onHide={() => setShowServiceModal(false)}
+        onSelect={handleSelectService}
+      />
 
       <form
         onSubmit={handleConfirm}
@@ -212,7 +267,7 @@ function SalesServiceEdit() {
                       right: "calc(50% - 170px - 45px)",
                       height: "38px",
                     }}
-                    onClick={() => console.log("상품 선택 모달 예정")}
+                    onClick={() => setShowServiceModal(true)} // ✅ 서비스 모달 열기
                   >
                     <FaSearch />
                   </button>
@@ -249,7 +304,7 @@ function SalesServiceEdit() {
                 >
                   <input
                     type="text"
-                    name="memNum"
+                    name="memName"
                     className="form-control text-center"
                     placeholder="회원 선택"
                     value={form.memName}
@@ -263,7 +318,7 @@ function SalesServiceEdit() {
                       right: "calc(50% - 170px - 45px)",
                       height: "38px",
                     }}
-                    onClick={() => console.log("회원 선택 모달 예정")}
+                    onClick={() => setShowMemberModal(true)} // ✅ 회원 모달 열기
                   >
                     <FaSearch />
                   </button>
@@ -279,7 +334,7 @@ function SalesServiceEdit() {
               <td className="bg-light align-middle">
                 <input
                   type="text"
-                  name="empNum"
+                  name="empName"
                   className="form-control text-center mx-auto"
                   style={{ width: "340px" }}
                   value={form.empName}
