@@ -66,6 +66,7 @@ function ProductUpdate() {
       original:"",
       current:""
   });
+  const [useDefaultImage, setUseDefaultImage] = useState(false);
   const imageRef = useRef();
   const imageStyle = {
       width:"100px",
@@ -156,17 +157,11 @@ function ProductUpdate() {
         setInitialValues(nextValues);
 
         //만일 등록된 프로필 이미지가 있다면
-        if(data.profileImage){
+        if (data.profileImage) {
             const url = `/upload/${data.profileImage}`;
-            setImageUrl({original:url, current:url});
-        }else{ //없으면 svg 를 디코딩한 data url 을 넣어준다.   
-            // svg 이미지를 2 진 데이터 문자열로 읽어들여서 
-            const svgString=new XMLSerializer().serializeToString(personRef.current)
-            // 2진데이터 문자열을 btoa (binary to ascii) 함수를 이용해서 ascii 코드로 변경
-            const encodedData = btoa(svgString)
-            // 변경된 ascii 코드를 이용해서 dataUrl 을 구성한다 
-            const url = "data:image/svg+xml;base64," + encodedData;
-            setImageUrl({original:url, current:url});
+            setImageUrl({ original: url, current: url });
+        } else { //없으면 svg 를 디코딩한 data url 을 넣어준다.
+            setUseDefaultImage(true);
         }
       } catch (error) {
         console.error('상세 정보를 불러오지 못했습니다.', error);
@@ -185,6 +180,19 @@ function ProductUpdate() {
       mounted = false;
     };
   }, [targetId, isServiceRoute, navigate, normalizedType]);
+
+  useEffect(() => {
+    if (useDefaultImage && !loading && imageRef.current) {
+      try {
+        const svgString = new XMLSerializer().serializeToString(imageRef.current);
+        const encodedData = btoa(svgString);
+        const url = `data:image/svg+xml;base64,${encodedData}`;
+        setImageUrl({ original: url, current: url });
+      } catch (error) {
+        console.error('Failed to serialize SVG for default image.', error);
+      }
+    }
+  }, [useDefaultImage, loading]);
 
     // 탭 전환 시 서비스 전용 필드를 비워줍니다.
   const handleTabChange = () => {
