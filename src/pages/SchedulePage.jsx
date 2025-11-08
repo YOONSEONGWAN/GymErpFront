@@ -32,6 +32,16 @@ const codeColor = (codeBid) =>
   : codeBid === "ETC-COUNSEL" ? "#f39c12"
   : codeBid === "ETC-MEETING" ? "#34495e"
   : "#95a5a6";
+ 
+ // 범례 정의
+const legendItems = [
+  { key: "PT",              label: "PT",   color: codeColor("PT") },
+  { key: "VACATION",        label: "휴가",  color: codeColor("VACATION") },
+  { key: "ETC-COUNSEL",     label: "상담",  color: codeColor("ETC-COUNSEL") },
+  { key: "ETC-MEETING",     label: "회의",  color: codeColor("ETC-MEETING") },
+  { key: "ETC-COMPETITION", label: "대회",  color: codeColor("ETC-COMPETITION") },
+];
+
 
 function mapToEvents(list = []) {
   return list.map((e) => {
@@ -248,11 +258,14 @@ export default function SchedulePage() {
   return (
     <div className="schedule-page">
       {/* 헤더(아이콘 + 현재 날짜) */}
-      <div className="d-flex align-items-center gap-2 mb-3">
-        <span className="cal-badge"><i className="bi bi-calendar2-week" /></span>
+      <div className="d-flex align-items-center gap-2 mb-3 ms-4">
+
+       <span className="icon-badge icon-badge--neo">
+        <i className="bi bi-calendar4-event" />
+       </span>
         <div className="d-flex flex-column">
-          <h4 className="m-0 fw-semibold" style={{ color: "#2b2b2b", fontSize: "1.6rem" }}>일정관리</h4>
-          <div className="cal-subtitle">
+          <h4 className="ms-2 mt-2 fw-semibold" style={{ color: "#2b2b2b", fontSize: "1.6rem" }}>일정관리</h4>
+          <div className="cal-subtitle ms-2">
             {format(focusDate || new Date(), "yyyy.MM.dd (EEE)", { locale: ko })}
           </div>
         </div>
@@ -275,6 +288,7 @@ export default function SchedulePage() {
         isAdmin={isAdmin}
         focusDate={focusDate}
         onShowMore={(eventsInDay, date) => openListForDate(date)}
+        legendItems={legendItems}   
       />
 
       {/* 일정 목록 모달(+N 클릭 시) */}
@@ -319,8 +333,8 @@ export default function SchedulePage() {
             selectedEvent.codeBid === "VACATION"
               ? "vacation"
               : selectedEvent.codeBid?.startsWith("ETC")
-              ? "etc"
-              : "pt"
+                ? "etc"
+                : "pt"
           }
           empNum={selectedEvent.empNum}
           empName={selectedEvent.empName}
@@ -355,7 +369,7 @@ function AdminSearchBar({ onSearch, isAdmin = false }) {
 
   return (
     <Form onSubmit={submit} className="mb-3">
-      <Row className="gy-2 align-items-end">
+      <Row className="gy-2 align-items-end ms-4 ">
         <Col md={3}>
           <Form.Label className="fw-bold">직원이름</Form.Label>
           <Form.Control
@@ -385,8 +399,13 @@ function AdminSearchBar({ onSearch, isAdmin = false }) {
         </Col>
         <Col md="auto">
           <div className="d-flex gap-2">
-            <Button type="submit" variant="primary">검색</Button>
-            <Button type="button" variant="secondary" onClick={reset}>초기화</Button>
+            <Button type="submit" className="btn-slate">
+              <i className="bi bi-search" />검색
+            </Button>
+
+            <Button type="button" className="btn-ghost-gray" onClick={reset}>
+              <i className="bi bi-arrow-counterclockwise" />초기화
+            </Button>
           </div>
         </Col>
       </Row>

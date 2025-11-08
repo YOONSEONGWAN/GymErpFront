@@ -7,6 +7,7 @@ import TextField from '../../components/SharedComponents/TextField';
 import TabSwitcher from '../../components/SharedComponents/TabSwitcher';
 import BinaryRadioGroup from '../../components/SharedComponents/BinaryRadioGroup';
 import AsyncSelect from '../../components/SharedComponents/AsyncSelect';
+import { FaUserCircle, FaEdit, FaCalendarAlt, FaTrashAlt, FaSave, FaTimes, FaFolderOpen } from "react-icons/fa";
 
 
 
@@ -330,153 +331,171 @@ function ProductUpdate() {
           <div className="row justify-content-center">
             <div className="card col-md-8 col-lg-6">
               <div className="card-body">
-                <h1>{isProduct ? '상품 정보 수정' : '서비스 정보 수정'}</h1>
+                <h4 className="fw-bold mb-4">{isProduct ? '상품 정보 수정' : '서비스 정보 수정'}</h4>
                 <form onSubmit={handleSubmit}>
-                    <TabSwitcher
-                        tabs={PRODUCT_OR_SERVICE}
-                        name="productType"
-                        activeValue={values.productType}
-                        value={values.productType}
-                        onChange={handleTabChange}
-                        disabled
-                    />
+                    <div className="mb-3">
+                      <TabSwitcher
+                          tabs={PRODUCT_OR_SERVICE}
+                          name="productType"
+                          activeValue={values.productType}
+                          value={values.productType}
+                          onChange={handleTabChange}
+                          disabled
+                          buttonClassName="btn btn-outline-secondary"
+                          activeButtonClassName="btn btn-secondary active"
+                          className="btn-group w-50"
+                      />
+                    </div>
                     {isProduct &&<>
-                      <label className="form-label d-block">프로필 이미지</label>
-                      <div className="text-center mb-2">
-                          <div className="text-center mb-2">
-                              <button href="javascript:" onClick={handleClick} type="button" className="btn btn-link p-0 border-0">
-
-                                  { imageUrl.current && <img src={imageUrl.current}
-                                      className="rounded border"
-                                      style={{width:"100px",height:"100px",objectFit:"cover"}} /> }
-                              </button>
-                          </div>
-                          <input ref={inputRef} onChange={handleImageChange}
-                              type="file" className="form-control d-none" name="profileFile" accept="image/*" />
-                          <div className="form-text">클릭해서 프로필 이미지를 수정하세요.</div>
+                      <div className="mb-3">
+                        <label className="form-label d-block">프로필 이미지</label>
+                        <div className="d-flex align-items-center gap-3">
+                            { imageUrl.current && <img src={imageUrl.current}
+                                className="rounded border"
+                                style={{width:"100px",height:"100px",objectFit:"cover"}} /> }
+                            <input onChange={handleImageChange}
+                                type="file" name="profileFile" accept="image/*" />
+                        </div>
+                        <div className="form-text">이미지를 변경하려면 새 파일을 선택하세요.</div>
                       </div>
                     </>}
 
-                    <AsyncSelect
-                        label={isProduct ? '상품 분류' : '서비스 분류'}
-                        name="categoryCode"
-                        value={values.categoryCode}
-                        onChange={handleChange}
-                        placeholder={isProduct ? '상품 분류를 선택하세요' : '서비스 분류를 선택하세요'}
-                        endpoint={`/v1/categories/list/${codeAId}`}
-                        mapOption={(row) => ({
-                            value: row.codeBId != null ? String(row.codeBId) : '',
-                            label: `${row.codeBName} (${row.codeBId})`,
-                        })}
-                        allowEmptyOption={!values.categoryCode}
-                    />
+                    <div className="mb-3">
+                      <AsyncSelect
+                          label={isProduct ? '상품 분류' : '서비스 분류'}
+                          name="categoryCode"
+                          value={values.categoryCode}
+                          onChange={handleChange}
+                          placeholder={isProduct ? '상품 분류를 선택하세요' : '서비스 분류를 선택하세요'}
+                          endpoint={`/v1/categories/list/${codeAId}`}
+                          mapOption={(row) => ({
+                              value: row.codeBId != null ? String(row.codeBId) : '',
+                              label: `${row.codeBName} (${row.codeBId})`,
+                          })}
+                          allowEmptyOption={!values.categoryCode}
+                      />
+                    </div>
 
-                    <TextField
-                        label={isProduct ? '상품명' : '서비스명'}
-                        name={isProduct ? 'productName' : 'serviceName'}
-                        value={isProduct ? values.productName : values.serviceName}
-                        onChange={handleChange}
-                        placeholder={isProduct ? '상품명을 입력하세요' : '서비스명을 입력하세요'}
-                    />
+                    <div className="mb-3">
+                      <TextField
+                          label={isProduct ? '상품명' : '서비스명'}
+                          name={isProduct ? 'productName' : 'serviceName'}
+                          value={isProduct ? values.productName : values.serviceName}
+                          onChange={handleChange}
+                          placeholder={isProduct ? '상품명을 입력하세요' : '서비스명을 입력하세요'}
+                      />
+                    </div>
 
-                    <TextField
-                        label="판매가"
-                        name="salePrice"
-                        type="number"
-                        value={values.salePrice}
-                        onChange={handleChange}
-                        placeholder="원 단위 숫자만 입력하세요"
-                        inputProps={{ min: 0 }}
-                    />
+                    <div className="mb-3">
+                      <TextField
+                          label="판매가"
+                          name="salePrice"
+                          type="number"
+                          value={values.salePrice}
+                          onChange={handleChange}
+                          placeholder="원 단위 숫자만 입력하세요"
+                          inputProps={{ min: 0 }}
+                      />
+                    </div>
 
-                    <BinaryRadioGroup
-                        label="판매 상태"
-                        name="saleStatus"
-                        value={values.saleStatus}
-                        onChange={handleChange}
-                        options={[
-                            { value: 'ACTIVE', label: '판매중' },
-                            { value: 'INACTIVE', label: '판매중지' },
-                        ]}
-                    />
+                    <div className="mb-3">
+                      <BinaryRadioGroup
+                          label="판매 상태"
+                          name="saleStatus"
+                          value={values.saleStatus}
+                          onChange={handleChange}
+                          options={[
+                              { value: 'ACTIVE', label: '판매중' },
+                              { value: 'INACTIVE', label: '판매중지' },
+                          ]}
+                      />
+                    </div>
 
                     {isPtService && (
-                        <TextField
-                            label="서비스 이용 횟수"
-                            name="serviceSessionCount"
-                            type="number"
-                            value={values.serviceSessionCount}
-                            onChange={handleChange}
-                            placeholder="예: 10 (PT 회차)"
-                            inputProps={{ min: 0 }}
-                            helpText="PT 상품일 때만 입력합니다."
-                        />
+                        <div className="mb-3">
+                          <TextField
+                              label="서비스 이용 횟수"
+                              name="serviceSessionCount"
+                              type="number"
+                              value={values.serviceSessionCount}
+                              onChange={handleChange}
+                              placeholder="예: 10 (PT 회차)"
+                              inputProps={{ min: 0 }}
+                              helpText="PT 상품일 때만 입력합니다."
+                          />
+                        </div>
                     )}
 
                     {isMembershipService && (
-                        <TextField
-                            label="서비스 이용 기간(일)"
-                            name="serviceDurationDays"
-                            type="number"
-                            value={values.serviceDurationDays}
-                            onChange={handleChange}
-                            placeholder="예: 30 (이용권 일수)"
-                            inputProps={{ min: 0 }}
-                            helpText="이용권 상품일 때만 입력합니다."
-                        />
+                        <div className="mb-3">
+                          <TextField
+                              label="서비스 이용 기간(일)"
+                              name="serviceDurationDays"
+                              type="number"
+                              value={values.serviceDurationDays}
+                              onChange={handleChange}
+                              placeholder="예: 30 (이용권 일수)"
+                              inputProps={{ min: 0 }}
+                              helpText="이용권 상품일 때만 입력합니다."
+                          />
+                        </div>
                     )}
 
-                    <TextField
-                        label={isProduct ? '상품 설명' : '서비스 설명'}
-                        name="memo"
-                        value={values.memo}
-                        onChange={handleChange}
-                        placeholder={isProduct ? '상품에 대한 설명을 입력하세요' : '서비스에 대한 설명을 입력하세요'}
-                    />
+                    <div className="mb-3">
+                      <TextField
+                          label={isProduct ? '상품 설명' : '서비스 설명'}
+                          name="memo"
+                          value={values.memo}
+                          onChange={handleChange}
+                          placeholder={isProduct ? '상품에 대한 설명을 입력하세요' : '서비스에 대한 설명을 입력하세요'}
+                      />
+                    </div>
 
-                    <TextField
-                        label="등록일"
-                        name="createdAt"
-                        type="date"
-                        value={values.createdAt}
-                        onChange={handleChange}
-                        readOnly
-                        helpText="등록일은 수정할 수 없습니다."
-                    />
+                    <div className="mb-3">
+                      <TextField
+                          label="등록일"
+                          name="createdAt"
+                          type="date"
+                          value={values.createdAt}
+                          onChange={handleChange}
+                          readOnly
+                          helpText="등록일은 수정할 수 없습니다."
+                      />
+                    </div>
 
-                    <TextField
-                        label="최종 수정일"
-                        name="updatedAt"
-                        value={values.updatedAt || '수정 이력 없음'}
-                        onChange={handleChange}
-                        readOnly
-                        helpText="저장 시 자동으로 업데이트됩니다."
-                    />
+                    <div className="mb-3">
+                      <TextField
+                          label="최종 수정일"
+                          name="updatedAt"
+                          value={values.updatedAt || '수정 이력 없음'}
+                          onChange={handleChange}
+                          readOnly
+                          helpText="저장 시 자동으로 업데이트됩니다."
+                      />
+                    </div>
 
-                    <div className="d-flex justify-content-between gap-2 mt-4">
+                    <div className="d-flex justify-content-end gap-2 mt-4">
                         <button
                             type="button"
-                            className="btn btn-outline-secondary"
+                            className="btn btn-secondary"
                             onClick={handleReset}
                         >
                             초기화
                         </button>
-                        <div className="d-flex gap-2">
-                            <button
-                                type="button"
-                                className="btn btn-outline-danger"
-                                onClick={handleCancel}
-                            >
-                                목록으로
-                            </button>
-                            <button
-                                type="submit"
-                                className="btn btn-primary"
-                                disabled={submitting}
-                            >
-                                {submitting ? '수정 중...' : '수정'}
-                            </button>
-                        </div>
+                        <button
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={handleCancel}
+                        >
+                            목록으로
+                        </button>
+                        <button
+                            type="submit"
+                            className="btn btn-primary"
+                            disabled={submitting}
+                        >
+                            {submitting ? '수정 중...' : '수정'}
+                        </button>
                     </div>
                 </form>
               </div>
