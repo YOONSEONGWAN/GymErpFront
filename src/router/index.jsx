@@ -23,16 +23,12 @@ import ProductList from "../pages/Product/ProductList.jsx";
 import ProductCreate from "../pages/Product/ProductCreate.jsx";
 import ProductUpdate from "../pages/Product/ProductUpdate.jsx";
 import ProductDetail from "../pages/Product/ProductDetail.jsx";
-import ProductList from "../pages/Product/ProductList.jsx";
 import StockList from "../pages/Product/StockList.jsx";
 import StockInbound from "../pages/Product/StockInbound.jsx";
 import StockOutbound from "../pages/Product/StockOutbound.jsx";
 
 // ✅ 판매 관련
-import SalesItemList from "../pages/Sales/SalesItemList.jsx";
-import SalesItemCreate from "../pages/Sales/SalesItemCreate.jsx";
 import SalesServiceList from "../pages/Sales/SalesServiceList.jsx";
-import SalesServiceCreate from "../pages/Sales/SalesServiceCreate.jsx";
 import SalesServiceEdit from "../pages/Sales/SalesServiceEdit.jsx";
 import SalesServiceDetail from "../pages/Sales/SalesServiceDetail.jsx";
 
@@ -41,7 +37,6 @@ import PostList from "../pages/PostList.jsx";
 import PostAdd from "../pages/PostAdd.jsx";
 import PostEdit from "../pages/PostEdit.jsx";
 import PostView from "../pages/PostView.jsx";
-import ProductList from "../pages/Product/ProductList.jsx";
 
 // ✅ 그래프 테스트
 import GraphTest from "../pages/GraphTest.jsx";
