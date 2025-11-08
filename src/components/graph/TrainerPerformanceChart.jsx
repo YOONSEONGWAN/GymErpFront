@@ -79,7 +79,7 @@ function TrainerPerformanceChart() {
         data: data.map((d) =>
           Math.abs(Number(d.TOTAL_SESSIONS || d.total_sessions || 0))
         ),
-        colors: ["#1565C0", "#42A5F5", "#90CAF9"],
+        colors: ["#1565C0", "#159277ff", "#FFA726"],
       },
     ],
   };
