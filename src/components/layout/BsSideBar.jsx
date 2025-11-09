@@ -111,6 +111,7 @@ export default function BsSideBar() {
           {/* 매출 */}
           <DropdownMenu icon="graph-up" title="매출">
             <SubMenuItem to="/sales/salesitemlist" icon="receipt" text="상품판매리스트" />
+            <SubMenuItem to="/sales/salesservicelist" icon="receipt" text="서비스판매리스트" />
           </DropdownMenu>
 
           {/* 상품관리 */}

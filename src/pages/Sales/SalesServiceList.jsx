@@ -6,7 +6,7 @@ import { FaSearch } from "react-icons/fa";
 import MemberSearchModal from "../../components/MemberSearchModal";
 import EmpModal from "../../components/EmpModal";
 
- // axios.defaults.baseURL = "";
+  // axios.defaults.baseURL = "";
 
 function SalesServiceList() {
   const [salesList, setSalesList] = useState([]);
@@ -43,7 +43,7 @@ function SalesServiceList() {
   const fetchSalesList = async () => {
     setIsLoading(true);
     try {
-      const res = await axios.get("/api/v1/sales/services/paged", {
+      const res = await axios.get("/v1/sales/services/paged", {
         params: {
           page,
           limit: 20,
