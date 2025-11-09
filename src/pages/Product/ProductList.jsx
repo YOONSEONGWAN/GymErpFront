@@ -18,6 +18,7 @@ function ProductList() {
         endPageNum: 1,
         totalPageCount: 1
     });
+    const [loading, setLoading] = useState(false);
     //정렬 state
     const [sortConfig, setSortConfig] = useState({ 
         key: 'codeBName', // 백엔드 @RequestParam 기본값과 일치
@@ -38,6 +39,7 @@ function ProductList() {
     const tabName = params.get("tab") || "PRODUCT";
 
     useEffect(() => {
+        setLoading(true);
         const pageNum = params.get("pageNum") || 1;
         const keyword = params.get("keyword") || "";
         const categoryCodes = params.getAll("categoryCodes") || [];
@@ -63,6 +65,7 @@ function ProductList() {
         axios.get(`${apiEndpoint}?${qs.toString()}`)
             .then(res => {
                 setPageInfo(res.data);
+                setLoading(false);
 
             })
             .catch(err => {
@@ -70,6 +73,7 @@ function ProductList() {
                     console.error('Error response from server:', err.response.data);
                 }
                 console.error('Axios error:', err);
+                setLoading(false);
             });
 
     }, [params, sortConfig]);
@@ -265,7 +269,8 @@ function ProductList() {
                         columns={productColumns}
                         onSort={handleSort}
                         sortConfig={sortConfig}
-                        onRowClick={handleRowClick} 
+                        onRowClick={handleRowClick}
+                        loading={loading}
                     />
                 </div>
             </div>

@@ -27,6 +27,7 @@ function StockList() {
         pageNum: 1,
         totalPageCount: 1
     });
+    const [loading, setLoading] = useState(false);
     //정렬 state
     const [sortConfig, setSortConfig] = useState({ 
         key: 'codeBName', // 백엔드 @RequestParam 기본값과 일치
@@ -50,6 +51,7 @@ function StockList() {
 
     //상품 목록 가져오기
     useEffect(()=>{
+        setLoading(true);
         const pageNum = params.get("pageNum") || 1;
         const keyword = params.get("keyword") || "";
         const categoryCodes = params.getAll("categoryCodes") || [];
@@ -77,8 +79,12 @@ function StockList() {
                     // 목록의 "첫 번째 아이템 ID"로 selectedItemId를 설정
                     setSelectedItemId(res.data.list[0].productId); 
                 }
+                setLoading(false);
             })
-            .catch(err=>console.log(err));
+            .catch(err=>{
+                console.log(err);
+                setLoading(false);
+            });
 
     },[params, sortConfig]);
 
@@ -238,6 +244,7 @@ function StockList() {
                             onRowClick={handleRowClick}
                             onSort={handleSort}
                             sortConfig={sortConfig}
+                            loading={loading}
                         />
                     </div>
                 </div>
