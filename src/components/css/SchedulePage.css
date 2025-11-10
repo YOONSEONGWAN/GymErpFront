@@ -267,3 +267,43 @@
 }
 
 
+/*관리자 버튼 색깔 바꿔보기*/
+/* ----- Gray Filled (주버튼) ----- */
+.btn-slate {
+  --bg: #2e69bb;          /* slate-600 */
+  --bg-hover: #374151;    /* slate-700 */
+  --fg: #fff;
+  --bd: #434c5a;          /* 테두리 */
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  padding: .375rem .75rem;
+  line-height: 1.2;
+  box-shadow: 0 1px 0 rgba(16,24,40,.04);
+  transition: all .15s ease-in-out;
+}
+.btn-slate:hover { background: var(--bg-hover); border-color: var(--bg-hover); }
+.btn-slate:active { filter: brightness(.95); }
+.btn-slate:focus-visible { outline: 0; box-shadow: 0 0 0 3px rgba(148,163,184,.35); }
+
+/* 아이콘 여백(부트스트랩 아이콘 쓸 때) */
+.btn-slate .bi, .btn-ghost-gray .bi { margin-right: .35rem; position: relative; top: -1px; }
+
+/* ----- Gray Ghost (보조버튼) ----- */
+.btn-ghost-gray {
+  --fg: #1a5cc7;          /* slate-700 */
+  --bd: #cfd6e4;
+  --bg-h: #374151;        /* hover 배경 */
+  color: var(--fg);
+  background: #fff;
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  padding: .375rem .75rem;
+  line-height: 1.2;
+  transition: all .15s ease-in-out;
+}
+.btn-ghost-gray:hover { background: var(--bg-h); border-color: #d3ddec; }
+.btn-ghost-gray:active { background: #5b6d88; }
+.btn-ghost-gray:focus-visible { outline: 0; box-shadow: 0 0 0 3px rgba(148,163,184,.35); }
+
