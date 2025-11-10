@@ -8,6 +8,7 @@ import TotalSalesChart from "../components/graph/TotalSalesChart";
 import TrainerPerformanceChart from "../components/graph/TrainerPerformanceChart";
 import AiMemberPredictionChart from "../components/graph/AiMemberPredictionChart";
 import AiSalesPredictionChart from "../components/graph/AiSalesPredictionChart";
+import MemberVoucherPtStatusChart from "../components/graph/MemberVoucherPtStatusChart";
 
 export default function Home() {
   const [kpi, setKpi] = useState({
@@ -79,34 +80,33 @@ useEffect(() => {
         </div>
 
         {/* 이하 동일 */}
+        
         <div className="row row-cols-1 row-cols-xl-2 g-4">
-          <div className="col">
+
+<div className="col">
             <div className="glass soft-shadow">
-              <div className="card-head">
-                <div className="card-title">AI 회원 수 예측</div>
-              </div>
+             
               <div className="card-body dashboard-sizer ai-tall">
                 <AiMemberPredictionChart />
+                
               </div>
             </div>
           </div>
 
           <div className="col">
             <div className="glass soft-shadow">
-              <div className="card-head">
-                <div className="card-title">AI 매출 예측</div>
-              </div>
+              
               <div className="card-body dashboard-sizer ai-tall">
-                <AiSalesPredictionChart />
+                <MemberVoucherPtStatusChart />
+                
               </div>
             </div>
           </div>
 
+
           <div className="col">
             <div className="glass soft-shadow">
-              <div className="card-head">
-                <div className="card-title">총 매출</div>
-              </div>
+             
               <div className="card-body dashboard-sizer">
                 <TotalSalesChart />
               </div>
@@ -115,9 +115,7 @@ useEffect(() => {
 
           <div className="col">
             <div className="glass soft-shadow">
-              <div className="card-head">
-                <div className="card-title">트레이너 성과</div>
-              </div>
+              
               <div className="card-body dashboard-sizer">
                 <TrainerPerformanceChart />
               </div>
