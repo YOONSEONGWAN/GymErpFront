@@ -161,25 +161,28 @@ export default function EmpAttendanceMy() {
   };
 
   // 화면용 가공 + 통계
-  const viewRows = useMemo(
-    () =>
-      rows
-        .map((r) => ({
-          ...r,
-          _name: r.empName || String(r.empNum ?? ""),
-          _start: r.checkIn ?? r.startedAt,
-          _end: r.checkOut ?? r.endedAt,
-          _dur: r.workHours ?? r.duration ?? r.durationS ?? r.durationSec,
-        }))
-        .sort((a, b) => {
-          const n = a._name.localeCompare(b._name, "ko");
-          if (n !== 0) return n;
-          const ta = parse(a._start)?.getTime() ?? 0;
-          const tb = parse(b._start)?.getTime() ?? 0;
-          return ta - tb;
-        }),
-    [rows]
-  );
+ // 화면용 가공 + 통계
+const viewRows = useMemo(() => {
+  const timeVal = (s) => {
+    const d = parse(s);
+    return d ? d.getTime() : Number.MAX_SAFE_INTEGER; // 시간 없는 항목은 맨 아래
+  };
+
+  return (rows || [])
+    .map((r) => ({
+      ...r,
+      _name: r.empName || String(r.empNum ?? ""),
+      _start: r.checkIn ?? r.startedAt,
+      _end: r.checkOut ?? r.endedAt,
+      _dur: r.workHours ?? r.duration ?? r.durationS ?? r.durationSec,
+    }))
+    .sort((a, b) => {
+      const ta = timeVal(a._start);
+      const tb = timeVal(b._start);
+      if (ta !== tb) return tb-ta; // ⬅ 출근 시간 내림차순
+      return a._name.localeCompare(b._name, "ko"); // 보조 정렬: 이름
+    });
+}, [rows]);
 
   const totalCount = viewRows.length;
   const workingCount = viewRows.filter((r) => !r._end).length;
