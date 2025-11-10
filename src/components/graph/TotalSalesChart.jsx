@@ -1,4 +1,4 @@
-// ⚠️ import 및 초기화 부분 절대 수정 금지
+// import 및 초기화 부분은 수정하지 말 것
 import React, { useEffect, useState } from "react";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
@@ -12,11 +12,14 @@ if (typeof HC3D === "function") HC3D(Highcharts);
 function TotalSalesChart() {
   const [data, setData] = useState([]);
 
+  /* ===============================
+     1. 데이터 조회
+  =============================== */
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await axios.get("/v1/analytics/sales/total");
-        console.log("✅ 실제 응답 구조:", res.data);
+        console.log("실제 응답 구조:", res.data);
         const list = (res.data || []).map((d) => [
           d.LABEL || d.label,
           Number(d.TOTAL_SALES || d.total_sales || 0),
@@ -29,6 +32,9 @@ function TotalSalesChart() {
     fetchData();
   }, []);
 
+  /* ===============================
+     2. 색상 및 라벨 매핑
+  =============================== */
   const colorMap = {
     PT: "#1565C0",
     VOUCHER: "#42A5F5",
@@ -37,20 +43,28 @@ function TotalSalesChart() {
     SUPPLEMENTS: "#FFCC80",
   };
 
+  const labelMap = {
+    VOUCHER: "이용권",
+    CLOTHES: "의류",
+    DRINK: "음료",
+    SUPPLEMENTS: "보충제",
+  };
+
+  /* ===============================
+     3. Highcharts 옵션 설정
+  =============================== */
   const options = {
     chart: {
       type: "pie",
       backgroundColor: "transparent",
       options3d: { enabled: true, alpha: 45, beta: 0, depth: 50, viewDistance: 40 },
-      height: 420,
-      width: 520, // 그래프 자체 살짝 확대
-      marginTop: -50,
-      marginBottom: 70,
-      spacingRight: 80, // 범례 짤림 방지
+      height: 380,         // (기존 420 → 380)
+      width: 460,          // (기존 520 → 460)
+      marginTop: -30,      // (기존 -50 → -30)
+      marginBottom: 40,    // (기존 70 → 40)
+      spacingRight: 80,
     },
-
     title: { text: null },
-
     tooltip: {
       useHTML: true,
       backgroundColor: "rgba(255,255,255,0.95)",
@@ -59,7 +73,6 @@ function TotalSalesChart() {
       pointFormat:
         "<b>{point.name}</b><br/>매출: <b>{point.y:,.0f}원</b><br/>점유율: <b>{point.percentage:.1f}%</b>",
     },
-
     plotOptions: {
       pie: {
         innerSize: 90,
@@ -70,8 +83,8 @@ function TotalSalesChart() {
         cursor: "pointer",
         dataLabels: {
           enabled: true,
-          distance: -50, // ✅ 중심보다 살짝 위로 띄움
-          y: -8, // ✅ 3D 깊이 때문에 잘리는 것 보정
+          distance: -50,
+          y: -8,
           style: {
             fontSize: "14px",
             color: "#fff",
@@ -86,7 +99,6 @@ function TotalSalesChart() {
         },
       },
     },
-
     legend: {
       enabled: true,
       align: "right",
@@ -106,37 +118,42 @@ function TotalSalesChart() {
         return `${this.name} (${Highcharts.numberFormat(this.y, 0)}원)`;
       },
     },
-
     credits: { enabled: false },
-
     series: [
       {
         name: "매출액",
-        data: data.map((d) => ({
-          name: d[0],
-          y: d[1],
-          color: colorMap[d[0].toUpperCase()] || "#90CAF9",
-        })),
+        data: data.map((d) => {
+          const key = d[0].toUpperCase();
+          const displayName = labelMap[key] || (key === "PT" ? "PT" : d[0]);
+          return {
+            name: displayName,
+            y: d[1],
+            color: colorMap[key] || "#90CAF9",
+          };
+        }),
       },
     ],
   };
 
+  /* ===============================
+     4. 렌더링
+  =============================== */
   return (
-    <ChartWrapper title="전체 매출 그래프">
+    <ChartWrapper title="총 매출 그래프(최근 30일)">
       <div
         style={{
           display: "flex",
-          alignItems: "fles-start",
-          justifyContent: "space-between", // ✅ 그래프와 범례를 양옆 배치
-          width: "96%",                     // ✅ 부모 대비 폭 축소
-          maxWidth: "900px",                // ✅ 대시보드 내 균형 잡기
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          width: "96%",
+          maxWidth: "900px",
           margin: "0 auto",
         }}
       >
-        {/* ✅ 그래프 영역 */}
+        {/* (1) 그래프 영역 */}
         <div
           style={{
-            flex: "0 0 65%", // 🔹 전체의 약 65%만 차지
+            flex: "0 0 65%",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
@@ -147,7 +164,7 @@ function TotalSalesChart() {
           <HighchartsReact highcharts={Highcharts} options={options} />
         </div>
 
-        {/* ✅ 범례를 별도 수동 배치 (기존 legend 숨김 + 직접 구현해도 OK) */}
+        {/* (2) 우측 범례 (한글 변환 적용) */}
         <div
           style={{
             marginTop: "130px",
@@ -158,22 +175,25 @@ function TotalSalesChart() {
             gap: "4px",
           }}
         >
-          {data.map((d, i) => (
-            <div key={i} style={{ fontSize: "13px", whiteSpace: "nowrap" }}>
-              <span
-                style={{
-                  display: "inline-block",
-                  width: 12,
-                  height: 12,
-                  backgroundColor:
-                    colorMap[d[0].toUpperCase()] || "#90CAF9",
-                  borderRadius: "50%",
-                  marginRight: 6,
-                }}
-              ></span>
-              {d[0]} ({d[1].toLocaleString()}원)
-            </div>
-          ))}
+          {data.map((d, i) => {
+            const key = d[0].toUpperCase();
+            const displayName = labelMap[key] || (key === "PT" ? "PT" : d[0]);
+            return (
+              <div key={i} style={{ fontSize: "13px", whiteSpace: "nowrap" }}>
+                <span
+                  style={{
+                    display: "inline-block",
+                    width: 12,
+                    height: 12,
+                    backgroundColor: colorMap[key] || "#90CAF9",
+                    borderRadius: "50%",
+                    marginRight: 6,
+                  }}
+                ></span>
+                {displayName} ({d[1].toLocaleString()}원)
+              </div>
+            );
+          })}
         </div>
       </div>
     </ChartWrapper>
