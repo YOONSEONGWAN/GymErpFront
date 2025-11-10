@@ -42,7 +42,7 @@ function ProductListComponent({ pageInfo, onPageChange, onToggleChange, columns,
 
     return (
         <>
-            <table className="table table-striped text-center">
+            <table className="table table-striped table-hover text-center">
                 <thead className="table-dark">
                     <tr>
                         {/*부모가 준 'columns' 배열로 <th>를 동적 생성 */}
@@ -69,7 +69,7 @@ function ProductListComponent({ pageInfo, onPageChange, onToggleChange, columns,
                         </tr>
                     ) : (
                         pageInfo.list && pageInfo.list.map((item, index) => (
-                            <tr key={item.productId || item.serviceId || index} onClick={() => onRowClick && onRowClick(item)}>
+                            <tr key={item.productId || item.serviceId || index} onClick={() => onRowClick && onRowClick(item)} style={{ cursor: 'pointer' }}>
                                 {columns.map((col) => (
                                     <td key={col.key}>
                                         {renderCell(item, col)} 
