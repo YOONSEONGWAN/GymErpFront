@@ -102,6 +102,7 @@ function ProductDetail(props) {
                     // 서비스인지 실물인지에 따라 productType 설정
                     productType: normalizedType,
                     categoryLabel,
+                    profileImage:data.profileImage,
                     productName: data.name ?? "",
                     salePrice:
                         typeof data.price === "number" // 가격이 숫자형이면 천단위 콤마 추가 
@@ -158,14 +159,30 @@ function ProductDetail(props) {
         <div className="row justify-content-center">
             <div className="card col-md-8 col-lg-6">
                 <div className="card-body">
-                    {/* 탭은 readonly 표시 */}
-                    <TabSwitcher
-                        tabs={PRODUCT_OR_SERVICE}
-                        activeValue={values.productType}
-                        onChange={() => { }}
-                        disabled
-                    />
-
+                    <div className="d-flex justify-content-between align-items-start mb-3">
+                        {/* 탭은 readonly 표시 */}
+                        <TabSwitcher
+                            tabs={PRODUCT_OR_SERVICE}
+                            activeValue={values.productType}
+                            onChange={() => { }}
+                            disabled
+                        />
+                        <div className="ms-3">
+                            {values.productType=="PRODUCT"&&<>
+                                {values.profileImage?
+                                    <img src={`/upload/${values.profileImage}`} alt="프로필 이미지" 
+                                        style={{width:"100px", height:"100px", borderRadius:"10%"}}/>
+                                    :
+                                    /*
+                                        npm install bootstrap-icons 해서 설치한 다음
+                                        아래와 같이 import 해야 사용 가능
+                                        import 'bootstrap-icons/font/bootstrap-icons.css'
+                                    */
+                                    <i className="bi bi-folder-plus" style={{fontSize:"100px"}}></i>
+                                }
+                            </>}
+                        </div>
+                    </div>
                     <TextField
                         label="상품 구분"
                         name="categoryLabel"
