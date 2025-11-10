@@ -144,7 +144,14 @@ export default function SalesItemDetail() {
       setMode("view");
     } catch (e) {
       console.error("저장 실패:", e);
-      setErr(e?.response?.data?.message || "저장 중 오류가 발생했습니다.");
+      console.error("백엔드 응답 오류:", e.response);
+
+      // 백엔드에서 오는 특정 오류 메시지 확인
+      if (e.response && e.response.status === 409) { // 재고 문제에 대한 Conflict 상태
+        setErr(e.response.data || "재고 수량 부족으로 저장에 실패했습니다.");
+      } else {
+        setErr(e?.response?.data?.message || "저장 중 오류가 발생했습니다.");
+      }
     } finally {
       setSaving(false);
     }
