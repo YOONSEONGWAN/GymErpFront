@@ -25,6 +25,7 @@ function ScheduleCalendar({
   onShowMore,                                           // ★ FIX: 부모 위임
   isAdmin = false,
   focusDate,
+  legendItems=[]
 }) {
   const [currentView, setCurrentView] = useState("month");
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -36,7 +37,9 @@ function ScheduleCalendar({
     }
   }, [focusDate]);
 
-  const Toolbar = (props) => <CustomToolbar {...props} isAdmin={isAdmin} />;
+  const Toolbar = (props) => (
+   <CustomToolbar {...props} isAdmin={isAdmin} legendItems={legendItems} />
+  );
 
   return (
     <Calendar
@@ -69,6 +72,7 @@ function ScheduleCalendar({
       doShowMoreDrillDown={false}
       onDrillDown={() => {}}
       onShowMore={(evts, date) => onShowMore?.(evts, date)}  // ★ FIX: 부모로 그대로 전달
+      legendItems={legendItems}
     />
   );
 }

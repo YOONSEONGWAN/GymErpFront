@@ -56,9 +56,6 @@ const initial = (name) => (name ? name.trim()[0] : "?");
 
 // ===============================
 export default function EmpAttendanceMy() {
-
-
-  
   // ✅ 로그인 사번: 
   const myEmpNum = (() => {
     try {
@@ -128,14 +125,14 @@ export default function EmpAttendanceMy() {
     return candidates[0];
   }, [rows, myEmpNum, pageOffset, ymd]);
 
-  // ✅ 출근: 서버가 인증 사용자로 처리 → 바디 전송 없음
+  // 출근: 서버가 인증 사용자로 처리 → 바디 전송 없음
   const handleCheckIn = async () => {
     if (pageOffset !== 0) return;
     try {
       setLoading(true);
       setError("");
       await api.post(`/attendance`);
-      setMessage("출근 처리했습니다.");
+      setMessage("출근 완료");
       await fetchDaily();
     } catch (e) {
       console.error("checkIn error", e?.response || e);
@@ -154,7 +151,7 @@ export default function EmpAttendanceMy() {
       setLoading(true);
       setError("");
       await api.put(`/attendance/${attNum}/checkout`);
-      setMessage("퇴근 처리했습니다.");
+      setMessage("퇴근 완료");
       await fetchDaily();
     } catch (e) {
       console.error("checkOut error", e?.response || e);
@@ -293,7 +290,7 @@ export default function EmpAttendanceMy() {
             <button className={`page-link ${pageOffset === 0 ? "disabled" : ""}`} onClick={goToday}>오늘</button>
             <button className="page-link" onClick={() => setPageOffset((v) => v + 7)}>&raquo;</button>
 
-            {/* ⬇ 추가: 날짜 직접 선택 */}
+            {/* 추가: 날짜 직접 선택 */}
             <input
               type="date"
               className="form-control form-control-sm ms-2"
