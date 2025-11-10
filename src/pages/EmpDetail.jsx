@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FaUserCircle, FaEdit, FaCalendarAlt, FaTrashAlt, FaSave, FaTimes, FaFolderOpen } from "react-icons/fa";
+import "../styles/detail-pane.css";
 
 function EmpDetail({empNum: propEmpNum, onBack}) {
   // url 파라미터도 받지만, props 가 있다면 우선 사용
@@ -171,7 +172,7 @@ function EmpDetail({empNum: propEmpNum, onBack}) {
   };
 
   return (
-    <div className="detail-pane min-vh-100 py-5">
+    <div className="min-vh-100 py-5">
       <div className="container" style={{ maxWidth: "950px" }}>
         <div className="card border-0 rounded-4 shadow overflow-hidden">
           {/* 상단 헤더 */}
@@ -317,7 +318,7 @@ function EmpDetail({empNum: propEmpNum, onBack}) {
             {/* 기본 정보 */}
             <section
               className="mb-4 p-3 rounded-3"
-              style={{ backgroundColor: "#f8f9fa" }}
+              style={{ backgroundColor: "#eef3ff" }}
             >
               <h5 className="fw-semibold mb-3">기본 정보</h5>
               <table className="table table-borderless align-middle text-secondary mb-0">
@@ -438,7 +439,8 @@ function EmpDetail({empNum: propEmpNum, onBack}) {
               </table>
 
               <div>
-                <label className="form-label small text-secondary">메모</label>
+                <br />
+                <h5 className="form-label medium fw-semibold">메모</h5>
                 {isEditMode ? (
                   <textarea
                     name="empMemo"
@@ -459,9 +461,8 @@ function EmpDetail({empNum: propEmpNum, onBack}) {
             </section>
 
             {/* 회원 정보 */}
-            <section className="p-3 rounded-3" style={{ backgroundColor: "#f8f9fa" }}>
+            <section className="p-3 rounded-3" style={{ backgroundColor: "#eef3ff" }}>
               <h5 className="fw-semibold mb-3">회원 정보</h5>
-
               {mmLoading && <p className="text-muted mb-0">불러오는 중…</p>}
               {mmError && <p className="text-danger mb-0">{mmError}</p>}
 

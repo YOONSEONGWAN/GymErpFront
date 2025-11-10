@@ -7,6 +7,7 @@ import TabSwitcher from '../../components/SharedComponents/TabSwitcher';
 import BinaryRadioGroup from '../../components/SharedComponents/BinaryRadioGroup';
 import AsyncSelect from '../../components/SharedComponents/AsyncSelect';
 import axios from 'axios';
+import { FaUserCircle, FaEdit, FaCalendarAlt, FaTrashAlt, FaSave, FaTimes, FaFolderOpen } from "react-icons/fa";
 
 const PRODUCT_OR_SERVICE = [
     { value: 'PRODUCT', label: '실물 상품' },
@@ -39,7 +40,7 @@ function ProductCreate() {
     const isService = !isProduct;
     const codeAId = isProduct ? 'PRODUCT' : 'SERVICE';
     const isPtService = isService && values.categoryCode === 'PT';
-    const isMembershipService = isService && values.categoryCode === 'MEMBERSHIP';
+    const isMembershipService = isService && values.categoryCode === 'VOUCHER';
 
     const location = useLocation();
     DEFAULT_VALUES.productType = location.state?.defaultTab || 'PRODUCT';
@@ -231,131 +232,147 @@ function ProductCreate() {
             <div className="row justify-content-center">
                 <div className="card col-md-8 col-lg-6">
                     <div className="card-body">
-                        <h1>{isProduct ? '신규 상품 등록 폼' : '신규 서비스 등록 폼'}</h1>
+                        <h4 className="fw-bold mb-4">{isProduct ? '신규 상품 등록' : '신규 서비스 등록'}</h4>
                         <form onSubmit={handleSubmit}>
-                            <TabSwitcher
-                                tabs={PRODUCT_OR_SERVICE}
-                                name="productType"
-                                activeValue={values.productType}
-                                value={values.productType}
-                                onChange={handleTabChange}
-                            />
+                            <div className="mb-3">
+                                <TabSwitcher
+                                    tabs={PRODUCT_OR_SERVICE}
+                                    name="productType"
+                                    activeValue={values.productType}
+                                    value={values.productType}
+                                    onChange={handleTabChange}
+                                    buttonClassName="btn btn-outline-secondary"
+                                    activeButtonClassName="btn btn-outline-secondary active"
+                                    className="btn-group w-50"
+                                />                            
+                            </div>
                             {isProduct &&<>
-                                <label className="form-label d-block">프로필 이미지</label>
-                                <div className="text-center mb-2">
-                                    <div className="text-center mb-2">
-                                        <button href="javascript:" onClick={handleClick} type="button" className="btn btn-link p-0 border-0">
-
-                                            { imageUrl.current && <img src={imageUrl.current}
-                                                className="rounded border"
-                                                style={{width:"100px",height:"100px",objectFit:"cover"}} /> }
-                                        </button>
+                                <div className="mb-3">
+                                    <label className="form-label d-block">프로필 이미지</label>
+                                    <div className="d-flex align-items-center gap-3">
+                                        { imageUrl.current && <img src={imageUrl.current}
+                                            className="rounded border"
+                                            style={{width:"100px",height:"100px",objectFit:"cover"}} /> }
+                                        <input onChange={handleImageChange}
+                                            type="file" name="profileFile" accept="image/*" />                                    
                                     </div>
-                                    <input ref={inputRef} onChange={handleImageChange}
-                                        type="file" className="form-control d-none" name="profileFile" accept="image/*" />
-                                    <div className="form-text">클릭해서 프로필 이미지를 추가하세요.</div>
                                 </div>
                             </>}
-                            <AsyncSelect
-                                label={isProduct ? '상품 분류' : '서비스 분류'}
-                                name="categoryCode"
-                                value={values.categoryCode}
-                                onChange={handleChange}
-                                placeholder={isProduct ? '상품 분류를 선택하세요' : '서비스 분류를 선택하세요'}
-                                endpoint={`/v1/categories/list/${codeAId}`}
-                                mapOption={(row) => ({
-                                    value: row.codeBId != null ? String(row.codeBId) : '',
-                                    label: `${row.codeBName} (${row.codeBId})`,
-                                })}
-                                allowEmptyOption={!values.categoryCode}
-                            />
+                            <div className="mb-3">
+                                <AsyncSelect
+                                    label={isProduct ? '상품 분류 *' : '서비스 분류 *'}
+                                    name="categoryCode"
+                                    value={values.categoryCode}
+                                    onChange={handleChange}
+                                    placeholder={isProduct ? '상품 분류를 선택하세요' : '서비스 분류를 선택하세요'}
+                                    endpoint={`/v1/categories/list/${codeAId}`}
+                                    mapOption={(row) => ({
+                                        value: row.codeBId != null ? String(row.codeBId) : '',
+                                        label: `${row.codeBName} (${row.codeBId})`,
+                                    })}
+                                    allowEmptyOption={!values.categoryCode}
+                                />
+                            </div>
 
-                            <TextField
-                                label={isProduct ? '상품명' : '서비스명'}
-                                name={isProduct ? 'productName' : 'serviceName'} // 서비스명을 별도 필드로 저장
-                                value={isProduct ? values.productName : values.serviceName}
-                                onChange={handleChange}
-                                placeholder={isProduct ? '상품명을 입력하세요' : '서비스명을 입력하세요'}
-                            />
+                            <div className="mb-3">
+                                <TextField
+                                    label={isProduct ? '상품명 *' : '서비스명 *'}
+                                    name={isProduct ? 'productName' : 'serviceName'} // 서비스명을 별도 필드로 저장
+                                    value={isProduct ? values.productName : values.serviceName}
+                                    onChange={handleChange}
+                                    placeholder={isProduct ? '상품명을 입력하세요' : '서비스명을 입력하세요'}
+                                />
+                            </div>
 
-                            <TextField
-                                label="판매가"
-                                name="salePrice"
-                                type="number"
-                                value={values.salePrice}
-                                onChange={handleChange}
-                                placeholder='원 단위 숫자만 입력하세요'
-                                inputProps={{ min: 0 }}
-                            />
+                            <div className="mb-3">
+                                <TextField
+                                    label="판매가 *"
+                                    name="salePrice"
+                                    type="number"
+                                    value={values.salePrice}
+                                    onChange={handleChange}
+                                    placeholder='원 단위 숫자만 입력하세요'
+                                    inputProps={{ min: 0 }}
+                                />
+                            </div>
 
-                            <BinaryRadioGroup
-                                label="판매 상태"
-                                name="saleStatus"
-                                value={values.saleStatus}
-                                onChange={handleChange}
-                                options={[
-                                    { value: 'ACTIVE', label: '판매중' },
-                                    { value: 'INACTIVE', label: '판매중지' },
-                                ]}
-                            />
+                            <div className="mb-3">
+                                <BinaryRadioGroup
+                                    label="판매 상태 *"
+                                    name="saleStatus"
+                                    value={values.saleStatus}
+                                    onChange={handleChange}
+                                    options={[
+                                        { value: 'ACTIVE', label: '판매중' },
+                                        { value: 'INACTIVE', label: '판매중지' },
+                                    ]}
+                                />
+                            </div>
 
                             {isPtService && (
-                                <TextField
-                                    label="서비스 이용 횟수"
-                                    name="serviceSessionCount"
-                                    type="number"
-                                    value={values.serviceSessionCount}
-                                    onChange={handleChange}
-                                    placeholder="예: 10 (PT 회차)"
-                                    inputProps={{ min: 0 }}
-                                    helpText="PT 상품일 때만 입력합니다."
-                                />
+                                <div className="mb-3">
+                                    <TextField
+                                        label="서비스 이용 횟수 *"
+                                        name="serviceSessionCount"
+                                        type="number"
+                                        value={values.serviceSessionCount}
+                                        onChange={handleChange}
+                                        placeholder="예: 10 (PT 회차)"
+                                        inputProps={{ min: 0 }}
+                                        helpText="PT 상품일 때만 입력합니다."
+                                    />
+                                </div>
                             )}
 
                             {isMembershipService && (
-                                <TextField
-                                    label="서비스 이용 기간(일)"
-                                    name="serviceDurationDays"
-                                    type="number"
-                                    value={values.serviceDurationDays}
-                                    onChange={handleChange}
-                                    placeholder="예: 30 (이용권 일수)"
-                                    inputProps={{ min: 0 }}
-                                    helpText="이용권 상품일 때만 입력합니다."
-                                />
+                                <div className="mb-3">
+                                    <TextField
+                                        label="서비스 이용 기간(일) *"
+                                        name="serviceDurationDays"
+                                        type="number"
+                                        value={values.serviceDurationDays}
+                                        onChange={handleChange}
+                                        placeholder="예: 30 (이용권 일수)"
+                                        inputProps={{ min: 0 }}
+                                        helpText="이용권 상품일 때만 입력합니다."
+                                    />
+                                </div>
                             )}
 
-                            <TextField
-                                label={isProduct ? '상품 설명' : '서비스 설명'}
-                                name="memo"
-                                value={values.memo}
-                                onChange={handleChange}
-                                placeholder={isProduct ? '상품에 대한 설명을 입력하세요' : '서비스에 대한 설명을 입력하세요'}
-                            />
+                            <div className="mb-3">
+                                <TextField
+                                    label={isProduct ? '상품 설명' : '서비스 설명'}
+                                    name="memo"
+                                    value={values.memo}
+                                    onChange={handleChange}
+                                    placeholder={isProduct ? '상품에 대한 설명을 입력하세요' : '서비스에 대한 설명을 입력하세요'}
+                                />
+                            </div>
 
 
-                            <TextField
-                                label="등록일"
-                                name="createdAt"
-                                type="date"
-                                value={values.createdAt}
-                                onChange={handleChange}
-                                readOnly
-                                helpText="오늘 날짜가 자동 입력됩니다. 필요 시 API에서 덮어쓸 수 있습니다."
-                            />
+                            <div className="mb-4">
+                                <TextField
+                                    label="등록일 *"
+                                    name="createdAt"
+                                    type="date"
+                                    value={values.createdAt}
+                                    onChange={handleChange}
+                                    readOnly
+                                    helpText="오늘 날짜가 자동 입력됩니다. 필요 시 API에서 덮어쓸 수 있습니다."
+                                />
+                            </div>
 
-                            <div className="d-flex justify-content-between gap-2 mt-4">
-                                <button
-                                    type="button"
-                                    className="btn btn-outline-secondary"
-                                    onClick={handleReset}
-                                >
-                                    초기화
-                                </button>
-                                <div className="d-flex gap-2">
+                            <div className="d-flex justify-content-end gap-2 mt-4">
                                     <button
                                         type="button"
-                                        className="btn btn-outline-danger"
+                                        className="btn btn-outline-secondary"
+                                        onClick={handleReset}
+                                    >
+                                        초기화
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="btn btn-secondary"
                                         onClick={handleCancel}
                                     >
                                         목록으로
@@ -367,7 +384,6 @@ function ProductCreate() {
                                     >
                                         {submitting ? '등록 중...' : '등록'}
                                     </button>
-                                </div>
                             </div>
                         </form>
                     </div>
