@@ -85,6 +85,15 @@
 /* 월/주/일 공통: 오늘 날짜 배경 */
 .rbc-calendar .rbc-today,
 .rbc-month-view .rbc-day-bg.rbc-today {
-  background-color: #d8ecff !important;  
+  background-color: #e0edfa !important;  
 }
 
+.rbc-legend-dot{
+  width:12px; height:12px; border-radius:3px;
+  border:1px solid rgba(0,0,0,.15);
+}
+.rbc-legend-item{ color:#555; }
+@media (prefers-color-scheme: dark){
+  .rbc-legend-item{ color:#1d1d1e; }
+  .rbc-legend-dot{ border-color:rgba(255,255,255,.22); }
+}
