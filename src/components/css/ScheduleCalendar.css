@@ -85,6 +85,39 @@
 /* 월/주/일 공통: 오늘 날짜 배경 */
 .rbc-calendar .rbc-today,
 .rbc-month-view .rbc-day-bg.rbc-today {
-  background-color: #d8ecff !important;  
+  background-color: #e0edfa !important;  
 }
 
+
+.rbc-legend-dot{
+  width:12px; height:12px; border-radius:3px;
+  border:1px solid rgba(0,0,0,.15);
+}
+.rbc-legend-item{ color:#555; }
+@media (prefers-color-scheme: dark){
+  .rbc-legend-item{ color:#1d1d1e; }
+  .rbc-legend-dot{ border-color:rgba(255,255,255,.22); }
+}
+/* 공통 요일 헤더 배경/글자색 */
+.jb-cal .rbc-month-view .rbc-header,
+.jb-cal .rbc-time-header .rbc-header {
+  background: #ffffff;   /* 요일 배경 */
+  color: #000000;        /* 일요일 제외 글자 */
+  font-weight: 700;
+  border-bottom: 1px solid #d6e2ff;
+}
+
+/* 일요일/토요일 포인트 컬러 (월/주/일 공통) */
+.jb-cal .rbc-month-view .rbc-header:nth-child(1),
+.jb-cal .rbc-time-header .rbc-time-header-content .rbc-row .rbc-header:nth-child(1) {
+  color: #d32f2f;        /* 일요일 */
+}
+.jb-cal .rbc-month-view .rbc-header:nth-child(7),
+.jb-cal .rbc-time-header .rbc-time-header-content .rbc-row .rbc-header:nth-child(7) {
+  color: #1976d2;        /* 토요일 */
+}
+
+/* 라운딩/여백(선택) */
+.jb-cal .rbc-month-view .rbc-header {
+  padding: 8px 0;
+}
