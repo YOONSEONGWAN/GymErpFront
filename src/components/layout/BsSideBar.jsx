@@ -97,13 +97,13 @@ export default function BsSideBar() {
           {/* 회원 */}
           <DropdownMenu icon="people-fill" title="회원">
             <SubMenuItem to="/member" icon="table" text="회원목록" />
-          </DropdownMenu>        
+          </DropdownMenu>
 
           {/* 판매 */}
           <DropdownMenu icon="graph-up" title="판매">
             <SubMenuItem to="/sales/salesitemlist" icon="receipt" text="상품 판매내역" />
-            <SubMenuItem to="/sales/salesservicecreate" icon="cart" text="서비스 판매등록" />
             <SubMenuItem to="/sales/salesservicelist" icon="receipt" text="서비스 판매내역" />
+            <SubMenuItem to="/sales/salesservicecreate" icon="cart" text="서비스 판매등록" />
           </DropdownMenu>
 
           {/* 상품관리 */}
