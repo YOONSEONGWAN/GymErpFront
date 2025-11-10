@@ -1,6 +1,6 @@
 // src/pages/Home.jsx
 import React, { useEffect, useState } from "react";
-import "../styles/dashboard.css";
+import "../components/css/dashboard.css";
 import { fetchDashboardKpis } from "../api/dashboard";
 import { fmtInt, fmtKRW } from "../utils/numfmt";
 
@@ -78,53 +78,13 @@ useEffect(() => {
           ))}
         </div>
 
-        {/* 이하 동일 */}
-        <div className="row row-cols-1 row-cols-xl-2 g-4">
-          <div className="col">
-            <div className="glass soft-shadow">
-              <div className="card-head">
-                <div className="card-title">AI 회원 수 예측</div>
-              </div>
-              <div className="card-body dashboard-sizer ai-tall">
-                <AiMemberPredictionChart />
-              </div>
-            </div>
-          </div>
-
-          <div className="col">
-            <div className="glass soft-shadow">
-              <div className="card-head">
-                <div className="card-title">AI 매출 예측</div>
-              </div>
-              <div className="card-body dashboard-sizer ai-tall">
-                <AiSalesPredictionChart />
-              </div>
-            </div>
-          </div>
-
-          <div className="col">
-            <div className="glass soft-shadow">
-              <div className="card-head">
-                <div className="card-title">총 매출</div>
-              </div>
-              <div className="card-body dashboard-sizer">
-                <TotalSalesChart />
-              </div>
-            </div>
-          </div>
-
-          <div className="col">
-            <div className="glass soft-shadow">
-              <div className="card-head">
-                <div className="card-title">트레이너 성과</div>
-              </div>
-              <div className="card-body dashboard-sizer">
-                <TrainerPerformanceChart />
-              </div>
-            </div>
-          </div>
+        
+        <div className="chart-stack">
+          <AiMemberPredictionChart />
+          <AiSalesPredictionChart />
+          <TotalSalesChart />
+          <TrainerPerformanceChart />
         </div>
-
       </div>
     </div>
   );

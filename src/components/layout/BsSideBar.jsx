@@ -94,19 +94,10 @@ export default function BsSideBar() {
             <SubMenuItem to="/attendance/my" icon="clock-history"   text="출퇴근관리" />
           </DropdownMenu>
 
+          {/* 회원 */}
           <DropdownMenu icon="people-fill" title="회원">
             <SubMenuItem to="/member" icon="table" text="회원목록" />
-          </DropdownMenu>
-
-          <DropdownMenu icon="people-fill" title="상품관리">
-            <SubMenuItem to="/product" icon="cart-plus" text="상품목록" />
-            <SubMenuItem to="/stock" icon="cart-plus" text="재고현황" />
-          </DropdownMenu>           
-
-          {/* 회원 */}
-          <DropdownMenu icon="person-lines-fill" title="회원">
-            <SubMenuItem to="/member" icon="card-list" text="회원목록" />
-          </DropdownMenu>
+          </DropdownMenu>        
 
           {/* 판매 */}
           <DropdownMenu icon="graph-up" title="판매">
