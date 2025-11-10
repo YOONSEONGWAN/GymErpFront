@@ -24,17 +24,8 @@ function CustomToolbar({ date, label, onNavigate, onView, isAdmin = false, onAdm
           <div className="month-title">{monthLabel}</div>
         </div>
 
-        {/* 보기 전환 + (옵션) 관리자 버튼 */}
+        {/* 보기 전환*/}
         <div className="d-flex align-items-center">
-          {isAdmin && (
-            <button
-              className="btn btn-danger btn-sm me-2"
-              onClick={onAdminTest}
-              title="관리자만 보임(테스트)"
-            >
-              관리자 테스트
-            </button>
-          )}
           <div className="btn-group">
             <button className="btn btn-outline-secondary btn-sm" onClick={() => onView("month")}>Month</button>
             <button className="btn btn-outline-secondary btn-sm" onClick={() => onView("week")}>Week</button>
