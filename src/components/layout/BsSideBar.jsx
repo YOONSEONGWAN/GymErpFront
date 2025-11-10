@@ -110,7 +110,7 @@ export default function BsSideBar() {
           {/* 상품관리 */}
           <DropdownMenu icon="box-seam" title="상품관리">
             <SubMenuItem to="/product"        icon="box-seam" text="상품목록" />
-            <SubMenuItem to="/stock/inbound"  icon="boxes"    text="재고현황" />
+            <SubMenuItem to="/stock"  icon="boxes"    text="재고현황" />
           </DropdownMenu>
 
           {/* 게시판 */}
