@@ -24,7 +24,7 @@ function CustomToolbar({ date, label, onNavigate, onView, isAdmin = false, onAdm
           <div className="month-title">{monthLabel}</div>
         </div>
 
-        {/* 보기 전환 + (옵션) 관리자 버튼 */}
+        {/* 보기 전환*/}
         <div className="d-flex align-items-center">
           <div className="btn-group">
             <button className="btn btn-outline-secondary btn-sm" onClick={() => onView("month")}>Month</button>

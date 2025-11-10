@@ -43,6 +43,8 @@ function ScheduleCalendar({
 
   return (
     <Calendar
+    //2025-11-10 추가함
+    className="jb-cal"           // ← 스코프용 클래스
       localizer={localizer}
       culture="ko"
       events={events}

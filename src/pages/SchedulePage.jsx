@@ -42,6 +42,7 @@ const legendItems = [
   { key: "ETC-COMPETITION", label: "대회",  color: codeColor("ETC-COMPETITION") },
 ];
 
+
 function mapToEvents(list = []) {
   return list.map((e) => {
     const label = typeMap[e.codeBid] || e.codeBName || "일정";
@@ -332,8 +333,8 @@ export default function SchedulePage() {
             selectedEvent.codeBid === "VACATION"
               ? "vacation"
               : selectedEvent.codeBid?.startsWith("ETC")
-              ? "etc"
-              : "pt"
+                ? "etc"
+                : "pt"
           }
           empNum={selectedEvent.empNum}
           empName={selectedEvent.empName}
@@ -398,8 +399,13 @@ function AdminSearchBar({ onSearch, isAdmin = false }) {
         </Col>
         <Col md="auto">
           <div className="d-flex gap-2">
-            <Button type="submit" variant="primary">검색</Button>
-            <Button type="button" variant="secondary" onClick={reset}>초기화</Button>
+            <Button type="submit" className="btn-slate">
+              <i className="bi bi-search" />검색
+            </Button>
+
+            <Button type="button" className="btn-ghost-gray" onClick={reset}>
+              <i className="bi bi-arrow-counterclockwise" />초기화
+            </Button>
           </div>
         </Col>
       </Row>
