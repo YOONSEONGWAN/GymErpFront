@@ -1,10 +1,10 @@
-// src/pages/EmpAttendance/myAttendance.jsx
+// src/pages/EmpAttendance.jsx
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { Alert, Button, Table, Badge } from "react-bootstrap";
 import axios from "axios";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import "./attendance.css";
-import Pagination from "../../components/Pagination";
+import "../components/css/EmpAttendance.css";
+import Pagination from "../components/Pagination";
 
 const api = axios.create({ baseURL: "/api/v1", withCredentials: true });
 
