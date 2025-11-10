@@ -1,6 +1,7 @@
 // src/pages/Login.jsx
 
 import '../styles/floating-input.css';
+import api from "../api/axiosConfig.js";
 
 import axios from 'axios';
 import React, { useState } from 'react';
@@ -24,17 +25,11 @@ function Login() {
         setLoading(true);
 
         try {
-            // api 서버에 로그인 요청 보내기
-            const response = await axios.post("/v1/emp/login",
+            // api 서버에 로그인 요청 보내기\
+            const response = await api.post("/v1/emp/login",
                 {
                     empEmail : empEmail,
                     password: password
-                },
-                {
-                    withCredentials: true,
-                    headers: {
-                        "Content-Type": "application/json"
-                    }
                 }
             );
             console.log(response.data);

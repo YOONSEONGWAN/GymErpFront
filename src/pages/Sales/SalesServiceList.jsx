@@ -4,9 +4,7 @@ import axios from "axios";
 import Pagination from "../../components/Pagination";
 import { FaSearch } from "react-icons/fa";
 import MemberSearchModal from "../../components/MemberSearchModal";
-import EmpModal from "../../components/EmpModal";
-
-  // axios.defaults.baseURL = "";
+import EmpSearchModal from "../../components/EmpSearchModal";
 
 function SalesServiceList() {
   const [salesList, setSalesList] = useState([]);
@@ -394,13 +392,20 @@ function SalesServiceList() {
             onHide={() => setShowMemberModal(false)}
             onSelect={handleSelectMember}
           />
-          <EmpModal
+          <EmpSearchModal
             show={showEmpModal}
-            onClose={() => setShowEmpModal(false)}
-            onSuccess={() => {
+            onHide={() => setShowEmpModal(false)}
+            onSuccess={(selected) => {
+              if (selected && selected.length > 0) {
+                const emp = selected[0];
+                handleSelectEmp(emp); // ✅ 이름 반영
+              }
               setShowEmpModal(false);
-              fetchSalesList();
             }}
+            selectedEmp={{
+              empNum: filters.employee,
+              empName: filters.employeeName,
+            }} // ✅ 이전 선택 유지
           />
         </div>
       </main>
