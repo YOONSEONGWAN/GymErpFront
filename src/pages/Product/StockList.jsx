@@ -203,7 +203,7 @@ function StockList() {
                         <table className="table table-sm text-center">
                             <thead className="table-light"><tr><th>날짜</th><th>수량</th></tr></thead>
                             <tbody>
-                                {inboundPageInfo.list.map(item => <tr key={`in-${item.stockInboundId}`}><td>{formatDateTime(item.createdAt)}</td><td>{item.quantity}</td></tr>)}
+                                {inboundPageInfo.list.map(item => <tr key={`in-${item.createdAt}`}><td>{formatDateTime(item.createdAt)}</td><td>{item.quantity}</td></tr>)}
                             </tbody>
                         </table>
                         <Pagination page={inboundPageInfo.pageNum} totalPage={inboundPageInfo.totalPageCount} onPageChange={inboundPageMove} />
@@ -216,7 +216,7 @@ function StockList() {
                         <table className="table table-sm text-center">
                             <thead className="table-light"><tr><th>날짜</th><th>수량</th><th>사유</th></tr></thead>
                             <tbody>
-                                {outboundPageInfo.list.map(item => <tr key={`out-${item.stockOutboundId}`}><td>{formatDateTime(item.createdAt)}</td><td>{item.quantity}</td><td>{item.notes}</td></tr>)}
+                                {outboundPageInfo.list.map(item => <tr key={`out-${item.createdAt}`}><td>{formatDateTime(item.createdAt)}</td><td>{item.quantity}</td><td>{item.notes}</td></tr>)}
                             </tbody>
                         </table>
                         <Pagination page={outboundPageInfo.pageNum} totalPage={outboundPageInfo.totalPageCount} onPageChange={outboundPageMove} />
