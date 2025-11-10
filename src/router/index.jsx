@@ -17,6 +17,8 @@ import MembersList from "../pages/Members/MembersList.jsx";
 
 // ✅ 상품/재고 관련
 import ProductCreate from "../pages/Product/ProductCreate.jsx";
+import SalesItemList from "../pages/Sales/SalesItemList.jsx";
+import SalesItemCreate from "../pages/Sales/SalesItemCreate.jsx";
 import SalesItemDetail from "../pages/Sales/SalesItemDetail.jsx";
 import ProductUpdate from "../pages/Product/ProductUpdate.jsx";
 import ProductList from "../pages/Product/ProductList.jsx";
@@ -27,6 +29,7 @@ import StockOutbound from "../pages/Product/StockOutbound.jsx";
 
 // ✅ 판매 관련
 import SalesServiceList from "../pages/Sales/SalesServiceList.jsx";
+import SalesServiceCreate from "../pages/Sales/SalesServiceCreate.jsx";
 import SalesServiceEdit from "../pages/Sales/SalesServiceEdit.jsx";
 import SalesServiceDetail from "../pages/Sales/SalesServiceDetail.jsx";
 
