@@ -37,7 +37,7 @@ function EmpDetail({empNum: propEmpNum, onBack}) {
   async function loadEmployee() {
     try {
       if (!empNum) return; // empNum이 undefined일 경우 호출하지 않음
-      const res = await axios.get(`http://localhost:9000/v1/emp/${empNum}`);
+      const res = await axios.get(`/v1/emp/${empNum}`);
       setEmp(res.data);
     } catch (e) {
       console.error("직원 상세조회 실패:", e);

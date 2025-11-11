@@ -17,7 +17,7 @@ export default function PostEdit({ mode }) {
   useEffect(() => {
     if (!isEdit || !postId) return;
     axios
-      .get(`http://localhost:9000/v1/post/${postId}`, { params: { inc: false } })
+      .get(`/v1/post/${postId}`, { params: { inc: false } })
       .then((r) => {
         const v = r.data ?? {};
         setForm({

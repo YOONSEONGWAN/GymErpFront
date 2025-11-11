@@ -62,7 +62,7 @@ export default function PostView() {
     }
     try {
       setDeleting(true);
-      await axios.delete(`http://localhost:9000/v1/post/${postId}`);
+      await axios.delete(`/v1/post/${postId}`);
       setSuccess({ show: true, msg: "삭제되었습니다." });
     } catch (e) {
       console.error(e);
