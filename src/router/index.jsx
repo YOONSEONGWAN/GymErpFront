@@ -1,5 +1,6 @@
 // src/router/index.jsx
 import { createHashRouter } from "react-router-dom";
+import { createBrowserRouter, createHashRouter } from "react-router-dom";
 
 import App from "../App.jsx";
 import ProtectedRoute from "../components/ProtectedRoute.jsx";
@@ -44,9 +45,6 @@ import MemberDetail from "../pages/Members/MemberDetail.jsx";
 // ✅ 그래프 테스트
 import GraphTest from "../pages/GraphTest.jsx";
 import EmpAttendance from "../pages/EmpAttendance.jsx";
-
-
-
 
 const router = createHashRouter([
 
