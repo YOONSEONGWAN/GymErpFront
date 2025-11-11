@@ -32,6 +32,8 @@ import SalesServiceList from "../pages/Sales/SalesServiceList.jsx";
 import SalesServiceCreate from "../pages/Sales/SalesServiceCreate.jsx";
 import SalesServiceEdit from "../pages/Sales/SalesServiceEdit.jsx";
 import SalesServiceDetail from "../pages/Sales/SalesServiceDetail.jsx";
+import SalesPtList from "../pages/Sales/SalesPtList.jsx";
+import SalesVoucherList from "../pages/Sales/SalesVoucherList.jsx";
 
 // ✅ 게시판 관련
 import PostList from "../pages/PostList.jsx";
@@ -42,6 +44,7 @@ import MemberDetail from "../pages/Members/MemberDetail.jsx";
 
 // ✅ 그래프 테스트
 import GraphTest from "../pages/GraphTest.jsx";
+
 
 
 
@@ -109,6 +112,8 @@ const router = createBrowserRouter([
       // { path: "member/edit/:memNum", element: <MemberEdit /> },
       { path: "sales/salesserviceedit/:id", element: <SalesServiceEdit /> },
       { path: "sales/salesservicedetail/:id", element: <SalesServiceDetail /> },
+      { path: "sales/salesptlist", element: <SalesPtList /> },
+      { path: "sales/salesvoucherlist", element: <SalesVoucherList /> },
 
       // 게시판
       { path: "post", element: <PostList /> },
