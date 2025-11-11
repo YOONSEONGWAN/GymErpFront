@@ -95,7 +95,7 @@ useEffect(() => {
           <div className="col">
             <div className="glass soft-shadow">
               
-              <div className="card-body dashboard-sizer ai-tall">
+              <div className="card-body dashboard-sizer ai-tall" >
                 <MemberVoucherPtStatusChart />
                 
               </div>
@@ -106,7 +106,7 @@ useEffect(() => {
           <div className="col">
             <div className="glass soft-shadow">
              
-              <div className="card-body dashboard-sizer">
+              <div className="card-body dashboard-sizer" style={{ height: "460px" }}>
                 <TotalSalesChart />
               </div>
             </div>
@@ -115,7 +115,7 @@ useEffect(() => {
           <div className="col">
             <div className="glass soft-shadow">
               
-              <div className="card-body dashboard-sizer">
+              <div className="card-body dashboard-sizer" style={{ height: "460px" }}>
                 <TrainerPerformanceChart />
               </div>
             </div>
