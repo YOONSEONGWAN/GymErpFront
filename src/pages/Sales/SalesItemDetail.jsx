@@ -5,10 +5,9 @@ import { useLocation, useNavigate, useParams, useSearchParams } from "react-rout
 import axios from "axios";
 import SalesItemSearchModal from "../../components/SalesItemSearchModal";
 
-const API_BASE = "http://localhost:9000";
-const DETAIL_API  = (id) => `${API_BASE}/v1/sales/products/${id}`;
-const UPDATE_API  = (id) => `${API_BASE}/v1/sales/products/${id}`;
-const DELETE_API  = (id) => `${API_BASE}/v1/sales/products/${id}`;
+const DETAIL_API  = (id) => `/v1/sales/products/${id}`;
+const UPDATE_API  = (id) => `/v1/sales/products/${id}`;
+const DELETE_API  = (id) => `/v1/sales/products/${id}`;
 
 export default function SalesItemDetail() {
   const navigate = useNavigate();

@@ -54,7 +54,7 @@ function SalesItemCreate() {
 
     try {
       // ✅ 엔드포인트 확인: /v1/sales/products
-      await axios.post("http://localhost:9000/v1/sales/products", salesItemData);
+      await axios.post("/v1/sales/products", salesItemData);
 
       alert("판매 내역이 성공적으로 등록되었습니다.");
       navigate("/sales/salesitemlist"); // 등록 후 목록으로 이동

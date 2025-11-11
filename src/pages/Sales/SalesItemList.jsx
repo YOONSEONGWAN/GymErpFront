@@ -6,9 +6,6 @@ import Pagination from '../../components/Pagination';
 import EmpSearchModal from '../../components/EmpSearchModal';
 import SalesServiceSearchModal from '../../components/SalesServiceSearchModal';
 
-const API_BASE = 'http://localhost:9000';
-const LIST_API = `${API_BASE}/v1/sales/products`;
-
 // empEmail을 목록 표시용으로 사용
 const normalizeRow = (row, fallbackIndex) => {
   const id = row.itemSalesId ?? fallbackIndex;
@@ -36,7 +33,7 @@ const fetchSalesData = async (filter) => {
   if (filter.empNum) params.empNum = filter.empNum;
   if (filter.keyword) params.productNameKeyword = filter.keyword;
 
-  const res = await axios.get(LIST_API, { params });
+  const res = await axios.get("/v1/sales/products", { params });
 
   const pageSize = Number(res.data?.pageSize ?? filter.size ?? 10);
   const totalCount = Number(res.data?.totalCount ?? 0);
