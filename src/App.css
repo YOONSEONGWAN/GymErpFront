@@ -30,3 +30,12 @@ body { margin: 0; }
   background-color: #ffb74d !important; /* 선택된 상품 행을 또렷한 오렌지로 강조 */
   color: #212529;
 }
+
+.stock-form-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  padding: 1.5rem 1.5rem 1rem;
+  border-bottom: 1px solid #e9ecef;
+  color: #212529;
+}

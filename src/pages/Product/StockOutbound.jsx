@@ -58,6 +58,7 @@ function StockOutbound() {
 
                     {/* 4. 메인 폼 (와이어프레임 [1]번, [2]번) */}
                     <div className="card shadow-sm border-0">
+                        <h1 className="stock-form-title">상품 출고 등록</h1>
 
                         <div className="mb-3 row align-items-center mt-3 me-3 ms-2">
                             <label htmlFor="name" className="col-sm-3 col-form-label text-md-end">
