@@ -2,7 +2,7 @@
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import './App.css';
-import "./styles/detail-pane.css";
+import "./components/css/detail-pane.css";
 import { useOutlet } from 'react-router-dom';
 import BsNavBar from './components/layout/BsNavBar';
 import BsSideBar from './components/layout/BsSideBar';
@@ -29,30 +29,10 @@ export default function App() {
         <BsSideBar />
       </aside>
 
-      {/* 우측 상단: 네비바 (사이드바 오른쪽부터) */}
-      <header
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: SIDEBAR_W,   // ← 사이드바 오른쪽부터 시작
-          right: 0,
-          height: NAVBAR_H,
-          zIndex: 1040,      // 사이드바보다 낮게 두고 싶으면 1020 정도로
-          background: 'var(--bs-secondary)', // ← 네비바 배경은 header가 칠함
-          overflow: 'visible' // ← 네비바 내부 배경이 새어나가지 않게
-        }}
-      >
-        <BsNavBar />  {/* 이 컴포넌트는 투명 배경으로 바꿀 거임 */}
-      </header>
-
       {/* 본문: 사이드바 만큼 오른쪽, 네비바 만큼 아래로 오프셋 */}
       <main
         style={{
           marginLeft: SIDEBAR_W,
-          paddingTop: NAVBAR_H,
-          minHeight: '100vh',
-          backgroundColor: '#f8f9fa',
-          overflowX: 'hidden',
         }}
       >
         <div className="container-fluid py-3">
