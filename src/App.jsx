@@ -50,6 +50,9 @@ export default function App() {
         style={{
           marginLeft: SIDEBAR_W,
           paddingTop: NAVBAR_H,
+          minHeight: '100vh',
+          backgroundColor: '#f8f9fa',
+          overflowX: 'hidden',
         }}
       >
         <div className="container-fluid py-3">
