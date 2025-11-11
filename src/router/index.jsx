@@ -8,7 +8,6 @@ import Home from "../pages/Home.jsx";
 import EmpList from "../pages/EmpList.jsx";
 import EmpDetail from "../pages/EmpDetail.jsx";
 import EmpEdit from "../pages/EmpEdit.jsx";
-import EmpAttendanceMy from "../pages/EmpAttendance/myAttendance.jsx";
 import SchedulePage from "../pages/SchedulePage.jsx";
 
 
@@ -17,6 +16,8 @@ import MembersList from "../pages/Members/MembersList.jsx";
 
 // ✅ 상품/재고 관련
 import ProductCreate from "../pages/Product/ProductCreate.jsx";
+import SalesItemList from "../pages/Sales/SalesItemList.jsx";
+import SalesItemCreate from "../pages/Sales/SalesItemCreate.jsx";
 import SalesItemDetail from "../pages/Sales/SalesItemDetail.jsx";
 import ProductUpdate from "../pages/Product/ProductUpdate.jsx";
 import ProductList from "../pages/Product/ProductList.jsx";
@@ -26,8 +27,6 @@ import StockInbound from "../pages/Product/StockInbound.jsx";
 import StockOutbound from "../pages/Product/StockOutbound.jsx";
 
 // ✅ 판매 관련
-import SalesItemList from "../pages/Sales/SalesItemList.jsx";
-import SalesItemCreate from "../pages/Sales/SalesItemCreate.jsx";
 import SalesServiceList from "../pages/Sales/SalesServiceList.jsx";
 import SalesServiceCreate from "../pages/Sales/SalesServiceCreate.jsx";
 import SalesServiceEdit from "../pages/Sales/SalesServiceEdit.jsx";
@@ -44,6 +43,7 @@ import MemberDetail from "../pages/Members/MemberDetail.jsx";
 
 // ✅ 그래프 테스트
 import GraphTest from "../pages/GraphTest.jsx";
+import EmpAttendance from "../pages/EmpAttendance.jsx";
 
 
 
@@ -78,7 +78,7 @@ const router = createBrowserRouter([
       { path: "emp", element: <EmpList /> },
       { path: "emp/:empNum", element: <EmpDetail /> },
       { path: "emp/edit/:empNum", element: <EmpEdit /> },
-      { path: "attendance/my", element: <EmpAttendanceMy /> },
+      {path:"attendance/my", element:<EmpAttendance />},
       { path: "schedule", element: <SchedulePage /> },
 
       // 회원

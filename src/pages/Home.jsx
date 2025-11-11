@@ -1,6 +1,6 @@
 // src/pages/Home.jsx
 import React, { useEffect, useState } from "react";
-import "../styles/dashboard.css";
+import "../components/css/dashboard.css";
 import { fetchDashboardKpis } from "../api/dashboard";
 import { fmtInt, fmtKRW } from "../utils/numfmt";
 
@@ -24,7 +24,7 @@ useEffect(() => {
     try {
       const kRaw = await fetchDashboardKpis();
       
-      // ✨ kRaw 객체의 속성 하나하나를 강제로 로그 찍어보기
+      // kRaw 객체의 속성 하나하나를 강제로 로그 찍어보기
       console.log("Raw activeMembers value:", kRaw.activeMembers, typeof kRaw.activeMembers);
       
       const k = {
@@ -34,7 +34,7 @@ useEffect(() => {
         mtdRevenue: Number(kRaw.mtdRevenue)
       };
       
-      // ✨ 변환된 k 객체의 속성 하나하나를 강제로 로그 찍어보기
+      // 변환된 k 객체의 속성 하나하나를 강제로 로그 찍어보기
       console.log("Processed activeMembers value:", k.activeMembers, typeof k.activeMembers);
 
       setKpi(k);
@@ -85,17 +85,14 @@ useEffect(() => {
 
         <div className="col">
             <div className="glass soft-shadow">
-             
               <div className="card-body dashboard-sizer ai-tall">
                 <AiMemberPredictionChart />
-                
               </div>
             </div>
           </div>
 
           <div className="col">
             <div className="glass soft-shadow">
-              
               <div className="card-body dashboard-sizer ai-tall" >
                 <MemberVoucherPtStatusChart />
                 
@@ -106,7 +103,6 @@ useEffect(() => {
 
           <div className="col">
             <div className="glass soft-shadow">
-             
               <div className="card-body dashboard-sizer" style={{ height: "460px" }}>
                 <TotalSalesChart />
               </div>
@@ -115,14 +111,12 @@ useEffect(() => {
 
           <div className="col">
             <div className="glass soft-shadow">
-              
               <div className="card-body dashboard-sizer" style={{ height: "460px" }}>
                 <TrainerPerformanceChart />
               </div>
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );

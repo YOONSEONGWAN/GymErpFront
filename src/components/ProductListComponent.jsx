@@ -2,6 +2,7 @@ import React from 'react';
 import Pagination from './Pagination';
 
 
+function ProductListComponent({ pageInfo, onPageChange, onToggleChange, columns, onRowClick, onSort, sortConfig, selectedRowId }) {
 function ProductListComponent({ pageInfo, onPageChange, onToggleChange, columns, onRowClick, onSort, sortConfig, loading }) {
 
     const getSortIcon = (key) => {
@@ -52,7 +53,10 @@ function ProductListComponent({ pageInfo, onPageChange, onToggleChange, columns,
                                 // '활성화' 컬럼(isActive)은 정렬하지 않도록 예외 처리
                                 onClick={col.key !== 'isActive' ? () => onSort(col.key) : null}
                                 // 정렬 가능한 컬럼에만 커서 포인터 표시
-                                style={col.key !== 'isActive' ? { cursor: 'pointer' } : {}}
+                                style={{ 
+                                    whiteSpace: 'nowrap',
+                                    ...(col.key !== 'isActive' && { cursor: 'pointer' })
+                                }}
                             >
                                 {col.label}
                                 {getSortIcon(col.key)} {/* 4. 아이콘 표시 */}
@@ -88,5 +92,6 @@ function ProductListComponent({ pageInfo, onPageChange, onToggleChange, columns,
         </>
     );
 }
+}
 
-export default ProductListComponent;
+export default ProductListComponent;       
