@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import SalesItemSearchModal from "../../components/SalesItemSearchModal";
+import { FaSearch } from "react-icons/fa";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
@@ -111,41 +112,46 @@ function SalesItemCreate() {
 
   return (
     <div
-      className="d-flex"
+      className="d-flex justify-content-center align-items-start"
       style={{
-        minHeight: '100vh',
-        width: '100%',
-        backgroundColor: '#f8f9fa',
-        overflowX: 'hidden',
+        minHeight: "100vh",
+        width: "100%",
+        backgroundColor: "#f8f9fa",
+        overflowX: "hidden",
+        paddingTop: "60px",
       }}
     >
-      <main
-        className="flex-grow-1 d-flex justify-content-center align-items-center"
-        style={{ padding: '40px 20px', boxSizing: 'border-box' }}
+      <div
+        style={{
+          width: "1200px",
+          zoom: "1.15",
+          transformOrigin: "top center",
+          overflow: "visible",
+        }}
       >
         <div
-          className="content-wrapper"
+          className="container"
           style={{
-            width: '100%',
-            maxWidth: '900px',
-            backgroundColor: '#fff',
-            borderRadius: '10px',
-            padding: '70px 30px',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
-            boxSizing: 'border-box',
-          marginBottom: '25vh',
+            maxWidth: "900px",
+            overflow: "visible",
           }}
         >
-          <h2 className="border-bottom pb-2 mb-4 fw-bold">
-            상품 판매 등록
-            <br />
-            <br />
-          </h2>
+          <h4 className="fw-bold mb-5 text-center">상품 판매 등록</h4>
 
-          <form onSubmit={handleSubmit} className="border rounded-4 shadow-sm overflow-hidden mt-4">
-            <table className="table m-0 align-middle text-center">
+          <form
+            onSubmit={handleSubmit}
+            className="border rounded-4 shadow-sm overflow-hidden mt-4 bg-white"
+            style={{
+              overflow: "visible",
+            }}
+          >
+            <table
+              className="table table-striped m-0 align-middle text-center"
+              style={{
+                overflow: "visible",
+              }}
+            >
               <tbody>
-                {/* 상품명: 입력칸 클릭 시 모달 오픈 (MemberList와 동일 패턴) */}
                 <tr>
                   <th className="bg-dark text-white text-center align-middle" style={{ width: "30%" }}>
                     상품명
@@ -158,15 +164,15 @@ function SalesItemCreate() {
                         placeholder="상품 선택"
                         value={form.productName}
                         readOnly
-                        onClick={openProductModal}               // ✅ 입력칸 클릭 → 모달 열기
+                        onClick={openProductModal}
                       />
                       <button
                         type="button"
                         className="btn btn-outline-secondary position-absolute"
                         style={{ right: "calc(50% - 170px - 45px)", height: 38 }}
-                        onClick={openProductModal}               // ✅ 돋보기 버튼 → 모달 열기
+                        onClick={openProductModal}
                       >
-                        <i className="bi bi-search" />
+                        <FaSearch />
                       </button>
                     </div>
                   </td>
@@ -217,14 +223,13 @@ function SalesItemCreate() {
             </div>
           </form>
 
-          {/* ✅ MemberList → MemberModal 과 같은 호출 방식 */}
           <SalesItemSearchModal
             show={isProductModalOpen}
-            onHide={closeProductModal}         // MemberModal의 onClose와 동일
-            onSelect={handleSelectProduct}      // 선택 결과를 부모로 전달
+            onHide={closeProductModal}
+            onSelect={handleSelectProduct}
           />
         </div>
-      </main>
+      </div>
     </div>
   );
 }
