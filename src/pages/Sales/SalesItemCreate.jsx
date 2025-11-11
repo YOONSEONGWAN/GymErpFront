@@ -110,90 +110,121 @@ function SalesItemCreate() {
   };
 
   return (
-    <div className="container mt-5" style={{ maxWidth: 700 }}>
-      <h4 className="fw-bold mb-5 text-start">상품 판매 등록</h4>
+    <div
+      className="d-flex"
+      style={{
+        minHeight: '100vh',
+        width: '100%',
+        backgroundColor: '#f8f9fa',
+        overflowX: 'hidden',
+      }}
+    >
+      <main
+        className="flex-grow-1 d-flex justify-content-center align-items-center"
+        style={{ padding: '40px 20px', boxSizing: 'border-box' }}
+      >
+        <div
+          className="content-wrapper"
+          style={{
+            width: '100%',
+            maxWidth: '900px',
+            backgroundColor: '#fff',
+            borderRadius: '10px',
+            padding: '70px 30px',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+            boxSizing: 'border-box',
+          marginBottom: '25vh',
+          }}
+        >
+          <h2 className="border-bottom pb-2 mb-4 fw-bold">
+            상품 판매 등록
+            <br />
+            <br />
+          </h2>
 
-      <form onSubmit={handleSubmit} className="border rounded-4 shadow-sm overflow-hidden mt-4">
-        <table className="table table-striped m-0 align-middle text-center">
-          <tbody>
-            {/* 상품명: 입력칸 클릭 시 모달 오픈 (MemberList와 동일 패턴) */}
-            <tr>
-              <th className="bg-dark text-white text-center align-middle" style={{ width: "30%" }}>
-                상품명
-              </th>
-              <td className="bg-light align-middle position-relative">
-                <div className="d-flex justify-content-center" style={{ width: 340, margin: "0 auto" }}>
-                  <input
-                    type="text"
-                    className="form-control text-center"
-                    placeholder="상품 선택"
-                    value={form.productName}
-                    readOnly
-                    onClick={openProductModal}               // ✅ 입력칸 클릭 → 모달 열기
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-outline-secondary position-absolute"
-                    style={{ right: "calc(50% - 170px - 45px)", height: 38 }}
-                    onClick={openProductModal}               // ✅ 돋보기 버튼 → 모달 열기
-                  >
-                    <i className="bi bi-search" />
-                  </button>
-                </div>
-              </td>
-            </tr>
+          <form onSubmit={handleSubmit} className="border rounded-4 shadow-sm overflow-hidden mt-4">
+            <table className="table m-0 align-middle text-center">
+              <tbody>
+                {/* 상품명: 입력칸 클릭 시 모달 오픈 (MemberList와 동일 패턴) */}
+                <tr>
+                  <th className="bg-dark text-white text-center align-middle" style={{ width: "30%" }}>
+                    상품명
+                  </th>
+                  <td className="bg-light align-middle position-relative">
+                    <div className="d-flex justify-content-center" style={{ width: 340, margin: "0 auto" }}>
+                      <input
+                        type="text"
+                        className="form-control text-center"
+                        placeholder="상품 선택"
+                        value={form.productName}
+                        readOnly
+                        onClick={openProductModal}               // ✅ 입력칸 클릭 → 모달 열기
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary position-absolute"
+                        style={{ right: "calc(50% - 170px - 45px)", height: 38 }}
+                        onClick={openProductModal}               // ✅ 돋보기 버튼 → 모달 열기
+                      >
+                        <i className="bi bi-search" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
 
-            <tr>
-              <th className="bg-dark text-white text-center align-middle">구분</th>
-              <td className="bg-light align-middle">
-                <input className="form-control text-center mx-auto" style={{ width: 340 }} value={form.productType} readOnly />
-              </td>
-            </tr>
+                <tr>
+                  <th className="bg-dark text-white text-center align-middle">구분</th>
+                  <td className="bg-light align-middle">
+                    <input className="form-control text-center mx-auto" style={{ width: 340 }} value={form.productType} readOnly />
+                  </td>
+                </tr>
 
-            <tr>
-              <th className="bg-dark text-white text-center align-middle">판매 수량</th>
-              <td className="bg-light align-middle">
-                <input
-                  type="number"
-                  min="1"
-                  step="1"
-                  className="form-control text-center mx-auto"
-                  style={{ width: 340 }}
-                  value={form.quantity}
-                  onChange={handleQuantityChange}
-                />
-              </td>
-            </tr>
+                <tr>
+                  <th className="bg-dark text-white text-center align-middle">판매 수량</th>
+                  <td className="bg-light align-middle">
+                    <input
+                      type="number"
+                      min="1"
+                      step="1"
+                      className="form-control text-center mx-auto"
+                      style={{ width: 340 }}
+                      value={form.quantity}
+                      onChange={handleQuantityChange}
+                    />
+                  </td>
+                </tr>
 
-            <tr>
-              <th className="bg-dark text-white text-center align-middle">단가 (원)</th>
-              <td className="bg-light align-middle">
-                <input className="form-control text-center mx-auto" style={{ width: 340 }} value={fmt(form.unitPrice)} readOnly />
-              </td>
-            </tr>
+                <tr>
+                  <th className="bg-dark text-white text-center align-middle">단가 (원)</th>
+                  <td className="bg-light align-middle">
+                    <input className="form-control text-center mx-auto" style={{ width: 340 }} value={fmt(form.unitPrice)} readOnly />
+                  </td>
+                </tr>
 
-            <tr>
-              <th className="bg-dark text-white text-center align-middle">총액 (원)</th>
-              <td className="bg-light align-middle">
-                <input className="form-control text-center mx-auto" style={{ width: 340 }} value={fmt(form.actualAmount)} readOnly />
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                <tr>
+                  <th className="bg-dark text-white text-center align-middle">총액 (원)</th>
+                  <td className="bg-light align-middle">
+                    <input className="form-control text-center mx-auto" style={{ width: 340 }} value={fmt(form.actualAmount)} readOnly />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
 
-        <div className="text-center p-3 bg-white border-top">
-          <button type="submit" className="btn btn-success px-5">
-            등록
-          </button>
+            <div className="text-center p-3 bg-white border-top">
+              <button type="submit" className="btn btn-success px-5">
+                등록
+              </button>
+            </div>
+          </form>
+
+          {/* ✅ MemberList → MemberModal 과 같은 호출 방식 */}
+          <SalesItemSearchModal
+            show={isProductModalOpen}
+            onHide={closeProductModal}         // MemberModal의 onClose와 동일
+            onSelect={handleSelectProduct}      // 선택 결과를 부모로 전달
+          />
         </div>
-      </form>
-
-      {/* ✅ MemberList → MemberModal 과 같은 호출 방식 */}
-      <SalesItemSearchModal
-        show={isProductModalOpen}
-        onHide={closeProductModal}         // MemberModal의 onClose와 동일
-        onSelect={handleSelectProduct}      // 선택 결과를 부모로 전달
-      />
+      </main>
     </div>
   );
 }
