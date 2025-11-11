@@ -48,7 +48,7 @@ export default function PostView() {
     if (!postId) return;
     setLoading(true);
     axios
-      .get(`http://localhost:9000/v1/post/${postId}`, { params: { inc: true } })
+      .get(`/v1/post/${postId}`, { params: { inc: true } })
       .then((res) => setDto(res.data))
       .catch(() => window.alert("상세 조회 실패"))
       .finally(() => setLoading(false));

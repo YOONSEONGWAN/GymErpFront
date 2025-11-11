@@ -34,10 +34,10 @@ export default function PostEdit({ mode }) {
     if (!form.title || !form.content) return alert("제목/내용 필수");
     try {
       if (isEdit) {
-        await axios.put(`http://localhost:9000/v1/post/${postId}`, form);
+        await axios.put(`/v1/post/${postId}`, form);
         nav(`/post/${postId}`);
       } else {
-        const r = await axios.post("http://localhost:9000/v1/post", form);
+        const r = await axios.post("/v1/post", form);
         const newId = r?.data?.id ?? r?.data;
         nav(`/post/${newId}`);
       }

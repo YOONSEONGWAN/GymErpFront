@@ -150,7 +150,7 @@ export default function SchedulePage() {
     if (kw) params.keyword = kw;
     if (codeBid) params.codeBid = codeBid;
 
-    const { data } = await axios.get(`localhost:9000/v1/schedules/search`, { params });
+    const { data } = await axios.get(`/v1/schedules/search`, { params });
 
     const list = data?.list || [];
     const mapped = mapToEvents(list);
