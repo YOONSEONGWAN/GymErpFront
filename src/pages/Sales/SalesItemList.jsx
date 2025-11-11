@@ -6,6 +6,8 @@ import Pagination from '../../components/Pagination';
 import EmpSearchModal from '../../components/EmpSearchModal';
 import SalesServiceSearchModal from '../../components/SalesServiceSearchModal';
 
+const LIST_API = "/v1/sales/products";
+
 // empEmail을 목록 표시용으로 사용
 const normalizeRow = (row, fallbackIndex) => {
   const id = row.itemSalesId ?? fallbackIndex;
