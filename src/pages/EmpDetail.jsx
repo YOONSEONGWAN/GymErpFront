@@ -147,6 +147,7 @@ function EmpDetail({empNum: propEmpNum, onBack}) {
     } else {
       // 3) 일반 수정 → JSON PUT
       await axios.put(`/v1/emp/${empNum}`, { ...emp, removeProfile: false });
+
     }
       alert("직원 정보가 수정되었습니다.");
       setIsEditMode(false);

@@ -4,7 +4,8 @@ import { Modal, Button, Table, Form, Badge, ListGroup, InputGroup } from "react-
 import axios from "axios";
 
 
-const LIST_API = `/v1/modals/employees`;
+const LIST_API = "/v1/modals/employees";
+
 
 export default function EmpSearchModal({
   show,
