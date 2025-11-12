@@ -31,7 +31,7 @@ export default function MemberDetail({ memNum, onBack, onEdit, onDelete }) {
     if (!data?.memProfile) return null;
     return data.memProfile.startsWith('http')
       ? data.memProfile
-      : `${API_BASE}/upload/${data.memProfile}`;
+      : data.memProfile ? `/upload/${encodeURIComponent(data.memProfile)}` : null;
   };
   const profileUrl = getProfileUrl();
 
