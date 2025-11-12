@@ -1,5 +1,4 @@
 // src/router/index.jsx
-import { createHashRouter } from "react-router-dom";
 import { createBrowserRouter, createHashRouter } from "react-router-dom";
 
 import App from "../App.jsx";

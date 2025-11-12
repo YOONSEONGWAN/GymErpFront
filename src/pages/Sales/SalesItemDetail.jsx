@@ -5,9 +5,9 @@ import { useLocation, useNavigate, useParams, useSearchParams } from "react-rout
 import axios from "axios";
 import SalesItemSearchModal from "../../components/SalesItemSearchModal";
 
-const DETAIL_API  = (id) => "/v1/sales/products/${id}";
-const UPDATE_API  = (id) => "/v1/sales/products/${id}";
-const DELETE_API  = (id) => "/v1/sales/products/${id}";
+const DETAIL_API  = (id) => `/v1/sales/products/${id}`;
+const UPDATE_API  = (id) => `/v1/sales/products/${id}`;
+const DELETE_API  = (id) => `/v1/sales/products/${id}`;
 
 export default function SalesItemDetail() {
   const navigate = useNavigate();
@@ -99,6 +99,7 @@ export default function SalesItemDetail() {
       setErr("상세를 표시할 항목 ID가 없습니다.");
       return;
     }
+    console.log("Debug: itemId value is:", itemId); 
     (async () => {
       setErr("");
       setLoading(true);
