@@ -18,19 +18,26 @@ axios.interceptors.request.use(
 
 // 응답 인터셉터 - 세션 만료 처리
 axios.interceptors.response.use(
-    response => response,
-    error => {
-        const { status } = error.response || {};
+  (res) => res,
+  (error) => {
+    const status = error?.response?.status;
 
-        // 401, 403 에러 시 로그인 페이지로 리다이렉트
-        if ((status === 401 || status === 403) && 
-                !window.location.pathname.includes('/login')) {
-            sessionStorage.removeItem('user');
-            window.location.href = '/login';
+    if (status === 401 || status === 403) {
+      const hash = window.location.hash || "#/";
+      const isAtLogin = hash === "#/login" || hash.startsWith("#/login");
+
+      if (!isAtLogin) {
+        // 사용자가 보던 위치 기억(옵션): HashRouter라 hash를 저장
+        sessionStorage.setItem("from", hash.slice(1) || "/");
+        sessionStorage.removeItem("user");
+
+        // ✅ HashRouter로 이동 (서버 경로 X)
+        window.location.replace("/#/login");
+      }
     }
-    
-        return Promise.reject(error);
-    }
+
+    return Promise.reject(error);
+  }
 );
 
 export default axios;

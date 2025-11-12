@@ -75,7 +75,7 @@ function EmpDetail({empNum: propEmpNum, onBack}) {
     if (removeProfile) return null;                 // ← 삭제 예정이면 아이콘 보이도록
     if (preview) return preview;                    // 새 파일 미리보기
     if (emp?.profileImage) {
-      return `/profile/${emp.profileImage}`;
+      return `/upload/${encodeURIComponent(emp.profileImage)}`;
     }
     return null;                                    // DB에 null이면 아이콘 보이도록
   }
