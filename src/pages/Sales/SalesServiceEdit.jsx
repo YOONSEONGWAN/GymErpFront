@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { FaSearch } from "react-icons/fa";
-import MemberSearchModal from "../../components/MemberSearchModal";
 import SalesServiceSearchModal from "../../components/SalesServiceSearchModal";
 
 function SalesServiceEdit() {
@@ -136,15 +135,7 @@ function SalesServiceEdit() {
     }
   };
 
-  // 회원 선택
-  const handleSelectMember = (member) => {
-    setForm((prev) => ({
-      ...prev,
-      memNum: member.memNum,
-      memName: member.memName,
-    }));
-    setShowMemberModal(false);
-  };
+
 
   // 서비스 선택
   const handleSelectService = (service) => {
@@ -234,11 +225,6 @@ function SalesServiceEdit() {
           </h4>
 
           {/* ✅ 모달 */}
-          <MemberSearchModal
-            show={showMemberModal}
-            onHide={() => setShowMemberModal(false)}
-            onSelect={handleSelectMember}
-          />
           <SalesServiceSearchModal
             show={showServiceModal}
             onHide={() => setShowServiceModal(false)}
@@ -311,18 +297,7 @@ function SalesServiceEdit() {
                         value={form.memName}
                         readOnly
                       />
-                      <button
-                        type="button"
-                        className="btn btn-outline-secondary position-absolute"
-                        style={{
-                          right: "calc(50% - 170px - 45px)",
-                          height: "38px",
-                        }}
-                        onClick={() => setShowMemberModal(true)}
-                      >
-                        <FaSearch />
-                      </button>
-                    </div>
+                      </div>
                   </td>
                 </tr>
 
