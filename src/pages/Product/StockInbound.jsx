@@ -1,6 +1,7 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { addHours, format } from 'date-fns';
 
 function StockInbound() {
   const { productId } = useParams();
@@ -8,7 +9,7 @@ function StockInbound() {
   const [state, setState] = useState({
     codeBName: '',
     name: '',
-    date: new Date().toISOString().slice(0, 16), // YYYY-MM-DDTHH:mm 형식
+    date: format(addHours(new Date(), 0), "yyyy-MM-dd'T'HH:mm"), // YYYY-MM-DDTHH:mm 형식
     purchasePrice: '', // 0 대신 빈 문자열이 입력하기 편함
     quantity: '',
     action: 'ADD'

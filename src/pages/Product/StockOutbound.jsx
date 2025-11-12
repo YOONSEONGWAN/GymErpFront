@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import { addHours, format } from 'date-fns';
 
 function StockOutbound() {
     const { productId } = useParams();
@@ -8,7 +9,7 @@ function StockOutbound() {
     const [state, setState] = useState({
         codeBName: '',
         name: '',
-        date: new Date().toISOString().slice(0, 16), // YYYY-MM-DDTHH:mm 형식
+        date: format(addHours(new Date(), 0), "yyyy-MM-dd'T'HH:mm"), // YYYY-MM-DDTHH:mm 형식
         quantity: '',
         action: 'SUBTRACT',
         notes: ''
