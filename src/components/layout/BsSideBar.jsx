@@ -134,6 +134,13 @@ export default function BsSideBar() {
             <SubMenuItem to="/sales/salesvoucherlist" icon="card-list" text="회원권 이용현황" />
           </DropdownMenu>
           
+          
+
+          <DropdownMenu icon="box-seam" title="상품관리">
+            <SubMenuItem to="/product" icon="box-seam" text="상품목록" />
+            <SubMenuItem to="/stock"  icon="boxes"    text="재고현황" />
+          </DropdownMenu>
+
           {/* 판매 */}
           <DropdownMenu icon="graph-up" title="판매">
             
@@ -145,14 +152,11 @@ export default function BsSideBar() {
             
           </DropdownMenu>
 
-          <DropdownMenu icon="box-seam" title="상품관리">
-            <SubMenuItem to="/product" icon="box-seam" text="상품목록" />
-            <SubMenuItem to="/stock"  icon="boxes"    text="재고현황" />
-          </DropdownMenu>
-
           <DropdownMenu icon="chat-dots" title="게시판">
             <SubMenuItem to="/post" icon="list-ul" text="게시글 목록" />
           </DropdownMenu>
+
+
         </ul>
       </div>
 
