@@ -1,5 +1,7 @@
 // src/router/index.jsx
-import { createBrowserRouter, createHashRouter } from "react-router-dom";
+
+import { createHashRouter } from "react-router-dom";
+
 
 import App from "../App.jsx";
 import ProtectedRoute from "../components/ProtectedRoute.jsx";
