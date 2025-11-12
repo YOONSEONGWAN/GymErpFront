@@ -5,6 +5,7 @@ import axios from 'axios';
 import Pagination from '../../components/Pagination';
 import EmpSearchModal from '../../components/EmpSearchModal';
 import SalesServiceSearchModal from '../../components/SalesServiceSearchModal';
+
 const LIST_API = "/v1/sales/products";
 
 // empEmail을 목록 표시용으로 사용
@@ -19,7 +20,7 @@ const normalizeRow = (row, fallbackIndex) => {
     category: row.productType ?? '-',
     productName: row.productName ?? '-',
     quantity: qty,
-    empText: row.empEmail ?? row.empNum ?? '-',
+    empText: row.empName ?? row.empNum ?? '-',
     totalAmount: row.totalAmount ?? unit * qty,
   };
 };
@@ -34,7 +35,7 @@ const fetchSalesData = async (filter) => {
   if (filter.empNum) params.empNum = filter.empNum;
   if (filter.keyword) params.productNameKeyword = filter.keyword;
 
-  const res = await axios.get(LIST_API, { params });
+  const res = await axios.get("/v1/sales/products", { params });
 
   const pageSize = Number(res.data?.pageSize ?? filter.size ?? 10);
   const totalCount = Number(res.data?.totalCount ?? 0);
@@ -259,7 +260,7 @@ function SalesItemList() {
                   <th style={{ width: "10%" }}>구분</th>
                   <th style={{ width: "25%" }}>상품명</th>
                   <th style={{ width: "10%" }}>수량</th>
-                  <th style={{ width: "20%" }}>판매자 이메일</th>
+                  <th style={{ width: "20%" }}>판매자 이름</th>
                   <th style={{ width: "10%" }}>총액(원)</th>
                 </tr>
               </thead>
@@ -350,8 +351,10 @@ function SalesItemList() {
             show={empModalOpen}
             onHide={() => setEmpModalOpen(false)}
             onExited={() => { }}
-            onConfirm={(picked) => {
-              setFilterDetails(prev => ({ ...prev, empNum: picked.empNum }));
+            onSuccess={(picked) => {
+              // picked는 배열 형태로 넘어옴 (EmpSearchModal에서 selectedArr로 전달)
+              const emp = Array.isArray(picked) ? picked[0] : picked;
+              setFilterDetails(prev => ({ ...prev, empNum: emp?.empNum ?? '' }));
               setPage(1);
             }}
             multi={false}

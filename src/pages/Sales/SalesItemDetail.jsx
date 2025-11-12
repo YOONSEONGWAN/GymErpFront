@@ -99,6 +99,7 @@ export default function SalesItemDetail() {
       setErr("상세를 표시할 항목 ID가 없습니다.");
       return;
     }
+    console.log("Debug: itemId value is:", itemId); 
     (async () => {
       setErr("");
       setLoading(true);

@@ -3,9 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Modal, Button, Table, Form, Badge, ListGroup, InputGroup } from "react-bootstrap";
 import axios from "axios";
 
-
 const LIST_API = "/v1/modals/employees";
-
 
 export default function EmpSearchModal({
   show,
@@ -161,7 +159,6 @@ export default function EmpSearchModal({
       size="lg"
       backdrop="static"
       keyboard
-      unmountOnClose
     >
       <Modal.Header closeButton>
         <Modal.Title>직원 검색 / 선택</Modal.Title>
